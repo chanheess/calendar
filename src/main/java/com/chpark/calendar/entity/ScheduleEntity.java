@@ -64,4 +64,15 @@ public class ScheduleEntity {
     public void setEndTime(LocalDateTime endTime) {
         this.endTime = endTime;
     }
+
+    @Override
+    public String toString() {
+        return "ScheduleEntity{" +
+                "id=" + id +
+                ", title='" + title + '\'' +
+                ", description='" + description + '\'' +
+                ", startTime=" + startTime +
+                ", endTime=" + endTime +
+                '}';
+    }
 }

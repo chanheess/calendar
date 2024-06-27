@@ -4,6 +4,8 @@ import com.chpark.calendar.entity.ScheduleEntity;
 import com.chpark.calendar.repository.CalendarRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class CalendarService {
 
@@ -18,6 +20,8 @@ public class CalendarService {
         return scheduleEntity.getId();
     }
 
-    //public
+    public List<ScheduleEntity> findSchedulesByTitle(String title) {
+        return calendarRepository.findByTitleContaining(title);
+    }
 
 }
