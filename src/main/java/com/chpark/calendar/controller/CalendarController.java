@@ -19,7 +19,10 @@ public class CalendarController {
         return "test";
     }
 
-//    @PostMapping("/Schedule/new")
+    @PostMapping("/schedule/new")
+    public void create() {
+
+    }
 
 
 }

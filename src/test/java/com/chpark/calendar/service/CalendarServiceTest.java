@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 @SpringBootTest
 @EnableTransactionManagement
@@ -62,5 +63,50 @@ public class CalendarServiceTest {
         assertFalse(result.isEmpty());
 
         result.forEach(schedule -> logger.info("Found Schedule: {}", schedule));
+    }
+
+    @Test
+    @Transactional
+    void updateTest() {
+        ScheduleEntity scheduleEntity = new ScheduleEntity();
+        scheduleEntity.setTitle("hello world");
+        scheduleEntity.setDescription("just test");
+        scheduleEntity.setStartTime(LocalDateTime.now());
+        scheduleEntity.setEndTime(LocalDateTime.now().plusDays(3));
+        calendarRepository.save(scheduleEntity);
+
+        scheduleEntity.setTitle("hi cloud");
+        scheduleEntity.setDescription("update?");
+        scheduleEntity.setStartTime(LocalDateTime.now());
+        scheduleEntity.setEndTime(LocalDateTime.now().plusDays(8));
+
+        calendarService.update(scheduleEntity);
+
+        List<ScheduleEntity> result = calendarService.findSchedulesByTitle("hi");
+        assertFalse(result.isEmpty());
+        result.forEach(schedule -> logger.info("Found Schedule: {}", schedule));
+    }
+
+    @Test
+    @Transactional
+    void deleteTest() {
+        ScheduleEntity scheduleEntity = new ScheduleEntity();
+        scheduleEntity.setTitle("delete test");
+        scheduleEntity.setStartTime(LocalDateTime.now());
+        scheduleEntity.setEndTime(LocalDateTime.now().plusDays(8));
+
+        calendarRepository.save(scheduleEntity);
+
+        int deletedId = scheduleEntity.getId();
+        calendarService.delete(scheduleEntity.getId());
+
+        ScheduleEntity result = calendarRepository.findById(deletedId).orElse(null);
+        assertNull(result);
+
+        if (result == null) {
+            logger.info("Schedule with ID {} was successfully deleted.", deletedId);
+        } else {
+            logger.warn("Schedule with ID {} was not deleted.", deletedId);
+        }
     }
 }
