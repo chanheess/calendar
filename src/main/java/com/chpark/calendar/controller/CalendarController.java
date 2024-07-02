@@ -2,17 +2,18 @@ package com.chpark.calendar.controller;
 
 import com.chpark.calendar.entity.ScheduleEntity;
 import com.chpark.calendar.service.CalendarService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+
+
 @RestController
 @RequestMapping("/schedules")
+@Slf4j
 public class CalendarController {
 
-    private static final Logger logger = LoggerFactory.getLogger(CalendarController.class);
     private final CalendarService calendarService;
 
     public CalendarController(CalendarService calendarService) {
@@ -57,7 +58,7 @@ public class CalendarController {
 
     @GetMapping("/date")
     public List<ScheduleEntity> getSchedulesForDate(@RequestParam("year") int year, @RequestParam("month") int month, @RequestParam("day") int day) {
-        logger.info("Fetching schedules for year: {}, month: {}, day: {}", year, month, day);
+        log.info("Fetching schedules for year: {}, month: {}, day: {}", year, month, day);
         return calendarService.getSchedulesForDate(year, month, day);
     }
 
