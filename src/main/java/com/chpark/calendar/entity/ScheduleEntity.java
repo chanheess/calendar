@@ -18,11 +18,11 @@ public class ScheduleEntity {
     @Column(name = "description")
     private String description;
 
-    @Column(name = "startTime", nullable = false)
-    private LocalDateTime startTime;
+    @Column(name = "start_at", nullable = false)
+    private LocalDateTime startAt;
 
-    @Column(name = "endTime", nullable = false)
-    private LocalDateTime endTime;
+    @Column(name = "end_at", nullable = false)
+    private LocalDateTime endAt;
 
     public int getId() {
         return id;
@@ -48,21 +48,20 @@ public class ScheduleEntity {
         this.description = description;
     }
 
-
-    public LocalDateTime getStartTime() {
-        return startTime;
+    public LocalDateTime getStartAt() {
+        return startAt;
     }
 
-    public void setStartTime(LocalDateTime startTime) {
-        this.startTime = startTime;
+    public void setStartAt(LocalDateTime startAt) {
+        this.startAt = startAt;
     }
 
-    public LocalDateTime getEndTime() {
-        return endTime;
+    public LocalDateTime getEndAt() {
+        return endAt;
     }
 
-    public void setEndTime(LocalDateTime endTime) {
-        this.endTime = endTime;
+    public void setEndAt(LocalDateTime endAt) {
+        this.endAt = endAt;
     }
 
     @Override
@@ -71,8 +70,9 @@ public class ScheduleEntity {
                 "id=" + id +
                 ", title='" + title + '\'' +
                 ", description='" + description + '\'' +
-                ", startTime=" + startTime +
-                ", endTime=" + endTime +
+                ", startAt=" + startAt +
+                ", endAt=" + endAt +
                 '}';
     }
+
 }

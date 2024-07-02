@@ -4,6 +4,7 @@ import com.chpark.calendar.entity.ScheduleEntity;
 import com.chpark.calendar.repository.CalendarRepository;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -16,26 +17,25 @@ public class CalendarService {
         this.calendarRepository = calendarRepository;
     }
 
-    public int create(ScheduleEntity scheduleEntity) {
-        calendarRepository.save(scheduleEntity);
-        return scheduleEntity.getId();
+    public ScheduleEntity create(ScheduleEntity scheduleEntity) {
+        return calendarRepository.save(scheduleEntity);
     }
 
     public List<ScheduleEntity> findSchedulesByTitle(String title) {
         return calendarRepository.findByTitleContaining(title);
     }
 
-    public void update(ScheduleEntity scheduleEntity) {
+    public ScheduleEntity update(ScheduleEntity scheduleEntity) {
 
         Optional<ScheduleEntity> updateData = calendarRepository.findById(scheduleEntity.getId());
         if(updateData.isPresent()){
             ScheduleEntity schedule = updateData.get();
             schedule.setTitle(scheduleEntity.getTitle());
             schedule.setDescription(scheduleEntity.getDescription());
-            schedule.setStartTime(scheduleEntity.getStartTime());
-            schedule.setEndTime(scheduleEntity.getEndTime());
+            schedule.setStartAt(scheduleEntity.getStartAt());
+            schedule.setEndAt(scheduleEntity.getEndAt());
 
-            calendarRepository.save(schedule);
+            return calendarRepository.save(schedule);
         }
         else {
             throw new RuntimeException("Schedule not found with id " + scheduleEntity.getId());
@@ -43,13 +43,23 @@ public class CalendarService {
     }
 
     public void delete(int id) {
-        Optional<ScheduleEntity> deleteEntity = calendarRepository.findById(id);
-        if(deleteEntity.isPresent()) {
-            calendarRepository.deleteById(id);
-        }
-        else {
-            throw new RuntimeException("Schedule not found with id " + id);
-        }
+        calendarRepository.deleteById(id);
+    }
+
+    public List<ScheduleEntity> findAll() {
+        return calendarRepository.findAll();
+    }
+
+    public List<ScheduleEntity> getSchedulesForMonth(int year, int month) {
+        LocalDateTime startOfMonth = LocalDateTime.of(year, month, 1, 0, 0);
+        LocalDateTime endOfMonth = startOfMonth.plusMonths(1).minusSeconds(1);
+        return calendarRepository.findSchedules(startOfMonth, endOfMonth);
+    }
+
+    public List<ScheduleEntity> getSchedulesForDate(int year, int month, int day) {
+        LocalDateTime startOfDay = LocalDateTime.of(year, month, day, 0, 0);
+        LocalDateTime endOfDay = startOfDay.plusDays(1).minusSeconds(1);
+        return calendarRepository.findSchedules(startOfDay, endOfDay);
     }
 
 }
