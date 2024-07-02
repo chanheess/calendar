@@ -31,8 +31,8 @@ public class CalendarServiceTest {
         ScheduleEntity scheduleEntity = new ScheduleEntity();
         scheduleEntity.setTitle("hello world");
         scheduleEntity.setDescription("just test");
-        scheduleEntity.setStartTime(LocalDateTime.now());
-        scheduleEntity.setEndTime(LocalDateTime.now().plusDays(3));
+        scheduleEntity.setStartAt(LocalDateTime.now());
+        scheduleEntity.setEndAt(LocalDateTime.now().plusDays(3));
 
         calendarService.create(scheduleEntity);
     }
@@ -43,15 +43,15 @@ public class CalendarServiceTest {
         ScheduleEntity scheduleEntity1 = new ScheduleEntity();
         scheduleEntity1.setTitle("나 찾아봐라~");
         scheduleEntity1.setDescription("이게 머고?");
-        scheduleEntity1.setStartTime(LocalDateTime.now());
-        scheduleEntity1.setEndTime(LocalDateTime.now().plusDays(3));
+        scheduleEntity1.setStartAt(LocalDateTime.now());
+        scheduleEntity1.setEndAt(LocalDateTime.now().plusDays(3));
         calendarRepository.save(scheduleEntity1);
 
         ScheduleEntity scheduleEntity2 = new ScheduleEntity();
         scheduleEntity2.setTitle("나는 못  찾겠지ㅋㅋ");
         scheduleEntity2.setDescription("이건 맞지^^");
-        scheduleEntity2.setStartTime(LocalDateTime.now());
-        scheduleEntity2.setEndTime(LocalDateTime.now().plusDays(4));
+        scheduleEntity2.setStartAt(LocalDateTime.now());
+        scheduleEntity2.setEndAt(LocalDateTime.now().plusDays(4));
         calendarRepository.save(scheduleEntity2);
 
         List<ScheduleEntity> result = calendarService.findSchedulesByTitle("나");
@@ -71,14 +71,14 @@ public class CalendarServiceTest {
         ScheduleEntity scheduleEntity = new ScheduleEntity();
         scheduleEntity.setTitle("hello world");
         scheduleEntity.setDescription("just test");
-        scheduleEntity.setStartTime(LocalDateTime.now());
-        scheduleEntity.setEndTime(LocalDateTime.now().plusDays(3));
+        scheduleEntity.setStartAt(LocalDateTime.now());
+        scheduleEntity.setEndAt(LocalDateTime.now().plusDays(3));
         calendarRepository.save(scheduleEntity);
 
         scheduleEntity.setTitle("hi cloud");
         scheduleEntity.setDescription("update?");
-        scheduleEntity.setStartTime(LocalDateTime.now());
-        scheduleEntity.setEndTime(LocalDateTime.now().plusDays(8));
+        scheduleEntity.setStartAt(LocalDateTime.now());
+        scheduleEntity.setEndAt(LocalDateTime.now().plusDays(8));
 
         calendarService.update(scheduleEntity);
 
@@ -92,8 +92,8 @@ public class CalendarServiceTest {
     void deleteTest() {
         ScheduleEntity scheduleEntity = new ScheduleEntity();
         scheduleEntity.setTitle("delete test");
-        scheduleEntity.setStartTime(LocalDateTime.now());
-        scheduleEntity.setEndTime(LocalDateTime.now().plusDays(8));
+        scheduleEntity.setStartAt(LocalDateTime.now());
+        scheduleEntity.setEndAt(LocalDateTime.now().plusDays(8));
 
         calendarRepository.save(scheduleEntity);
 
@@ -109,4 +109,24 @@ public class CalendarServiceTest {
             logger.warn("Schedule with ID {} was not deleted.", deletedId);
         }
     }
+
+    @Test
+    @Transactional
+    void scheduleSearching() {
+        ScheduleEntity scheduleEntity = new ScheduleEntity();
+        scheduleEntity.setTitle("schedule searching test");
+        scheduleEntity.setStartAt(LocalDateTime.now());
+        scheduleEntity.setEndAt(LocalDateTime.now().plusDays(8));
+
+        calendarRepository.save(scheduleEntity);
+
+        List<ScheduleEntity> datelist = calendarService.getSchedulesForDate(LocalDateTime.now().getYear(), LocalDateTime.now().getMonthValue(), LocalDateTime.now().getDayOfMonth());
+        assertFalse(datelist.isEmpty());
+        datelist.forEach(schedule -> logger.info("Found Date Schedule: {}", schedule));
+
+        List<ScheduleEntity> monthlist = calendarService.getSchedulesForMonth(LocalDateTime.now().getYear(), LocalDateTime.now().getMonthValue());
+        assertFalse(datelist.isEmpty());
+        monthlist.forEach(schedule -> logger.info("Found Month Schedule: {}", schedule));
+    }
+
 }
