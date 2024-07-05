@@ -1,7 +1,7 @@
 package com.chpark.calendar.controller;
 
 import com.chpark.calendar.dto.ScheduleDto;
-import com.chpark.calendar.service.CalendarService;
+import com.chpark.calendar.service.ScheduleService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,12 +13,12 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/schedules")
 @Slf4j
-public class CalendarController {
+public class ScheduleController {
 
-    private final CalendarService calendarService;
+    private final ScheduleService scheduleService;
 
-    public CalendarController(CalendarService calendarService) {
-        this.calendarService = calendarService;
+    public ScheduleController(ScheduleService scheduleService) {
+        this.scheduleService = scheduleService;
     }
 
     @GetMapping("/test")
@@ -36,27 +36,27 @@ public class CalendarController {
 
         // Title
         if (title.isPresent()) {
-            return calendarService.findSchedulesByTitle(title.get());
+            return scheduleService.findSchedulesByTitle(title.get());
         }
 
         // All
         if (year.isEmpty() && month.isEmpty() && day.isEmpty()) {
-            return calendarService.findAll();
+            return scheduleService.findAll();
         }
 
         // year
         if (year.isPresent() && month.isEmpty() && day.isEmpty()) {
-            return calendarService.getSchedulesForYear(year.get());
+            return scheduleService.getSchedulesForYear(year.get());
         }
 
         // month
         if (year.isPresent() && month.isPresent() && day.isEmpty()) {
-            return calendarService.getSchedulesForMonth(year.get(), month.get());
+            return scheduleService.getSchedulesForMonth(year.get(), month.get());
         }
 
         // day
         if (year.isPresent() && month.isPresent() && day.isPresent()) {
-            return calendarService.getSchedulesForDate(year.get(), month.get(), day.get());
+            return scheduleService.getSchedulesForDate(year.get(), month.get(), day.get());
         }
 
         return Collections.emptyList();
@@ -64,16 +64,16 @@ public class CalendarController {
 
     @PostMapping
     public ScheduleDto createSchedule(@RequestBody ScheduleDto schedule) {
-        return calendarService.create(schedule);
+        return scheduleService.create(schedule);
     }
 
     @PutMapping()
     public ScheduleDto updateSchedule(@RequestBody ScheduleDto schedule) {
-        return calendarService.update(schedule).get();
+        return scheduleService.update(schedule).get();
     }
 
     @DeleteMapping("/{id}")
     public void deleteSchedule(@PathVariable int id) {
-        calendarService.delete(id);
+        scheduleService.delete(id);
     }
 }

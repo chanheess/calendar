@@ -20,16 +20,16 @@ public class ScheduleDto {
     private LocalDateTime startAt;
     private LocalDateTime endAt;
 
-    public ScheduleDto(ScheduleEntity scheduleEntity) {
-        setId(scheduleEntity.getId());
-        setTitle(scheduleEntity.getTitle());
-        setDescription(scheduleEntity.getDescription());
-        setStartAt(scheduleEntity.getStartAt());
-        setEndAt(scheduleEntity.getEndAt());
+    public ScheduleDto(ScheduleEntity entity) {
+        setId(entity.getId());
+        setTitle(entity.getTitle());
+        setDescription(entity.getDescription());
+        setStartAt(entity.getStartAt());
+        setEndAt(entity.getEndAt());
     }
 
-    public static List<ScheduleDto> ConvertScheduleEntities(List<ScheduleEntity> scheduleEntities) {
-        return scheduleEntities.stream()
+    public static List<ScheduleDto> ConvertScheduleEntities(List<ScheduleEntity> entityList) {
+        return entityList.stream()
                 .map(ScheduleDto::new)
                 .collect(Collectors.toList());
     }

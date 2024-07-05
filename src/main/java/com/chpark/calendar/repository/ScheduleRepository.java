@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
-public interface CalendarRepository extends JpaRepository<ScheduleEntity, Integer> {
+public interface ScheduleRepository extends JpaRepository<ScheduleEntity, Integer> {
     List<ScheduleEntity> findByTitleContaining(String title);
 
     @Query("SELECT s FROM ScheduleEntity s WHERE s.startAt <= :end AND s.endAt >= :start")
