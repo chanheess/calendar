@@ -1,12 +1,13 @@
 package com.chpark.calendar.controller;
 
-import com.chpark.calendar.entity.ScheduleEntity;
+import com.chpark.calendar.dto.ScheduleDto;
 import com.chpark.calendar.service.CalendarService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
 import java.util.List;
-
+import java.util.Optional;
 
 
 @RestController
@@ -25,42 +26,54 @@ public class CalendarController {
         return "test";
     }
 
-    @GetMapping("/all")
-    public List<ScheduleEntity> getAllSchedules() {
-        return calendarService.findAll();
-    }
+    @GetMapping
+    public List<ScheduleDto> getSchedules(@RequestParam("year") Optional<Integer> year,
+                                          @RequestParam("month") Optional<Integer> month,
+                                          @RequestParam("day") Optional<Integer> day,
+                                          @RequestParam("title") Optional<String> title) {
 
-    @GetMapping("/{title}")
-    public List<ScheduleEntity> getScheduleById(@PathVariable String title) {
-        return calendarService.findSchedulesByTitle(title);
+        log.info("Fetching schedules for year: {}, month: {}, day: {}, title: {}", year, month, day, title);
+
+        // Title
+        if (title.isPresent()) {
+            return calendarService.findSchedulesByTitle(title.get());
+        }
+
+        // All
+        if (year.isEmpty() && month.isEmpty() && day.isEmpty()) {
+            return calendarService.findAll();
+        }
+
+        // year
+        if (year.isPresent() && month.isEmpty() && day.isEmpty()) {
+            return calendarService.getSchedulesForYear(year.get());
+        }
+
+        // month
+        if (year.isPresent() && month.isPresent() && day.isEmpty()) {
+            return calendarService.getSchedulesForMonth(year.get(), month.get());
+        }
+
+        // day
+        if (year.isPresent() && month.isPresent() && day.isPresent()) {
+            return calendarService.getSchedulesForDate(year.get(), month.get(), day.get());
+        }
+
+        return Collections.emptyList();
     }
 
     @PostMapping
-    public ScheduleEntity createSchedule(@RequestBody ScheduleEntity schedule) {
+    public ScheduleDto createSchedule(@RequestBody ScheduleDto schedule) {
         return calendarService.create(schedule);
     }
 
-    @PutMapping("/{id}")
-    public ScheduleEntity updateSchedule(@PathVariable int id, @RequestBody ScheduleEntity schedule) {
-        schedule.setId(id);
-        return calendarService.update(schedule);
+    @PutMapping()
+    public ScheduleDto updateSchedule(@RequestBody ScheduleDto schedule) {
+        return calendarService.update(schedule).get();
     }
 
     @DeleteMapping("/{id}")
     public void deleteSchedule(@PathVariable int id) {
         calendarService.delete(id);
     }
-
-    @GetMapping("/month")
-    public List<ScheduleEntity> getSchedulesForMonth(@RequestParam("year") int year, @RequestParam("month") int month) {
-        return calendarService.getSchedulesForMonth(year, month);
-    }
-
-    @GetMapping("/date")
-    public List<ScheduleEntity> getSchedulesForDate(@RequestParam("year") int year, @RequestParam("month") int month, @RequestParam("day") int day) {
-        log.info("Fetching schedules for year: {}, month: {}, day: {}", year, month, day);
-        return calendarService.getSchedulesForDate(year, month, day);
-    }
-
-
 }

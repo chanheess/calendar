@@ -1,11 +1,11 @@
 package com.chpark.calendar.service;
 
+import com.chpark.calendar.dto.ScheduleDto;
 import com.chpark.calendar.entity.ScheduleEntity;
 import com.chpark.calendar.repository.CalendarRepository;
 import jakarta.transaction.Transactional;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
@@ -18,23 +18,22 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 @SpringBootTest
 @EnableTransactionManagement
+@Slf4j
 public class CalendarServiceTest {
 
     @Autowired CalendarService calendarService;
     @Autowired CalendarRepository calendarRepository;
 
-    private static final Logger logger = (Logger) LoggerFactory.getLogger(CalendarServiceTest.class);
-
     @Test
     @Transactional
     void join() {
-        ScheduleEntity scheduleEntity = new ScheduleEntity();
-        scheduleEntity.setTitle("hello world");
-        scheduleEntity.setDescription("just test");
-        scheduleEntity.setStartAt(LocalDateTime.now());
-        scheduleEntity.setEndAt(LocalDateTime.now().plusDays(3));
+        ScheduleDto scheduleDto = new ScheduleDto();
+        scheduleDto.setTitle("hello world");
+        scheduleDto.setDescription("just test");
+        scheduleDto.setStartAt(LocalDateTime.now());
+        scheduleDto.setEndAt(LocalDateTime.now().plusDays(3));
 
-        calendarService.create(scheduleEntity);
+        calendarService.create(scheduleDto);
     }
 
     @Test
@@ -54,15 +53,15 @@ public class CalendarServiceTest {
         scheduleEntity2.setEndAt(LocalDateTime.now().plusDays(4));
         calendarRepository.save(scheduleEntity2);
 
-        List<ScheduleEntity> result = calendarService.findSchedulesByTitle("나");
+        List<ScheduleDto> result = calendarService.findSchedulesByTitle("나");
         assertFalse(result.isEmpty());
 
-        result.forEach(schedule -> logger.info("Found Schedule: {}", schedule));
+        result.forEach(schedule -> log.info("Found Schedule: {}", schedule));
 
         result = calendarService.findSchedulesByTitle("나는");
         assertFalse(result.isEmpty());
 
-        result.forEach(schedule -> logger.info("Found Schedule: {}", schedule));
+        result.forEach(schedule -> log.info("Found Schedule: {}", schedule));
     }
 
     @Test
@@ -80,11 +79,11 @@ public class CalendarServiceTest {
         scheduleEntity.setStartAt(LocalDateTime.now());
         scheduleEntity.setEndAt(LocalDateTime.now().plusDays(8));
 
-        calendarService.update(scheduleEntity);
+        calendarService.update(new ScheduleDto(scheduleEntity));
 
-        List<ScheduleEntity> result = calendarService.findSchedulesByTitle("hi");
+        List<ScheduleDto> result = calendarService.findSchedulesByTitle("hi");
         assertFalse(result.isEmpty());
-        result.forEach(schedule -> logger.info("Found Schedule: {}", schedule));
+        result.forEach(schedule -> log.info("Found Schedule: {}", schedule));
     }
 
     @Test
@@ -104,9 +103,9 @@ public class CalendarServiceTest {
         assertNull(result);
 
         if (result == null) {
-            logger.info("Schedule with ID {} was successfully deleted.", deletedId);
+            log.info("Schedule with ID {} was successfully deleted.", deletedId);
         } else {
-            logger.warn("Schedule with ID {} was not deleted.", deletedId);
+            log.warn("Schedule with ID {} was not deleted.", deletedId);
         }
     }
 
@@ -120,13 +119,17 @@ public class CalendarServiceTest {
 
         calendarRepository.save(scheduleEntity);
 
-        List<ScheduleEntity> datelist = calendarService.getSchedulesForDate(LocalDateTime.now().getYear(), LocalDateTime.now().getMonthValue(), LocalDateTime.now().getDayOfMonth());
-        assertFalse(datelist.isEmpty());
-        datelist.forEach(schedule -> logger.info("Found Date Schedule: {}", schedule));
+        List<ScheduleDto> dateList = calendarService.getSchedulesForDate(LocalDateTime.now().getYear(), LocalDateTime.now().getMonthValue(), LocalDateTime.now().getDayOfMonth());
+        assertFalse(dateList.isEmpty());
+        dateList.forEach(schedule -> log.info("Found Date Schedule: {}", schedule));
 
-        List<ScheduleEntity> monthlist = calendarService.getSchedulesForMonth(LocalDateTime.now().getYear(), LocalDateTime.now().getMonthValue());
-        assertFalse(datelist.isEmpty());
-        monthlist.forEach(schedule -> logger.info("Found Month Schedule: {}", schedule));
+        List<ScheduleDto> monthList = calendarService.getSchedulesForMonth(LocalDateTime.now().getYear(), LocalDateTime.now().getMonthValue());
+        assertFalse(monthList.isEmpty());
+        monthList.forEach(schedule -> log.info("Found Month Schedule: {}", schedule));
+
+        List<ScheduleDto> yearList = calendarService.getSchedulesForYear(LocalDateTime.now().getYear());
+        assertFalse(yearList.isEmpty());
+        yearList.forEach(schedule -> log.info("Found Year Schedule: {}", schedule));
     }
 
 }
