@@ -81,7 +81,7 @@ public class ScheduleServiceTest {
         scheduleEntity.setStartAt(LocalDateTime.now());
         scheduleEntity.setEndAt(LocalDateTime.now().plusDays(8));
 
-        scheduleService.update(new ScheduleDto(scheduleEntity));
+        scheduleService.update(scheduleEntity.getId(), new ScheduleDto(scheduleEntity));
 
         List<ScheduleDto> result = scheduleService.findSchedulesByTitle("hi");
         assertFalse(result.isEmpty());
@@ -99,7 +99,7 @@ public class ScheduleServiceTest {
         scheduleRepository.save(scheduleEntity);
 
         int deletedId = scheduleEntity.getId();
-        scheduleService.delete(scheduleEntity.getId());
+        scheduleService.deleteById(scheduleEntity.getId());
 
         ScheduleEntity result = scheduleRepository.findById(deletedId).orElse(null);
         assertNull(result);

@@ -7,7 +7,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
 
 @RestController
@@ -27,39 +26,37 @@ public class ScheduleController {
     }
 
     @GetMapping
-    public List<ScheduleDto> getSchedules(@RequestParam("year") Optional<Integer> year,
-                                          @RequestParam("month") Optional<Integer> month,
-                                          @RequestParam("day") Optional<Integer> day,
-                                          @RequestParam("title") Optional<String> title) {
+    public List<ScheduleDto> getAllSchedule() {
+        return scheduleService.findAll();
+    }
 
-        log.info("Fetching schedules for year: {}, month: {}, day: {}, title: {}", year, month, day, title);
+    @GetMapping("/date")
+    public List<ScheduleDto> getSchedules(@RequestParam("year") Integer year, @RequestParam("month") Integer month, @RequestParam("day") Integer day) {
 
-        // Title
-        if (title.isPresent()) {
-            return scheduleService.findSchedulesByTitle(title.get());
-        }
+        log.info("Fetching schedules for year: {}, month: {}, day: {}", year, month, day);
 
-        // All
-        if (year.isEmpty() && month.isEmpty() && day.isEmpty()) {
-            return scheduleService.findAll();
+        //empty
+        if (year == null) {
+            return Collections.emptyList();
         }
 
         // year
-        if (year.isPresent() && month.isEmpty() && day.isEmpty()) {
-            return scheduleService.getSchedulesForYear(year.get());
+        if (month == null) {
+            return scheduleService.getSchedulesForYear(year);
         }
 
         // month
-        if (year.isPresent() && month.isPresent() && day.isEmpty()) {
-            return scheduleService.getSchedulesForMonth(year.get(), month.get());
+        if (day == null) {
+            return scheduleService.getSchedulesForMonth(year, month);
         }
 
         // day
-        if (year.isPresent() && month.isPresent() && day.isPresent()) {
-            return scheduleService.getSchedulesForDate(year.get(), month.get(), day.get());
-        }
+        return scheduleService.getSchedulesForDate(year, month, day);
+    }
 
-        return Collections.emptyList();
+    @GetMapping("/{title}")
+    public List<ScheduleDto> findSchedulesByTitle(@PathVariable("title") String title) {
+        return scheduleService.findSchedulesByTitle(title);
     }
 
     @PostMapping
@@ -67,13 +64,13 @@ public class ScheduleController {
         return scheduleService.create(schedule);
     }
 
-    @PutMapping()
-    public ScheduleDto updateSchedule(@RequestBody ScheduleDto schedule) {
-        return scheduleService.update(schedule).get();
+    @PutMapping("/{id}")
+    public ScheduleDto updateSchedule(@PathVariable("id") int id, @RequestBody ScheduleDto schedule) {
+        return scheduleService.update(id, schedule).get();
     }
 
     @DeleteMapping("/{id}")
-    public void deleteSchedule(@PathVariable int id) {
-        scheduleService.delete(id);
+    public void deleteSchedule(@PathVariable("id") int id) {
+        scheduleService.deleteById(id);
     }
 }

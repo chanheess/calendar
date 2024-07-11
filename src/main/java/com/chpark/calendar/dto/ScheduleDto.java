@@ -14,21 +14,20 @@ import java.util.stream.Collectors;
 @NoArgsConstructor
 public class ScheduleDto {
 
-    private int id;
     private String title;
     private String description;
     private LocalDateTime startAt;
     private LocalDateTime endAt;
 
+
     public ScheduleDto(ScheduleEntity entity) {
-        setId(entity.getId());
         setTitle(entity.getTitle());
         setDescription(entity.getDescription());
         setStartAt(entity.getStartAt());
         setEndAt(entity.getEndAt());
     }
 
-    public static List<ScheduleDto> ConvertScheduleEntities(List<ScheduleEntity> entityList) {
+    public static List<ScheduleDto> fromScheduleEntityList(List<ScheduleEntity> entityList) {
         return entityList.stream()
                 .map(ScheduleDto::new)
                 .collect(Collectors.toList());
