@@ -19,10 +19,9 @@ public class ScheduleService {
     }
 
     public ScheduleDto create(ScheduleDto scheduleDto) {
-        ScheduleEntity scheduleEntity = new ScheduleEntity(scheduleDto);
-        ScheduleEntity savedEntity = scheduleRepository.save(scheduleEntity);
+        ScheduleEntity savedEntity = scheduleRepository.save(new ScheduleEntity(scheduleDto));
 
-        return scheduleDto;
+        return new ScheduleDto(savedEntity);
     }
 
     public List<ScheduleDto> findSchedulesByTitle(String title) {
@@ -32,6 +31,7 @@ public class ScheduleService {
     public Optional<ScheduleDto> update(int id, ScheduleDto scheduleDto) {
 
         Optional<ScheduleEntity> updateData = scheduleRepository.findById(id);
+
         if(updateData.isPresent()){
             ScheduleEntity schedule = updateData.get();
             schedule.setTitle(scheduleDto.getTitle());
@@ -53,6 +53,10 @@ public class ScheduleService {
 
     public List<ScheduleDto> findAll() {
         return ScheduleDto.fromScheduleEntityList(scheduleRepository.findAll());
+    }
+
+    public boolean existsById(int id) {
+        return scheduleRepository.existsById(id);
     }
 
     //TODO: year, month와 date의 통합할 방법은 없는가

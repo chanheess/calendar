@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 @NoArgsConstructor
 public class ScheduleDto {
 
+    private int id;
     private String title;
     private String description;
     private LocalDateTime startAt;
@@ -21,6 +22,7 @@ public class ScheduleDto {
 
 
     public ScheduleDto(ScheduleEntity entity) {
+        setId(entity.getId());
         setTitle(entity.getTitle());
         setDescription(entity.getDescription());
         setStartAt(entity.getStartAt());
