@@ -137,13 +137,13 @@
                 },
                 events: function(fetchInfo, successCallback, failureCallback) {
                     // Fetch API를 사용하여 일정 데이터를 가져오는 로직
-                    fetch('/schedules/month?year=' + fetchInfo.start.getFullYear() + '&month=' + (fetchInfo.start.getMonth() + 1))
+                    fetch('/schedules?year=' + fetchInfo.start.getFullYear() + '&month=' + (fetchInfo.start.getMonth() + 1))
                         .then(response => response.json())
                         .then(data => {
                             var events = data.map(event => ({
                                 title: event.title,
-                                start: event.startTime,
-                                end: event.endTime,
+                                start: event.startAt,
+                                end: event.endAt,
                                 description: event.description
                             }));
                             successCallback(events);
@@ -165,7 +165,7 @@
                     popup.classList.add('show');
 
                     // Fetch API를 사용하여 GET 요청을 보냅니다.
-                    fetch('/schedules/date?year=' + info.date.getFullYear() + '&month=' + (info.date.getMonth() + 1) + '&day=' + info.date.getDate())
+                    fetch('/schedules?year=' + info.date.getFullYear() + '&month=' + (info.date.getMonth() + 1) + '&day=' + info.date.getDate())
                         .then(response => response.json())
                         .then(data => {
                             if (data.length > 0) {
