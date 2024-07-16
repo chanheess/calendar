@@ -24,6 +24,7 @@ public class ScheduleNotificationEntity {
 
     @Column(name = "notification_at", nullable = false)
     private LocalDateTime notificationAt;
+
     public ScheduleNotificationEntity(int requestScheduleId, ScheduleNotificationDto.Request notificationDto) {
         setScheduleId(requestScheduleId);
         setNotificationAt(notificationDto.getNotificationAt());

@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -35,7 +36,9 @@ public class ScheduleServiceTest {
         scheduleDto.setStartAt(LocalDateTime.now());
         scheduleDto.setEndAt(LocalDateTime.now().plusDays(3));
 
-        scheduleService.create(scheduleDto);
+        ScheduleDto logDto = scheduleService.create(scheduleDto);
+
+        log.info("schedule info: {}", logDto);
     }
 
     @Test
@@ -132,6 +135,23 @@ public class ScheduleServiceTest {
         List<ScheduleDto> yearList = scheduleService.getSchedulesForYear(LocalDateTime.now().getYear());
         assertFalse(yearList.isEmpty());
         yearList.forEach(schedule -> log.info("Found Year Schedule: {}", schedule));
+    }
+
+    @Test
+    @Transactional
+    void scheduleExistsById() {
+        ScheduleEntity scheduleEntity = new ScheduleEntity();
+        scheduleEntity.setTitle("schedule exists test");
+        scheduleEntity.setStartAt(LocalDateTime.now());
+        scheduleEntity.setEndAt(LocalDateTime.now().plusDays(8));
+
+        scheduleRepository.save(scheduleEntity);
+
+        if(scheduleService.existsById(scheduleEntity.getId())) {
+            log.info("Check by id: {}", scheduleEntity);
+        } else {
+            log.info("Schedule not found");
+        }
     }
 
 }

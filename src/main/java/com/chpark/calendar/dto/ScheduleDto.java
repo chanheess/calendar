@@ -35,4 +35,15 @@ public class ScheduleDto {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public String toString() {
+        return "ScheduleDto{" +
+                "id=" + id +
+                ", title='" + title + '\'' +
+                ", description='" + description + '\'' +
+                ", startAt=" + startAt +
+                ", endAt=" + endAt +
+                '}';
+    }
+
 }
