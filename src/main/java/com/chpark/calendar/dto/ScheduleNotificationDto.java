@@ -19,8 +19,8 @@ public class ScheduleNotificationDto {
         @FutureOrPresent(message = "The notification date must be in the present or future")
         private LocalDateTime notificationAt;
 
-        public Request(ScheduleNotificationEntity entity) {
-            this.notificationAt = entity.getNotificationAt();
+        public Request(LocalDateTime dateAt) {
+            this.notificationAt = dateAt;
         }
     }
 
@@ -37,7 +37,7 @@ public class ScheduleNotificationDto {
 
         public Response(ScheduleNotificationEntity entity) {
             setId(entity.getId());
-            setScheduleId(entity.getScheduleId());
+            setScheduleId(entity.getSchedule().getId());
             setNotificationAt(entity.getNotificationAt());
         }
 

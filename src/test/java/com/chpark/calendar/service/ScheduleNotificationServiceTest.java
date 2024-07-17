@@ -37,7 +37,7 @@ class ScheduleNotificationServiceTest {
     ScheduleNotificationRepository notificationRepository;
 
     //일정 생성 메서드
-    public ScheduleNotificationEntity createSchedule() {
+    public ScheduleEntity createSchedule() {
         ScheduleDto scheduleDto = new ScheduleDto();
         scheduleDto.setTitle("hello world");
         scheduleDto.setDescription("just test");
@@ -47,24 +47,20 @@ class ScheduleNotificationServiceTest {
         ScheduleEntity scheduleEntity = new ScheduleEntity(scheduleDto);
         scheduleRepository.save(scheduleEntity);
 
-        ScheduleNotificationEntity scheduleNotificationEntity = new ScheduleNotificationEntity();
-        scheduleNotificationEntity.setNotificationAt(LocalDateTime.now().plusDays(3));
-        scheduleNotificationEntity.setScheduleId(scheduleEntity.getId());
-
-        return scheduleNotificationEntity;
+        return scheduleEntity;
     }
 
     @Test
     @Transactional
     void createAndFindByScheduleId() {
-        ScheduleNotificationEntity scheduleEntity = createSchedule();
-        ScheduleNotificationDto.Request request = new ScheduleNotificationDto.Request(scheduleEntity);
+        ScheduleEntity scheduleEntity = createSchedule();
+        ScheduleNotificationDto.Request request = new ScheduleNotificationDto.Request(LocalDateTime.now());
 
         //일정이 있을 때만 알림 생성 가능
-        if(scheduleService.existsById(scheduleEntity.getScheduleId())) {
-            notificationService.create(scheduleEntity.getScheduleId(), request);
+        if(scheduleService.existsById(scheduleEntity.getId())) {
+            notificationService.create(scheduleEntity.getId(), request);
 
-            List<ScheduleNotificationDto.Response> response = notificationService.findByScheduleId(scheduleEntity.getScheduleId());
+            List<ScheduleNotificationDto.Response> response = notificationService.findByScheduleId(scheduleEntity.getId());
             response.forEach(schedule -> log.info("Found Schedule: {}", schedule));
         }
         else {
@@ -75,25 +71,24 @@ class ScheduleNotificationServiceTest {
     @Test
     @Transactional
     void update() {
-        ScheduleNotificationEntity createEntity = createSchedule();
-        ScheduleNotificationDto.Request request = new ScheduleNotificationDto.Request(createEntity);
+        ScheduleEntity scheduleEntity = createSchedule();
+        ScheduleNotificationDto.Request request = new ScheduleNotificationDto.Request(LocalDateTime.now());
         Optional<ScheduleNotificationDto.Response> resultResponse = Optional.empty();
-        //일정이 있을 때만 알림 생성 가능
-        if(scheduleService.existsById(createEntity.getScheduleId())) {
-            resultResponse = notificationService.create(createEntity.getScheduleId(), request);
 
-            List<ScheduleNotificationDto.Response> response = notificationService.findByScheduleId(createEntity.getScheduleId());
+        //일정이 있을 때만 알림 생성 가능
+        if(scheduleService.existsById(scheduleEntity.getId())) {
+            resultResponse = notificationService.create(scheduleEntity.getId(), request);
+
+            List<ScheduleNotificationDto.Response> response = notificationService.findByScheduleId(scheduleEntity.getId());
             response.forEach(schedule -> log.info("Found ScheduleNotification: {}", schedule));
         }
         else {
             log.info("Not Found ScheduleNotification");
         }
 
-        createEntity.setNotificationAt(LocalDateTime.now().plusDays(30));
-        ScheduleNotificationDto.Request updateRequest = new ScheduleNotificationDto.Request(createEntity);
-
         //생성된 값이 있다면 해당 값 사용
         if(resultResponse.isPresent()) {
+            ScheduleNotificationDto.Request updateRequest = new ScheduleNotificationDto.Request(LocalDateTime.now().plusDays(30));
             Optional<ScheduleNotificationDto.Response> response = notificationService.update(resultResponse.get().getId(), updateRequest);
 
             if(response.isPresent()) {
@@ -109,15 +104,15 @@ class ScheduleNotificationServiceTest {
     @Test
     @Transactional
     void deleteById() {
-        ScheduleNotificationEntity createEntity = createSchedule();
-        ScheduleNotificationDto.Request request = new ScheduleNotificationDto.Request(createEntity);
+        ScheduleEntity scheduleEntity = createSchedule();
+        ScheduleNotificationDto.Request request = new ScheduleNotificationDto.Request(LocalDateTime.now());
         Optional<ScheduleNotificationDto.Response> resultResponse = Optional.empty();
 
         //일정이 있을 때만 알림 생성 가능
-        if(scheduleService.existsById(createEntity.getScheduleId())) {
-            resultResponse = notificationService.create(createEntity.getScheduleId(), request);
+        if(scheduleService.existsById(scheduleEntity.getId())) {
+            resultResponse = notificationService.create(scheduleEntity.getId(), request);
 
-            List<ScheduleNotificationDto.Response> response = notificationService.findByScheduleId(createEntity.getScheduleId());
+            List<ScheduleNotificationDto.Response> response = notificationService.findByScheduleId(scheduleEntity.getId());
             response.forEach(schedule -> log.info("Found ScheduleNotification: {}", schedule));
         }
         else {
@@ -128,7 +123,7 @@ class ScheduleNotificationServiceTest {
         if(resultResponse.isPresent()) {
             notificationService.deleteById(resultResponse.get().getId());
 
-            List<ScheduleNotificationDto.Response> response = notificationService.findByScheduleId(createEntity.getScheduleId());
+            List<ScheduleNotificationDto.Response> response = notificationService.findByScheduleId(scheduleEntity.getId());
             if(response.isEmpty()) {
                 log.info("Removed ScheduleNotification");
             } else {
@@ -142,17 +137,17 @@ class ScheduleNotificationServiceTest {
     @Test
     @Transactional
     void deleteNotifications() {
-        ScheduleNotificationEntity createEntity = createSchedule();
-        ScheduleNotificationDto.Request request = new ScheduleNotificationDto.Request(createEntity);
+        ScheduleEntity scheduleEntity = createSchedule();
+        ScheduleNotificationDto.Request request = new ScheduleNotificationDto.Request(LocalDateTime.now());
         Optional<ScheduleNotificationDto.Response> resultResponse = Optional.empty();
 
         //일정이 있을 때만 알림 생성 가능
-        if(scheduleService.existsById(createEntity.getScheduleId())) {
+        if(scheduleService.existsById(scheduleEntity.getId())) {
             //두 번생성
-            notificationService.create(createEntity.getScheduleId(), request);
-            resultResponse = notificationService.create(createEntity.getScheduleId(), request);
+            notificationService.create(scheduleEntity.getId(), request);
+            resultResponse = notificationService.create(scheduleEntity.getId(), request);
 
-            List<ScheduleNotificationDto.Response> response = notificationService.findByScheduleId(createEntity.getScheduleId());
+            List<ScheduleNotificationDto.Response> response = notificationService.findByScheduleId(scheduleEntity.getId());
             response.forEach(schedule -> log.info("Found ScheduleNotification: {}", schedule));
         }
         else {
@@ -163,7 +158,7 @@ class ScheduleNotificationServiceTest {
         if(resultResponse.isPresent()) {
             notificationService.deleteNotifications(resultResponse.get().getScheduleId());
 
-            List<ScheduleNotificationDto.Response> response = notificationService.findByScheduleId(createEntity.getScheduleId());
+            List<ScheduleNotificationDto.Response> response = notificationService.findByScheduleId(scheduleEntity.getId());
             if(response.isEmpty()) {
                 log.info("All Removed ScheduleNotification");
             } else {
@@ -173,4 +168,42 @@ class ScheduleNotificationServiceTest {
             log.info("Not Found ScheduleNotification");
         }
     }
+
+    @Test
+    @Transactional
+    void cascadeRemoveTest() {
+        ScheduleEntity scheduleEntity = createSchedule();
+        ScheduleNotificationDto.Request request = new ScheduleNotificationDto.Request(LocalDateTime.now());
+        Optional<ScheduleNotificationDto.Response> resultResponse = Optional.empty();
+
+        //일정이 있을 때만 알림 생성 가능
+        if(scheduleService.existsById(scheduleEntity.getId())) {
+            //두 번생성
+            notificationService.create(scheduleEntity.getId(), request);
+            resultResponse = notificationService.create(scheduleEntity.getId(), request);
+
+            List<ScheduleNotificationDto.Response> response = notificationService.findByScheduleId(scheduleEntity.getId());
+            response.forEach(schedule -> log.info("Found ScheduleNotification: {}", schedule));
+        }
+        else {
+            log.info("Not Found ScheduleNotification");
+        }
+
+        //일정을 삭제해서 연결되어 있는 알림들이 자동으로 삭제
+        if(resultResponse.isPresent()) {
+            scheduleRepository.deleteById(scheduleEntity.getId());
+
+            List<ScheduleNotificationDto.Response> response = notificationService.findByScheduleId(scheduleEntity.getId());
+            if(response.isEmpty()) {
+                log.info("All Removed ScheduleNotification");
+            } else {
+                response.forEach(schedule -> log.info("Not Removed, ScheduleNotification: {}", schedule));
+            }
+
+        } else {
+            log.info("Not Found ScheduleNotification");
+        }
+
+    }
+
 }

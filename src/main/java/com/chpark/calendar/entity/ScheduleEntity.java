@@ -7,6 +7,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @Setter
@@ -30,6 +32,14 @@ public class ScheduleEntity {
 
     @Column(name = "end_at", nullable = false)
     private LocalDateTime endAt;
+
+    @OneToMany(mappedBy = "schedule", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<ScheduleNotificationEntity> notifications = new ArrayList<>();
+
+    public void addNotification(ScheduleNotificationEntity notification) {
+        notifications.add(notification);
+        notification.setSchedule(this);
+    }
 
     @Override
     public String toString() {

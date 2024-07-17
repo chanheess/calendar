@@ -78,6 +78,4 @@ public class ScheduleService {
         return ScheduleDto.fromScheduleEntityList(scheduleRepository.findSchedules(startOfDay, endOfDay));
     }
 
-
-
 }
