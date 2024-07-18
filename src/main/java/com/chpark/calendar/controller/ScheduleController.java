@@ -1,11 +1,15 @@
 package com.chpark.calendar.controller;
 
 import com.chpark.calendar.dto.ScheduleDto;
+import com.chpark.calendar.exception.CustomException;
 import com.chpark.calendar.service.ScheduleService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Collections;
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -20,43 +24,54 @@ public class ScheduleController {
         this.scheduleService = scheduleService;
     }
 
-    @GetMapping("/test")
-    public String test() {
-        return "test";
-    }
-
     @GetMapping
-    public List<ScheduleDto> getAllSchedule() {
-        return scheduleService.findAll();
+    public ResponseEntity<List<ScheduleDto>> getSchedulesByTitle(@RequestParam(value = "title", required = false) String title) {
+
+        List<ScheduleDto> schedules;
+
+        if(title.isEmpty()) {
+            schedules = scheduleService.findAll();
+        } else {
+            schedules = scheduleService.findSchedulesByTitle(title);
+        }
+
+        if(schedules.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        } else {
+            return new ResponseEntity<>(schedules, HttpStatus.OK);
+        }
     }
 
     @GetMapping("/date")
-    public List<ScheduleDto> getSchedules(@RequestParam("year") Integer year, @RequestParam("month") Integer month, @RequestParam("day") Integer day) {
+    public ResponseEntity<List<ScheduleDto>> getSchedulesByDate(@RequestParam("year") Integer year,
+                                                                @RequestParam(value = "month", required = false) Integer month,
+                                                                @RequestParam(value = "day", required = false) Integer day) {
 
         log.info("Fetching schedules for year: {}, month: {}, day: {}", year, month, day);
 
-        //empty
-        if (year == null) {
-            return Collections.emptyList();
+        List<ScheduleDto> schedules;
+
+        if (month != null && day != null) {
+            //day의 범위를 잡기 위함
+            LocalDate.of(year, month, day);
+
+            schedules =  scheduleService.getSchedulesForDate(year, month, day);
+        } else if (month != null) {
+            if (month < 1 || month > 12) {
+                throw new CustomException("Month parameter must be between 1 and 12.");
+            }
+
+            schedules =  scheduleService.getSchedulesForMonth(year, month);
+        } else {
+            schedules =  scheduleService.getSchedulesForYear(year);
         }
 
-        // year
-        if (month == null) {
-            return scheduleService.getSchedulesForYear(year);
+        if(schedules.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        } else {
+            return new ResponseEntity<>(schedules, HttpStatus.OK);
         }
 
-        // month
-        if (day == null) {
-            return scheduleService.getSchedulesForMonth(year, month);
-        }
-
-        // day
-        return scheduleService.getSchedulesForDate(year, month, day);
-    }
-
-    @GetMapping("/{title}")
-    public List<ScheduleDto> findSchedulesByTitle(@PathVariable("title") String title) {
-        return scheduleService.findSchedulesByTitle(title);
     }
 
     @PostMapping
@@ -70,7 +85,16 @@ public class ScheduleController {
     }
 
     @DeleteMapping("/{id}")
-    public void deleteSchedule(@PathVariable("id") int id) {
-        scheduleService.deleteById(id);
+    public ResponseEntity<String> deleteSchedule(@PathVariable("id") int id) {
+        if (!scheduleService.existsById(id)) {
+            return new ResponseEntity<>("Schedule not found.", HttpStatus.NOT_FOUND);
+        }
+
+        try {
+            scheduleService.deleteById(id);
+            return new ResponseEntity<>("Schedule deleted successfully.", HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>("Failed to delete schedule.", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 }
