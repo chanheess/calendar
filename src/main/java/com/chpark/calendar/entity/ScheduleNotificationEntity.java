@@ -19,15 +19,14 @@ public class ScheduleNotificationEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
+    @Column(name = "schedule_id", nullable = false)
+    private int scheduleId;
+
     @Column(name = "notification_at", nullable = false)
     private LocalDateTime notificationAt;
 
-    @ManyToOne
-    @JoinColumn(name = "schedule_id", nullable = false)
-    private ScheduleEntity schedule;
-
-    public ScheduleNotificationEntity(ScheduleEntity requestSchedule, ScheduleNotificationDto.Request notificationDto) {
-        setSchedule(requestSchedule);
-        setNotificationAt(notificationDto.getNotificationAt());
+    public ScheduleNotificationEntity(int scheduleId, ScheduleNotificationDto.Request notificationDto) {
+        this.scheduleId = scheduleId;
+        this.notificationAt = notificationDto.getNotificationAt();
     }
 }

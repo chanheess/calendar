@@ -29,7 +29,7 @@ public class ScheduleNotificationService {
         Optional<ScheduleEntity> scheduleEntity = scheduleRepository.findById(scheduleId);
 
         if(scheduleEntity.isPresent()) {
-            ScheduleNotificationEntity notificationEntity = new ScheduleNotificationEntity(scheduleEntity.get(), scheduleNotificationDto);
+            ScheduleNotificationEntity notificationEntity = new ScheduleNotificationEntity(scheduleEntity.get().getId(), scheduleNotificationDto);
             scheduleEntity.get().addNotification(notificationEntity);
 
             ScheduleNotificationDto.Response resultDto = new ScheduleNotificationDto.Response(scheduleNotificationRepository.save(notificationEntity));

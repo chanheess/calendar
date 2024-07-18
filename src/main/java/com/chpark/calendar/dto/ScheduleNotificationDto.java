@@ -37,7 +37,7 @@ public class ScheduleNotificationDto {
 
         public Response(ScheduleNotificationEntity entity) {
             setId(entity.getId());
-            setScheduleId(entity.getSchedule().getId());
+            setScheduleId(entity.getScheduleId());
             setNotificationAt(entity.getNotificationAt());
         }
 
