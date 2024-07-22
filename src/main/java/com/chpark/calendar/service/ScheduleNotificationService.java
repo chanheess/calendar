@@ -3,6 +3,7 @@ package com.chpark.calendar.service;
 import com.chpark.calendar.dto.ScheduleNotificationDto;
 import com.chpark.calendar.entity.ScheduleEntity;
 import com.chpark.calendar.entity.ScheduleNotificationEntity;
+import com.chpark.calendar.exception.CustomException;
 import com.chpark.calendar.repository.ScheduleNotificationRepository;
 import com.chpark.calendar.repository.ScheduleRepository;
 import jakarta.transaction.Transactional;
@@ -42,6 +43,18 @@ public class ScheduleNotificationService {
 
     public List<ScheduleNotificationDto.Response> findByScheduleId(int id) {
         return ScheduleNotificationDto.Response.fromScheduleNotificationEntityList(scheduleNotificationRepository.findByScheduleId(id));
+    }
+
+    public Optional<ScheduleNotificationDto.Response> findById(int id) {
+        Optional<ScheduleNotificationEntity> findEntity = scheduleNotificationRepository.findById(id);
+
+        if(findEntity.isPresent()) {
+            ScheduleNotificationDto.Response resultResponse = new ScheduleNotificationDto.Response(findEntity.get());
+
+            return Optional.of(resultResponse);
+        } else {
+            return Optional.empty();
+        }
     }
 
     public Optional<ScheduleNotificationDto.Response> update(int notificationId, ScheduleNotificationDto.Request notificationDto) {

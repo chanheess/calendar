@@ -51,6 +51,18 @@ public class ScheduleService {
         scheduleRepository.deleteById(id);
     }
 
+    public Optional<ScheduleDto> findById(int id) {
+        Optional<ScheduleEntity> findEntity = scheduleRepository.findById(id);
+
+        if(findEntity.isPresent()) {
+            ScheduleDto resultDto = new ScheduleDto(findEntity.get());
+
+            return Optional.of(resultDto);
+        } else {
+            return Optional.empty();
+        }
+    }
+
     public List<ScheduleDto> findAll() {
         return ScheduleDto.fromScheduleEntityList(scheduleRepository.findAll());
     }
