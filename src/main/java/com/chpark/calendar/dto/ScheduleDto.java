@@ -20,6 +20,7 @@ public class ScheduleDto {
     private LocalDateTime startAt;
     private LocalDateTime endAt;
 
+
     public ScheduleDto(ScheduleEntity entity) {
         setId(entity.getId());
         setTitle(entity.getTitle());
@@ -28,10 +29,21 @@ public class ScheduleDto {
         setEndAt(entity.getEndAt());
     }
 
-    public static List<ScheduleDto> ConvertScheduleEntities(List<ScheduleEntity> entityList) {
+    public static List<ScheduleDto> fromScheduleEntityList(List<ScheduleEntity> entityList) {
         return entityList.stream()
                 .map(ScheduleDto::new)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public String toString() {
+        return "ScheduleDto{" +
+                "id=" + id +
+                ", title='" + title + '\'' +
+                ", description='" + description + '\'' +
+                ", startAt=" + startAt +
+                ", endAt=" + endAt +
+                '}';
     }
 
 }
