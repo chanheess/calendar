@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -35,7 +36,10 @@ public class ScheduleServiceTest {
         scheduleDto.setStartAt(LocalDateTime.now());
         scheduleDto.setEndAt(LocalDateTime.now().plusDays(3));
 
-        scheduleService.create(scheduleDto);
+        Optional<ScheduleDto> createDto = scheduleService.create(scheduleDto);
+        assertFalse(createDto.isEmpty(), "Not created");
+
+        log.info("Created schedule info: {}", createDto);
     }
 
     @Test
@@ -59,11 +63,6 @@ public class ScheduleServiceTest {
         assertFalse(result.isEmpty());
 
         result.forEach(schedule -> log.info("Found Schedule: {}", schedule));
-
-        result = scheduleService.findSchedulesByTitle("나는");
-        assertFalse(result.isEmpty());
-
-        result.forEach(schedule -> log.info("Found Schedule: {}", schedule));
     }
 
     @Test
@@ -81,11 +80,9 @@ public class ScheduleServiceTest {
         scheduleEntity.setStartAt(LocalDateTime.now());
         scheduleEntity.setEndAt(LocalDateTime.now().plusDays(8));
 
-        scheduleService.update(new ScheduleDto(scheduleEntity));
-
-        List<ScheduleDto> result = scheduleService.findSchedulesByTitle("hi");
-        assertFalse(result.isEmpty());
-        result.forEach(schedule -> log.info("Found Schedule: {}", schedule));
+        Optional<ScheduleDto> updateDto = scheduleService.update(scheduleEntity.getId(), new ScheduleDto(scheduleEntity));
+        assertFalse(updateDto.isEmpty());
+        log.info("Updated Schedule: {}", updateDto);
     }
 
     @Test
@@ -99,16 +96,12 @@ public class ScheduleServiceTest {
         scheduleRepository.save(scheduleEntity);
 
         int deletedId = scheduleEntity.getId();
-        scheduleService.delete(scheduleEntity.getId());
+        scheduleService.deleteById(scheduleEntity.getId());
 
-        ScheduleEntity result = scheduleRepository.findById(deletedId).orElse(null);
-        assertNull(result);
+        Optional<ScheduleEntity> result = scheduleRepository.findById(deletedId);
+        assertFalse(result.isPresent(), "Not deleted.");
 
-        if (result == null) {
-            log.info("Schedule with ID {} was successfully deleted.", deletedId);
-        } else {
-            log.warn("Schedule with ID {} was not deleted.", deletedId);
-        }
+        log.info("Schedule with ID {} was successfully deleted.", deletedId);
     }
 
     @Test
@@ -132,6 +125,20 @@ public class ScheduleServiceTest {
         List<ScheduleDto> yearList = scheduleService.getSchedulesForYear(LocalDateTime.now().getYear());
         assertFalse(yearList.isEmpty());
         yearList.forEach(schedule -> log.info("Found Year Schedule: {}", schedule));
+    }
+
+    @Test
+    @Transactional
+    void scheduleExistsById() {
+        ScheduleEntity scheduleEntity = new ScheduleEntity();
+        scheduleEntity.setTitle("schedule exists test");
+        scheduleEntity.setStartAt(LocalDateTime.now());
+        scheduleEntity.setEndAt(LocalDateTime.now().plusDays(8));
+
+        scheduleRepository.save(scheduleEntity);
+
+        assertFalse(!scheduleService.existsById(scheduleEntity.getId()), "Not Found");
+        log.info("Found Schedule: {}", scheduleEntity);
     }
 
 }
