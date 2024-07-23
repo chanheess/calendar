@@ -9,8 +9,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 
 @RestController
@@ -75,13 +75,25 @@ public class ScheduleController {
     }
 
     @PostMapping
-    public ScheduleDto createSchedule(@RequestBody ScheduleDto schedule) {
-        return scheduleService.create(schedule);
+    public ResponseEntity<ScheduleDto> createSchedule(@RequestBody ScheduleDto schedule) {
+        Optional<ScheduleDto> createDto = scheduleService.create(schedule);
+
+        if(createDto.isPresent()) {
+            return new ResponseEntity<>(createDto.get(), HttpStatus.CREATED);
+        } else {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
     }
 
     @PutMapping("/{id}")
-    public ScheduleDto updateSchedule(@PathVariable("id") int id, @RequestBody ScheduleDto schedule) {
-        return scheduleService.update(id, schedule).get();
+    public ResponseEntity<ScheduleDto> updateSchedule(@PathVariable("id") int id, @RequestBody ScheduleDto schedule) {
+        Optional<ScheduleDto> updateDto = scheduleService.update(id, schedule);
+
+        if(updateDto.isPresent()) {
+            return new ResponseEntity<>(updateDto.get(), HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
     }
 
     @DeleteMapping("/{id}")
@@ -90,11 +102,7 @@ public class ScheduleController {
             return new ResponseEntity<>("Schedule not found.", HttpStatus.NOT_FOUND);
         }
 
-        try {
-            scheduleService.deleteById(id);
-            return new ResponseEntity<>("Schedule deleted successfully.", HttpStatus.OK);
-        } catch (Exception e) {
-            return new ResponseEntity<>("Failed to delete schedule.", HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+        scheduleService.deleteById(id);
+        return new ResponseEntity<>("Schedule deleted successfully.", HttpStatus.OK);
     }
 }

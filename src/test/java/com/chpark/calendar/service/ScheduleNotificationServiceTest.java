@@ -155,7 +155,7 @@ class ScheduleNotificationServiceTest {
 
         if(deleteResponse.isPresent()) {
             //when
-            notificationService.deleteNotifications(deleteResponse.get().getScheduleId());
+            notificationService.deleteByScheduleId(deleteResponse.get().getScheduleId());
 
             //then
             List<ScheduleNotificationDto.Response> response = notificationService.findByScheduleId(deleteResponse.get().getScheduleId());
@@ -188,6 +188,21 @@ class ScheduleNotificationServiceTest {
             throw new IllegalArgumentException("Notification has not been created.");
         }
 
+    }
+
+    @Test
+    @Transactional
+    void existsTest() {
+        //given
+        Optional<ScheduleNotificationDto.Response> response = createNotification();
+
+        //then
+        if(response.isPresent()) {
+            Assert.isTrue(notificationService.existsById(response.get().getId()), "Not Found Notification");
+            Assert.isTrue(notificationService.existsByScheduleId(response.get().getScheduleId()), "Not Found Schedule");
+        } else {
+            throw new IllegalArgumentException("Notification has not been created.");
+        }
     }
 
 }

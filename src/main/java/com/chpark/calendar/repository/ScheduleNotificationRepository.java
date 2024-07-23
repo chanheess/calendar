@@ -13,4 +13,6 @@ public interface ScheduleNotificationRepository extends JpaRepository<ScheduleNo
 
     void deleteByScheduleId(int scheduleId);
 
+    boolean existsByScheduleId(int scheduleId);
+
 }

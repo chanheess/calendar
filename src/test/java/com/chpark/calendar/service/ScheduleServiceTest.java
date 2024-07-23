@@ -36,9 +36,10 @@ public class ScheduleServiceTest {
         scheduleDto.setStartAt(LocalDateTime.now());
         scheduleDto.setEndAt(LocalDateTime.now().plusDays(3));
 
-        ScheduleDto logDto = scheduleService.create(scheduleDto);
+        Optional<ScheduleDto> createDto = scheduleService.create(scheduleDto);
+        assertFalse(createDto.isEmpty(), "Not created");
 
-        log.info("schedule info: {}", logDto);
+        log.info("Created schedule info: {}", createDto);
     }
 
     @Test
@@ -62,11 +63,6 @@ public class ScheduleServiceTest {
         assertFalse(result.isEmpty());
 
         result.forEach(schedule -> log.info("Found Schedule: {}", schedule));
-
-        result = scheduleService.findSchedulesByTitle("나는");
-        assertFalse(result.isEmpty());
-
-        result.forEach(schedule -> log.info("Found Schedule: {}", schedule));
     }
 
     @Test
@@ -84,11 +80,9 @@ public class ScheduleServiceTest {
         scheduleEntity.setStartAt(LocalDateTime.now());
         scheduleEntity.setEndAt(LocalDateTime.now().plusDays(8));
 
-        scheduleService.update(scheduleEntity.getId(), new ScheduleDto(scheduleEntity));
-
-        List<ScheduleDto> result = scheduleService.findSchedulesByTitle("hi");
-        assertFalse(result.isEmpty());
-        result.forEach(schedule -> log.info("Found Schedule: {}", schedule));
+        Optional<ScheduleDto> updateDto = scheduleService.update(scheduleEntity.getId(), new ScheduleDto(scheduleEntity));
+        assertFalse(updateDto.isEmpty());
+        log.info("Updated Schedule: {}", updateDto);
     }
 
     @Test
@@ -104,14 +98,10 @@ public class ScheduleServiceTest {
         int deletedId = scheduleEntity.getId();
         scheduleService.deleteById(scheduleEntity.getId());
 
-        ScheduleEntity result = scheduleRepository.findById(deletedId).orElse(null);
-        assertNull(result);
+        Optional<ScheduleEntity> result = scheduleRepository.findById(deletedId);
+        assertFalse(result.isPresent(), "Not deleted.");
 
-        if (result == null) {
-            log.info("Schedule with ID {} was successfully deleted.", deletedId);
-        } else {
-            log.warn("Schedule with ID {} was not deleted.", deletedId);
-        }
+        log.info("Schedule with ID {} was successfully deleted.", deletedId);
     }
 
     @Test
@@ -147,11 +137,8 @@ public class ScheduleServiceTest {
 
         scheduleRepository.save(scheduleEntity);
 
-        if(scheduleService.existsById(scheduleEntity.getId())) {
-            log.info("Check by id: {}", scheduleEntity);
-        } else {
-            log.info("Schedule not found");
-        }
+        assertFalse(!scheduleService.existsById(scheduleEntity.getId()), "Not Found");
+        log.info("Found Schedule: {}", scheduleEntity);
     }
 
 }

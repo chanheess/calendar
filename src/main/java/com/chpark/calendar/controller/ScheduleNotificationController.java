@@ -7,6 +7,7 @@ import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.Assert;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -31,14 +32,26 @@ public class ScheduleNotificationController {
                                                                                @RequestBody @Valid ScheduleNotificationDto.Request notificationDto) {
 
         if(scheduleService.existsById(scheduleId)) {
-            return ResponseEntity.of(scheduleNotificationService.create(scheduleId, notificationDto));
+            Optional<ScheduleNotificationDto.Response> createResponse = scheduleNotificationService.create(scheduleId, notificationDto);
+
+            if(createResponse.isPresent()) {
+                return ResponseEntity.status(HttpStatus.CREATED).body(createResponse.get());
+            }
         }
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
     }
+
     @GetMapping
-    public List<ScheduleNotificationDto.Response> getNotifications(@RequestParam("scheduleId") int scheduleId) {
-        return scheduleNotificationService.findByScheduleId(scheduleId);
+    public ResponseEntity<List<ScheduleNotificationDto.Response>> getNotifications(@RequestParam("scheduleId") int scheduleId) {
+
+        List<ScheduleNotificationDto.Response> findResponses = scheduleNotificationService.findByScheduleId(scheduleId);
+
+        if(findResponses.isEmpty()) {
+            ResponseEntity.status(HttpStatus.NOT_FOUND);
+        }
+
+        return ResponseEntity.status(HttpStatus.OK).body(findResponses);
     }
 
     @PatchMapping("/{notificationId}")
@@ -50,14 +63,22 @@ public class ScheduleNotificationController {
     }
 
     @DeleteMapping("/{notificationId}")
-    public void deleteNotification(@PathVariable("notificationId") int notificationId) {
+    public ResponseEntity<String> deleteById(@PathVariable("notificationId") int notificationId) {
+        if(scheduleNotificationService.existsById(notificationId)) {
+            scheduleNotificationService.deleteById(notificationId);
+            return ResponseEntity.status(HttpStatus.OK).body("Notification deleted successfully");
+        }
 
-        scheduleNotificationService.deleteById(notificationId);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("");
     }
 
     @DeleteMapping
-    public void deleteNotifications(@RequestParam("scheduleId") int scheduleId) {
-        scheduleNotificationService.deleteNotifications(scheduleId);
-    }
+    public ResponseEntity<String> deleteByScheduleId(@RequestParam("scheduleId") int scheduleId) {
+        if(scheduleNotificationService.existsByScheduleId(scheduleId)){
+            scheduleNotificationService.deleteByScheduleId(scheduleId);
+            return ResponseEntity.status(HttpStatus.OK).body("Notifications deleted successfully");
+        }
 
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("");
+    }
 }

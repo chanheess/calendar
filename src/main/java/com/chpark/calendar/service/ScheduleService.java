@@ -18,10 +18,10 @@ public class ScheduleService {
         this.scheduleRepository = repository;
     }
 
-    public ScheduleDto create(ScheduleDto scheduleDto) {
+    public Optional<ScheduleDto> create(ScheduleDto scheduleDto) {
         ScheduleEntity savedEntity = scheduleRepository.save(new ScheduleEntity(scheduleDto));
 
-        return new ScheduleDto(savedEntity);
+        return Optional.of(new ScheduleDto(savedEntity));
     }
 
     public List<ScheduleDto> findSchedulesByTitle(String title) {

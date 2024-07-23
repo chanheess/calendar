@@ -57,6 +57,14 @@ public class ScheduleNotificationService {
         }
     }
 
+    public boolean existsById(int id) {
+        return scheduleNotificationRepository.existsById(id);
+    }
+
+    public boolean existsByScheduleId(int scheduleId) {
+        return scheduleNotificationRepository.existsByScheduleId(scheduleId);
+    }
+
     public Optional<ScheduleNotificationDto.Response> update(int notificationId, ScheduleNotificationDto.Request notificationDto) {
 
         Optional<ScheduleNotificationEntity> updateData = scheduleNotificationRepository.findById(notificationId);
@@ -78,7 +86,7 @@ public class ScheduleNotificationService {
     }
 
     @Transactional
-    public void deleteNotifications(int scheduleId) {
+    public void deleteByScheduleId(int scheduleId) {
         scheduleNotificationRepository.deleteByScheduleId(scheduleId);
     }
 
