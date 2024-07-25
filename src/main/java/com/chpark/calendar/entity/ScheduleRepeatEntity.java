@@ -11,10 +11,10 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Entity
 @Getter
+@Table(name="schedule_repeat")
 public class ScheduleRepeatEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int scheduleId;
 
     //'D' (매일), 'W' (매주), 'M' (매달), 'Y' (매년)

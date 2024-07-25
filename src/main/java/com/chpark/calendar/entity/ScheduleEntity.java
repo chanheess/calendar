@@ -33,8 +33,13 @@ public class ScheduleEntity {
     @Column(name = "end_at", nullable = false)
     private LocalDateTime endAt;
 
-    @OneToMany(mappedBy = "scheduleId", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "schedule_id")
     private List<ScheduleNotificationEntity> notifications = new ArrayList<>();
+
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "repeat_id")
+    private ScheduleRepeatEntity repeat;
 
     public void addNotification(ScheduleNotificationEntity notification) {
         notifications.add(notification);

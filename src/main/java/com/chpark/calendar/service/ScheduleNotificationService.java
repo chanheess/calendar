@@ -25,6 +25,7 @@ public class ScheduleNotificationService {
         this.scheduleNotificationRepository = repository;
     }
 
+    @Transactional
     public Optional<ScheduleNotificationDto.Response> create(int scheduleId, ScheduleNotificationDto.Request scheduleNotificationDto) {
         //일정 검색
         Optional<ScheduleEntity> scheduleEntity = scheduleRepository.findById(scheduleId);
