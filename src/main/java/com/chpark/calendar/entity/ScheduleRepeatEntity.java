@@ -1,13 +1,16 @@
 package com.chpark.calendar.entity;
 
+import com.chpark.calendar.dto.ScheduleRepeatDto;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Pattern;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
 @NoArgsConstructor
 @Entity
+@Getter
 public class ScheduleRepeatEntity {
 
     @Id
@@ -25,5 +28,12 @@ public class ScheduleRepeatEntity {
     //null == endless
     @Column(name = "end_at")
     private LocalDateTime endAt;
+
+    public ScheduleRepeatEntity(int scheduleId, ScheduleRepeatDto repeatDto) {
+        this.scheduleId = scheduleId;
+        this.repeatType = repeatDto.getRepeatType();
+        this.repeatInterval = repeatDto.getRepeatInterval();
+        this.endAt = repeatDto.getEndAt();
+    }
 
 }
