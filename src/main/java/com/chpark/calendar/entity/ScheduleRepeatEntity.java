@@ -1,26 +1,28 @@
 package com.chpark.calendar.entity;
 
 import com.chpark.calendar.dto.ScheduleRepeatDto;
+import com.chpark.calendar.enumClass.ScheduleRepeatType;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Pattern;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 
 @NoArgsConstructor
 @Entity
 @Getter
+@Setter
 @Table(name="schedule_repeat")
 public class ScheduleRepeatEntity {
 
     @Id
-    private int scheduleId;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private int id;
 
-    //'D' (매일), 'W' (매주), 'M' (매달), 'Y' (매년)
-    @Pattern(regexp = "[DWMY]", message = "Repeat type must be one of 'D', 'W', 'M', 'Y'")
-    @Column(name = "repeat_type", nullable = false, length = 1)
-    private String repeatType;
+    @Enumerated(EnumType.STRING)
+    @Column(name = "repeat_type", nullable = false)
+    private ScheduleRepeatType repeatType;
 
     @Column(name = "repeat_interval", nullable = false)
     private int repeatInterval;
@@ -29,8 +31,7 @@ public class ScheduleRepeatEntity {
     @Column(name = "end_at")
     private LocalDateTime endAt;
 
-    public ScheduleRepeatEntity(int scheduleId, ScheduleRepeatDto repeatDto) {
-        this.scheduleId = scheduleId;
+    public ScheduleRepeatEntity(ScheduleRepeatDto repeatDto) {
         this.repeatType = repeatDto.getRepeatType();
         this.repeatInterval = repeatDto.getRepeatInterval();
         this.endAt = repeatDto.getEndAt();

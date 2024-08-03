@@ -29,7 +29,7 @@ public class ScheduleController {
 
         List<ScheduleDto> schedules;
 
-        if(title.isEmpty()) {
+        if(title == null) {
             schedules = scheduleService.findAll();
         } else {
             schedules = scheduleService.findSchedulesByTitle(title);
@@ -98,9 +98,6 @@ public class ScheduleController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteSchedule(@PathVariable("id") int id) {
-        if (!scheduleService.existsById(id)) {
-            return new ResponseEntity<>("Schedule not found.", HttpStatus.NOT_FOUND);
-        }
 
         scheduleService.deleteById(id);
         return new ResponseEntity<>("Schedule deleted successfully.", HttpStatus.OK);

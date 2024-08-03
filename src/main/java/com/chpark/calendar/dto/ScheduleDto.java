@@ -19,14 +19,15 @@ public class ScheduleDto {
     private String description;
     private LocalDateTime startAt;
     private LocalDateTime endAt;
-
+    private Integer repeatId;
 
     public ScheduleDto(ScheduleEntity entity) {
-        setId(entity.getId());
-        setTitle(entity.getTitle());
-        setDescription(entity.getDescription());
-        setStartAt(entity.getStartAt());
-        setEndAt(entity.getEndAt());
+        this.id = entity.getId();
+        this.title = entity.getTitle();
+        this.description = entity.getDescription();
+        this.startAt = entity.getStartAt();
+        this.endAt = entity.getEndAt();
+        this.repeatId = entity.getRepeatId();
     }
 
     public static List<ScheduleDto> fromScheduleEntityList(List<ScheduleEntity> entityList) {

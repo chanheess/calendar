@@ -2,21 +2,25 @@ package com.chpark.calendar.service;
 
 import com.chpark.calendar.dto.ScheduleDto;
 import com.chpark.calendar.entity.ScheduleEntity;
+import com.chpark.calendar.entity.ScheduleNotificationEntity;
+import com.chpark.calendar.repository.ScheduleNotificationRepository;
 import com.chpark.calendar.repository.ScheduleRepository;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
+@RequiredArgsConstructor
 @Service
 public class ScheduleService {
 
     private final ScheduleRepository scheduleRepository;
-
-    public ScheduleService(ScheduleRepository repository) {
-        this.scheduleRepository = repository;
-    }
+    private final ScheduleNotificationRepository scheduleNotificationRepository;
 
     public Optional<ScheduleDto> create(ScheduleDto scheduleDto) {
         ScheduleEntity savedEntity = scheduleRepository.save(new ScheduleEntity(scheduleDto));
@@ -47,8 +51,14 @@ public class ScheduleService {
         }
     }
 
+    @Transactional
     public void deleteById(int id) {
-        scheduleRepository.deleteById(id);
+        try {
+            scheduleNotificationRepository.deleteByScheduleId(id);
+            scheduleRepository.deleteById(id);
+        } catch (EmptyResultDataAccessException e) {
+            throw new EntityNotFoundException("Schedule not found with id: " + id);
+        }
     }
 
     public Optional<ScheduleDto> findById(int id) {

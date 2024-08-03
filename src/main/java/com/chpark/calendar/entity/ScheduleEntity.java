@@ -33,18 +33,8 @@ public class ScheduleEntity {
     @Column(name = "end_at", nullable = false)
     private LocalDateTime endAt;
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "schedule_id")
-    private List<ScheduleNotificationEntity> notifications = new ArrayList<>();
-
-    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "repeat_id")
-    private ScheduleRepeatEntity repeat;
-
-    public void addNotification(ScheduleNotificationEntity notification) {
-        notifications.add(notification);
-        notification.setScheduleId(getId());
-    }
+    @Column(name = "repeat_id")
+    private Integer repeatId;
 
     @Override
     public String toString() {
@@ -54,6 +44,7 @@ public class ScheduleEntity {
                 ", description='" + description + '\'' +
                 ", startAt=" + startAt +
                 ", endAt=" + endAt +
+                ", repeatId=" + repeatId +
                 '}';
     }
 
@@ -62,6 +53,7 @@ public class ScheduleEntity {
         setDescription(scheduleDto.getDescription());
         setStartAt(scheduleDto.getStartAt());
         setEndAt(scheduleDto.getEndAt());
+        setRepeatId(scheduleDto.getRepeatId());
     }
 
 }

@@ -1,6 +1,7 @@
 package com.chpark.calendar.dto;
 
 import com.chpark.calendar.entity.ScheduleRepeatEntity;
+import com.chpark.calendar.enumClass.ScheduleRepeatType;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -10,11 +11,11 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class ScheduleRepeatDto {
 
-    private String repeatType;
+    private ScheduleRepeatType repeatType;
     private int repeatInterval;
     private LocalDateTime endAt;
 
-    public ScheduleRepeatDto(String repeatType, int repeatInterval, LocalDateTime endAt) {
+    public ScheduleRepeatDto(ScheduleRepeatType repeatType, int repeatInterval, LocalDateTime endAt) {
         this.repeatType = repeatType;
         this.repeatInterval = repeatInterval;
         this.endAt = endAt;
@@ -24,11 +25,11 @@ public class ScheduleRepeatDto {
     @NoArgsConstructor
     public static class Response extends ScheduleRepeatDto{
 
-        private int scheduleId;
+        private int id;
 
         public Response(ScheduleRepeatEntity repeatEntity) {
             super(repeatEntity.getRepeatType(), repeatEntity.getRepeatInterval(), repeatEntity.getEndAt());
-            this.scheduleId = repeatEntity.getScheduleId();
+            this.id = repeatEntity.getId();
         }
     }
 }

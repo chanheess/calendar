@@ -2,7 +2,7 @@ spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     password: 1231
-    url: jdbc:mysql://localhost:3306/calendar
+    url: jdbc:mysql://localhost:3306/calendar?rewriteBatchedStatements=true&profileSQL=true&logger=Slf4JLogger&maxQuerySizeToLog=999999
     username: root
   jpa:
     hibernate:
