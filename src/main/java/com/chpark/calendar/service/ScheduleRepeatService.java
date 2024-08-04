@@ -54,32 +54,39 @@ public class ScheduleRepeatService {
         return new ScheduleRepeatDto.Response(createRepeatEntity);
     }
 
-    public ScheduleRepeatDto.Response findById(int scheduleId) {
+    public ScheduleRepeatDto.Response findById(int id) {
 
-        Optional<ScheduleRepeatEntity> findEntity = scheduleRepeatRepository.findById(scheduleId);
+        Optional<ScheduleRepeatEntity> findEntity = scheduleRepeatRepository.findById(id);
 
         if(findEntity.isPresent()) {
             return new ScheduleRepeatDto.Response(findEntity.get());
         } else {
-            throw new EntityNotFoundException("ScheduleRepeat not found with id: " + scheduleId);
+            throw new EntityNotFoundException("ScheduleRepeat not found with id: " + id);
         }
     }
 
-    public ScheduleRepeatDto.Response update(int scheduleId, ScheduleRepeatDto scheduleRepeatDto) {
+    public boolean existsById(int id) {
+        return scheduleRepeatRepository.existsById(id);
+    }
 
-        Optional<ScheduleRepeatEntity> findEntity = scheduleRepeatRepository.findById(scheduleId);
 
-        if(findEntity.isPresent()) {
-            findEntity.get().setRepeatType(scheduleRepeatDto.getRepeatType());
-            findEntity.get().setRepeatInterval(scheduleRepeatDto.getRepeatInterval());
-            findEntity.get().setEndAt(scheduleRepeatDto.getEndAt());
+    public ScheduleRepeatDto.Response currentScheduleUpdate(int id, ScheduleRepeatDto scheduleRepeatDto) {
 
-            ScheduleRepeatEntity updateEntity = scheduleRepeatRepository.save(findEntity.get());
+        //현재 일정만 바꾼다.
 
-            return new ScheduleRepeatDto.Response(updateEntity);
-        } else {
-            throw new EntityNotFoundException("ScheduleRepeat not found with id: " + scheduleId);
-        }
+        return new ScheduleRepeatDto.Response();
+    }
+
+    public ScheduleRepeatDto.Response allScheduleUpdate(int id, ScheduleRepeatDto scheduleRepeatDto) {
+        //모든 일정을 바꿔준다.
+
+        //기준 일정에서부터 이전 일정이 있는가?
+
+        //없다면 현재 repeat id에 해당하는 것 수정
+
+        //있다면 새로 생성해서 일정들 수정 일정이 추가될 수도?
+
+        return new ScheduleRepeatDto.Response();
     }
 
 }
