@@ -1,7 +1,7 @@
 package com.chpark.calendar.controller;
 
 import com.chpark.calendar.dto.ScheduleDto;
-import com.chpark.calendar.enumClass.ScheduleUpdateScope;
+import com.chpark.calendar.enumClass.ScheduleRepeatScope;
 import com.chpark.calendar.exception.CustomException;
 import com.chpark.calendar.service.ScheduleService;
 import lombok.extern.slf4j.Slf4j;
@@ -76,6 +76,15 @@ public class ScheduleController {
 
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<ScheduleDto> getScheduleById(@PathVariable("id") int id,
+                                                       @RequestParam("repeat_id") Integer repeatId) {
+
+        ScheduleDto scheduleDto = scheduleService.findById(id);
+
+        return new ResponseEntity<>(scheduleDto, HttpStatus.OK);
+    }
+
     @PostMapping
     public ResponseEntity<ScheduleDto> createSchedule(@RequestBody ScheduleDto schedule) {
         Optional<ScheduleDto> createDto = scheduleService.create(schedule);
@@ -90,24 +99,20 @@ public class ScheduleController {
     @PutMapping("/{id}")
     public ResponseEntity<ScheduleDto> updateSchedule(@PathVariable("id") int id, @RequestBody ScheduleDto scheduleDto) {
 
-        Optional<ScheduleDto> updateDto = Optional.ofNullable(scheduleService.update(id, scheduleDto));
+        ScheduleDto updateDto = scheduleService.update(id, scheduleDto);
 
-        if(updateDto.isPresent()) {
-            return new ResponseEntity<>(updateDto.get(), HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
+        return new ResponseEntity<>(updateDto, HttpStatus.OK);
     }
 
     @PutMapping("/{id}/{update-scope}")
     public ResponseEntity<ScheduleDto.repeatResponse> updateRepeatSchedule(@PathVariable("id") int id,
-                                                                   @PathVariable("update-scope") ScheduleUpdateScope scheduleUpdateScope,
+                                                                   @PathVariable("update-scope") ScheduleRepeatScope scheduleRepeatScope,
                                                                    @RequestBody ScheduleDto.repeatRequest scheduleDto) throws SQLException {
 
         Optional<ScheduleDto.repeatResponse> updateDto = Optional.empty();
 
         //일정의 수정 범위가 어떻게 되는가
-        switch (scheduleUpdateScope) {
+        switch (scheduleRepeatScope) {
             case currentonly -> {
                 updateDto = Optional.of(scheduleService.repeatCurrentOnlyScheduleUpdate(id, scheduleDto.getScheduleDto()));
             }
@@ -131,11 +136,12 @@ public class ScheduleController {
         return new ResponseEntity<>("Schedule deleted successfully.", HttpStatus.OK);
     }
 
-    @DeleteMapping("/{id}/{update-scope}")
-    public ResponseEntity<String> deleteRepeatSchedule(@PathVariable("id") int id, @PathVariable("update-scope") ScheduleUpdateScope scheduleUpdateScope) {
+    @DeleteMapping("/{id}/{delete-scope}")
+    public ResponseEntity<String> deleteRepeatSchedule(@PathVariable("id") int id,
+                                                       @PathVariable("delete-scope") ScheduleRepeatScope scheduleRepeatScope) {
 
         //삭제할 범위
-        switch (scheduleUpdateScope){
+        switch (scheduleRepeatScope){
             case currentonly -> {
                 scheduleService.deleteCurrentOnlyRepeatSchedule(id);
             }

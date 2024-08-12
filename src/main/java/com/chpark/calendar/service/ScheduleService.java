@@ -177,15 +177,13 @@ public class ScheduleService {
     }
 
 
-    public Optional<ScheduleDto> findById(int id) {
+    public ScheduleDto findById(int id) {
         Optional<ScheduleEntity> findEntity = scheduleRepository.findById(id);
 
         if(findEntity.isPresent()) {
-            ScheduleDto resultDto = new ScheduleDto(findEntity.get());
-
-            return Optional.of(resultDto);
+            return new ScheduleDto(findEntity.get());
         } else {
-            return Optional.empty();
+            throw new EntityNotFoundException("Schedule not found with id: " + id);
         }
     }
 
