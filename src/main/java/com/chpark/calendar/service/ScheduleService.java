@@ -126,6 +126,57 @@ public class ScheduleService {
         }
     }
 
+    @Transactional
+    public void deleteCurrentOnlyRepeatSchedule(int id) {
+
+        //수정된 일정이 들어오니 수정전 일정으로 비교
+        Optional<ScheduleEntity> standardSchedule = scheduleRepository.findById(id);
+
+        if(standardSchedule.isEmpty()) {
+            throw new EntityNotFoundException("Schedule not found with id: " + id);
+        }
+
+        //반복되는 이후 일정들 가져오기 (기준 일정 제외)
+        List<ScheduleEntity> scheduleList = scheduleRepository.findFutureRepeatSchedules(standardSchedule.get().getRepeatId(), standardSchedule.get().getStartAt());
+
+        //자신을 제외한 반복되는 일정이 없다면 반복 일정을 삭제해준다.
+        if(scheduleList.isEmpty()) {
+            scheduleRepeatRepository.deleteById(standardSchedule.get().getRepeatId());
+        }
+
+        this.deleteById(id);
+    }
+
+    @Transactional
+    public void deleteCurrentAndFutureRepeatSchedule(int id) {
+
+        //수정된 일정이 들어오니 수정전 일정으로 비교
+        Optional<ScheduleEntity> standardSchedule = scheduleRepository.findById(id);
+
+        if(standardSchedule.isEmpty()) {
+            throw new EntityNotFoundException("Schedule not found with id: " + id);
+        }
+
+        //반복되는 이후 일정들 가져오기 (기준 일정 제외)
+        List<ScheduleEntity> scheduleList = scheduleRepository.findFutureRepeatSchedules(standardSchedule.get().getRepeatId(), standardSchedule.get().getStartAt());
+
+        //반복 일정의 알림들 삭제
+        scheduleList.forEach( scheduleEntity -> {
+            scheduleNotificationRepository.deleteByScheduleId(scheduleEntity.getId());
+        });
+
+        //반복 일정들 삭제
+        scheduleRepository.deleteAll(scheduleList);
+
+        //기준 일정이 첫날이면 일정 반복을 삭제해준다.
+        if(scheduleRepository.existsByPreviousRepeatedSchedule(standardSchedule.get().getRepeatId(), standardSchedule.get().getStartAt())) {
+            scheduleRepeatRepository.deleteById(standardSchedule.get().getRepeatId());
+        }
+
+        this.deleteById(id);
+    }
+
+
     public Optional<ScheduleDto> findById(int id) {
         Optional<ScheduleEntity> findEntity = scheduleRepository.findById(id);
 

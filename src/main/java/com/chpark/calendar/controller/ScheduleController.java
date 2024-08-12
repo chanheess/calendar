@@ -130,4 +130,20 @@ public class ScheduleController {
         scheduleService.deleteById(id);
         return new ResponseEntity<>("Schedule deleted successfully.", HttpStatus.OK);
     }
+
+    @DeleteMapping("/{id}/{update-scope}")
+    public ResponseEntity<String> deleteRepeatSchedule(@PathVariable("id") int id, @PathVariable("update-scope") ScheduleUpdateScope scheduleUpdateScope) {
+
+        //삭제할 범위
+        switch (scheduleUpdateScope){
+            case currentonly -> {
+                scheduleService.deleteCurrentOnlyRepeatSchedule(id);
+            }
+            case currentandfuture -> {
+                scheduleService.deleteCurrentAndFutureRepeatSchedule(id);
+            }
+        }
+
+        return new ResponseEntity<>("Schedule deleted successfully.", HttpStatus.OK);
+    }
 }
