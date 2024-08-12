@@ -1,6 +1,7 @@
 package com.chpark.calendar.controller;
 
 import com.chpark.calendar.dto.ScheduleDto;
+import com.chpark.calendar.enumClass.ScheduleUpdateScope;
 import com.chpark.calendar.exception.CustomException;
 import com.chpark.calendar.service.ScheduleService;
 import lombok.extern.slf4j.Slf4j;
@@ -8,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -86,8 +88,34 @@ public class ScheduleController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ScheduleDto> updateSchedule(@PathVariable("id") int id, @RequestBody ScheduleDto schedule) {
-        Optional<ScheduleDto> updateDto = scheduleService.update(id, schedule);
+    public ResponseEntity<ScheduleDto> updateSchedule(@PathVariable("id") int id, @RequestBody ScheduleDto scheduleDto) {
+
+        Optional<ScheduleDto> updateDto = Optional.ofNullable(scheduleService.update(id, scheduleDto));
+
+        if(updateDto.isPresent()) {
+            return new ResponseEntity<>(updateDto.get(), HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @PutMapping("/{id}/{update-scope}")
+    public ResponseEntity<ScheduleDto.repeatResponse> updateRepeatSchedule(@PathVariable("id") int id,
+                                                                   @PathVariable("update-scope") ScheduleUpdateScope scheduleUpdateScope,
+                                                                   @RequestBody ScheduleDto.repeatRequest scheduleDto) throws SQLException {
+
+        Optional<ScheduleDto.repeatResponse> updateDto = Optional.empty();
+
+        //일정의 수정 범위가 어떻게 되는가
+        switch (scheduleUpdateScope) {
+            case currentonly -> {
+                updateDto = Optional.of(scheduleService.repeatCurrentOnlyScheduleUpdate(id, scheduleDto.getScheduleDto()));
+            }
+            case currentandfuture -> {
+                //반복되는 일정 수정
+                updateDto = Optional.of(scheduleService.repeatCurrentAndFutureScheduleUpdate(id, scheduleDto));
+            }
+        }
 
         if(updateDto.isPresent()) {
             return new ResponseEntity<>(updateDto.get(), HttpStatus.OK);

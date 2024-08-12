@@ -19,4 +19,13 @@ public interface ScheduleRepository extends JpaRepository<ScheduleEntity, Intege
     @Query("SELECT s FROM ScheduleEntity s WHERE s.startAt <= :end AND s.endAt >= :start")
     List<ScheduleEntity> findSchedules(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
 
+    @Query("SELECT s FROM ScheduleEntity s WHERE s.repeatId = :repeatId AND s.startAt > :startAt")
+    List<ScheduleEntity> findFutureRepeatSchedules(@Param("repeatId") Integer repeatId, @Param("startAt") LocalDateTime startAt);
+
+    @Query("SELECT COUNT(s) = 0 FROM ScheduleEntity s WHERE s.repeatId = :repeatId AND s.startAt < :startAt")
+    boolean existsByPreviousRepeatedSchedule(@Param("repeatId") Integer repeatId, @Param("startAt") LocalDateTime startAt);
+
+    @Query("SELECT s FROM ScheduleEntity s WHERE s.repeatId = :repeatId")
+    List<ScheduleEntity> findSchedulesByRepeatId(@Param("repeatId") Integer repeatId);
+
 }

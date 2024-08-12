@@ -2,7 +2,6 @@ package com.chpark.calendar.controller;
 
 import com.chpark.calendar.dto.ScheduleRepeatDto;
 import com.chpark.calendar.service.ScheduleRepeatService;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -31,18 +30,5 @@ public class ScheduleRepeatController {
         ScheduleRepeatDto.Response findResponse = scheduleRepeatService.findById(id);
 
         return new ResponseEntity<>(findResponse, HttpStatus.OK);
-    }
-
-    @PatchMapping("/{id}")
-    public ResponseEntity<ScheduleRepeatDto.Response> updateScheduleRepeat(@PathVariable("id") int id,
-                                                                           @Valid @RequestBody ScheduleRepeatDto repeatDto) {
-        if(!scheduleRepeatService.existsById(id)) {
-            throw new EntityNotFoundException();
-        }
-        //현재 일정만 바꿀 것인가 나머지 일정 모두 바꿀 것인가?
-
-        ScheduleRepeatDto.Response updateResponse = scheduleRepeatService.currentScheduleUpdate(id, repeatDto);
-
-        return new ResponseEntity<>(updateResponse, HttpStatus.OK);
     }
 }

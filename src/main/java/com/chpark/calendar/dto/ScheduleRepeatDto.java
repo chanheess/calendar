@@ -15,10 +15,16 @@ public class ScheduleRepeatDto {
     private int repeatInterval;
     private LocalDateTime endAt;
 
-    public ScheduleRepeatDto(ScheduleRepeatType repeatType, int repeatInterval, LocalDateTime endAt) {
-        this.repeatType = repeatType;
-        this.repeatInterval = repeatInterval;
-        this.endAt = endAt;
+    public ScheduleRepeatDto(ScheduleRepeatEntity repeatEntity) {
+        this.repeatType = repeatEntity.getRepeatType();
+        this.repeatInterval = repeatEntity.getRepeatInterval();
+        this.endAt = repeatEntity.getEndAt();
+    }
+
+    public ScheduleRepeatDto(ScheduleRepeatDto repeatDto) {
+        this.repeatType = repeatDto.getRepeatType();
+        this.repeatInterval = repeatDto.getRepeatInterval();
+        this.endAt = repeatDto.getEndAt();
     }
 
     @Getter
@@ -28,7 +34,7 @@ public class ScheduleRepeatDto {
         private int id;
 
         public Response(ScheduleRepeatEntity repeatEntity) {
-            super(repeatEntity.getRepeatType(), repeatEntity.getRepeatInterval(), repeatEntity.getEndAt());
+            super(repeatEntity);
             this.id = repeatEntity.getId();
         }
     }

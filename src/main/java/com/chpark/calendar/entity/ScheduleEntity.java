@@ -53,7 +53,6 @@ public class ScheduleEntity {
         setDescription(scheduleDto.getDescription());
         setStartAt(scheduleDto.getStartAt());
         setEndAt(scheduleDto.getEndAt());
-        setRepeatId(scheduleDto.getRepeatId());
     }
 
 }

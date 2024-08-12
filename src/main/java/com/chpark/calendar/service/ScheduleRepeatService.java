@@ -12,6 +12,7 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
@@ -27,17 +28,18 @@ public class ScheduleRepeatService {
     private final ScheduleNotificationRepository scheduleNotificationRepository;
     private final ScheduleBatchRepository scheduleBatchRepository;
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRED)
     public ScheduleRepeatDto.Response create(int scheduleId, ScheduleRepeatDto repeatDto) throws SQLException{
-
-        if(scheduleRepeatRepository.existsById(scheduleId)) {
-            throw new CustomException("This value already exists.");
-        }
 
         //기준 일정 가져오기
         Optional<ScheduleEntity> scheduleEntity = scheduleRepository.findById(scheduleId);
         if(scheduleEntity.isEmpty()) {
             throw new EntityNotFoundException("Schedule not found with id: " + scheduleId);
+        }
+
+        //이미 반복이 만들어져있다면 실패
+        if(scheduleEntity.get().getRepeatId() != null) {
+            throw new CustomException("This value already exists.");
         }
 
         //반복 생성
@@ -70,24 +72,7 @@ public class ScheduleRepeatService {
     }
 
 
-    public ScheduleRepeatDto.Response currentScheduleUpdate(int id, ScheduleRepeatDto scheduleRepeatDto) {
 
-        //현재 일정만 바꾼다.
-
-        return new ScheduleRepeatDto.Response();
-    }
-
-    public ScheduleRepeatDto.Response allScheduleUpdate(int id, ScheduleRepeatDto scheduleRepeatDto) {
-        //모든 일정을 바꿔준다.
-
-        //기준 일정에서부터 이전 일정이 있는가?
-
-        //없다면 현재 repeat id에 해당하는 것 수정
-
-        //있다면 새로 생성해서 일정들 수정 일정이 추가될 수도?
-
-        return new ScheduleRepeatDto.Response();
-    }
 
 }
 
