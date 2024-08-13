@@ -25,11 +25,10 @@ public class ScheduleRepeatService {
 
     private final ScheduleRepository scheduleRepository;
     private final ScheduleRepeatRepository scheduleRepeatRepository;
-    private final ScheduleNotificationRepository scheduleNotificationRepository;
     private final ScheduleBatchRepository scheduleBatchRepository;
 
     @Transactional(propagation = Propagation.REQUIRED)
-    public ScheduleRepeatDto.Response create(int scheduleId, ScheduleRepeatDto repeatDto) throws SQLException{
+    public ScheduleRepeatDto.Response create(int scheduleId, ScheduleRepeatDto repeatDto){
 
         //기준 일정 가져오기
         Optional<ScheduleEntity> scheduleEntity = scheduleRepository.findById(scheduleId);

@@ -9,7 +9,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -89,11 +88,7 @@ public class ScheduleController {
     public ResponseEntity<ScheduleDto> createSchedule(@RequestBody ScheduleDto schedule) {
         Optional<ScheduleDto> createDto = scheduleService.create(schedule);
 
-        if(createDto.isPresent()) {
-            return new ResponseEntity<>(createDto.get(), HttpStatus.CREATED);
-        } else {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
+        return createDto.map(scheduleDto -> new ResponseEntity<>(scheduleDto, HttpStatus.CREATED)).orElseGet(() -> new ResponseEntity<>(HttpStatus.BAD_REQUEST));
     }
 
     @PutMapping("/{id}")
@@ -107,7 +102,7 @@ public class ScheduleController {
     @PutMapping("/{id}/{update-scope}")
     public ResponseEntity<ScheduleDto.repeatResponse> updateRepeatSchedule(@PathVariable("id") int id,
                                                                    @PathVariable("update-scope") ScheduleRepeatScope scheduleRepeatScope,
-                                                                   @RequestBody ScheduleDto.repeatRequest scheduleDto) throws SQLException {
+                                                                   @RequestBody ScheduleDto.repeatRequest scheduleDto) {
 
         Optional<ScheduleDto.repeatResponse> updateDto = Optional.empty();
 
@@ -122,11 +117,7 @@ public class ScheduleController {
             }
         }
 
-        if(updateDto.isPresent()) {
-            return new ResponseEntity<>(updateDto.get(), HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
+        return updateDto.map(repeatResponse -> new ResponseEntity<>(repeatResponse, HttpStatus.OK)).orElseGet(() -> new ResponseEntity<>(HttpStatus.BAD_REQUEST));
     }
 
     @DeleteMapping("/{id}")
