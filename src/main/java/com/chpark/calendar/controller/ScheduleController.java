@@ -93,7 +93,6 @@ public class ScheduleController {
 
     @PutMapping("/{id}")
     public ResponseEntity<ScheduleDto> updateSchedule(@PathVariable("id") int id, @RequestBody ScheduleDto scheduleDto) {
-
         ScheduleDto updateDto = scheduleService.update(id, scheduleDto);
 
         return new ResponseEntity<>(updateDto, HttpStatus.OK);
