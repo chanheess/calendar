@@ -8,7 +8,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.*;
@@ -24,13 +23,16 @@ public class ScheduleBatchRepository {
     private final JdbcTemplate jdbcTemplate;
     private final ScheduleNotificationRepository scheduleNotificationRepository;
 
-    @Transactional(propagation = Propagation.REQUIRED)
+    @Transactional
     public void saveRepeatAll(ScheduleEntity schedule, ScheduleRepeatEntity repeat) {
         String scheduleSql = "INSERT INTO schedule (title, description, start_at, end_at, repeat_id) VALUES (?, ?, ?, ?, ?)";
         String notificationSql = "INSERT INTO schedule_notification (schedule_id, notification_at) VALUES (?, ?)";
 
-        try (Connection connection = Objects.requireNonNull(jdbcTemplate.getDataSource()).getConnection()) {
-            connection.setAutoCommit(false); // Auto commit을 비활성화
+        Connection connection = null;
+
+        try {
+            connection = Objects.requireNonNull(jdbcTemplate.getDataSource()).getConnection();
+            connection.setAutoCommit(false); // Auto commit 비활성화
 
             // 생성된 일정의 키 리스트
             List<Integer> generatedKeys = new ArrayList<>();
@@ -58,6 +60,7 @@ public class ScheduleBatchRepository {
                 }
             }
 
+            // 성공적으로 일정 삽입 후 커밋
             connection.commit();
 
             // 알림 배치 삽입
@@ -75,16 +78,40 @@ public class ScheduleBatchRepository {
                 }
             }
 
+            // 알림 삽입 후 커밋
             connection.commit();
 
         } catch (SQLException e) {
             log.error("Batch insert failed due to SQLException", e);
+            if (connection != null) {
+                try {
+                    connection.rollback(); // 오류 발생 시 롤백
+                } catch (SQLException rollbackEx) {
+                    log.error("Failed to rollback transaction", rollbackEx);
+                }
+            }
             throw new RuntimeException("Batch insert failed", e);
         } catch (Exception e) {
             log.error("Batch insert failed due to an unexpected error", e);
+            if (connection != null) {
+                try {
+                    connection.rollback(); // 오류 발생 시 롤백
+                } catch (SQLException rollbackEx) {
+                    log.error("Failed to rollback transaction", rollbackEx);
+                }
+            }
             throw new RuntimeException("Batch insert failed", e);
+        } finally {
+            if (connection != null) {
+                try {
+                    connection.setAutoCommit(true); // Auto commit 복원
+                } catch (SQLException e) {
+                    log.error("Failed to reset auto-commit", e);
+                }
+            }
         }
     }
+
 }
 
 

@@ -12,11 +12,9 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
-import java.sql.SQLException;
 
 @RequiredArgsConstructor
 @Slf4j
@@ -27,7 +25,7 @@ public class ScheduleRepeatService {
     private final ScheduleRepeatRepository scheduleRepeatRepository;
     private final ScheduleBatchRepository scheduleBatchRepository;
 
-    @Transactional(propagation = Propagation.REQUIRED)
+    @Transactional
     public ScheduleRepeatDto.Response create(int scheduleId, ScheduleRepeatDto repeatDto){
 
         //기준 일정 가져오기
