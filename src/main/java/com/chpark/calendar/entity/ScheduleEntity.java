@@ -33,13 +33,8 @@ public class ScheduleEntity {
     @Column(name = "end_at", nullable = false)
     private LocalDateTime endAt;
 
-    @OneToMany(mappedBy = "scheduleId", cascade = CascadeType.REMOVE, orphanRemoval = true)
-    private List<ScheduleNotificationEntity> notifications = new ArrayList<>();
-
-    public void addNotification(ScheduleNotificationEntity notification) {
-        notifications.add(notification);
-        notification.setScheduleId(getId());
-    }
+    @Column(name = "repeat_id")
+    private Integer repeatId;
 
     @Override
     public String toString() {
@@ -49,6 +44,7 @@ public class ScheduleEntity {
                 ", description='" + description + '\'' +
                 ", startAt=" + startAt +
                 ", endAt=" + endAt +
+                ", repeatId=" + repeatId +
                 '}';
     }
 

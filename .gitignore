@@ -60,3 +60,4 @@ replay_pid*
 
 # Other Files #
 *.mwb
+*.DS_Store
