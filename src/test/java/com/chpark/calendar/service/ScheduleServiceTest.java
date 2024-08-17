@@ -14,8 +14,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
 @EnableTransactionManagement
@@ -80,8 +79,9 @@ public class ScheduleServiceTest {
         scheduleEntity.setStartAt(LocalDateTime.now());
         scheduleEntity.setEndAt(LocalDateTime.now().plusDays(8));
 
-        Optional<ScheduleDto> updateDto = scheduleService.update(scheduleEntity.getId(), new ScheduleDto(scheduleEntity));
-        assertFalse(updateDto.isEmpty());
+        ScheduleDto updateDto = scheduleService.update(scheduleEntity.getId(), new ScheduleDto(scheduleEntity));
+
+        assertNotNull(updateDto);
         log.info("Updated Schedule: {}", updateDto);
     }
 

@@ -7,32 +7,27 @@ import com.chpark.calendar.exception.CustomException;
 import com.chpark.calendar.repository.ScheduleNotificationRepository;
 import com.chpark.calendar.repository.ScheduleRepository;
 import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 
+@RequiredArgsConstructor
 @Service
 @Slf4j
 public class ScheduleNotificationService {
 
+
     private final ScheduleRepository scheduleRepository;
     private final ScheduleNotificationRepository scheduleNotificationRepository;
 
-    public ScheduleNotificationService(ScheduleRepository scheduleRepository, ScheduleNotificationRepository repository) {
-        this.scheduleRepository = scheduleRepository;
-        this.scheduleNotificationRepository = repository;
-    }
-
+    @Transactional
     public Optional<ScheduleNotificationDto.Response> create(int scheduleId, ScheduleNotificationDto.Request scheduleNotificationDto) {
-        //일정 검색
-        Optional<ScheduleEntity> scheduleEntity = scheduleRepository.findById(scheduleId);
 
-        if(scheduleEntity.isPresent()) {
-            ScheduleNotificationEntity notificationEntity = new ScheduleNotificationEntity(scheduleEntity.get().getId(), scheduleNotificationDto);
-            scheduleEntity.get().addNotification(notificationEntity);
-
+        if(scheduleRepository.existsById(scheduleId)) {
+            ScheduleNotificationEntity notificationEntity = new ScheduleNotificationEntity(scheduleId, scheduleNotificationDto);
             ScheduleNotificationDto.Response resultDto = new ScheduleNotificationDto.Response(scheduleNotificationRepository.save(notificationEntity));
 
             return Optional.of(resultDto);

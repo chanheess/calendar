@@ -179,10 +179,10 @@ class ScheduleNotificationServiceTest {
 
             //then
             List<ScheduleNotificationDto.Response> response = notificationService.findByScheduleId(deleteResponse.get().getScheduleId());
-            Optional<ScheduleDto> scheduleDto = scheduleService.findById(deleteResponse.get().getScheduleId());
+            ScheduleDto scheduleDto = scheduleService.findById(deleteResponse.get().getScheduleId());
 
             Assert.isTrue(response.isEmpty(), "Not Removed Notification");
-            Assert.isTrue(scheduleDto.isEmpty(), "Not Removed Notification");
+            Assert.isTrue(scheduleDto == null, "Not Removed Notification");
             log.info("Removed Schedule and ScheduleNotifications");
         } else {
             throw new IllegalArgumentException("Notification has not been created.");
