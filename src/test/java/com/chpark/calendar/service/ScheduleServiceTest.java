@@ -114,17 +114,9 @@ public class ScheduleServiceTest {
 
         scheduleRepository.save(scheduleEntity);
 
-        List<ScheduleDto> dateList = scheduleService.getSchedulesForDate(LocalDateTime.now().getYear(), LocalDateTime.now().getMonthValue(), LocalDateTime.now().getDayOfMonth());
+        List<ScheduleDto> dateList = scheduleService.getSchedulesByDateRange(LocalDateTime.now(), LocalDateTime.now().plusMonths(1));
         assertFalse(dateList.isEmpty());
         dateList.forEach(schedule -> log.info("Found Date Schedule: {}", schedule));
-
-        List<ScheduleDto> monthList = scheduleService.getSchedulesForMonth(LocalDateTime.now().getYear(), LocalDateTime.now().getMonthValue());
-        assertFalse(monthList.isEmpty());
-        monthList.forEach(schedule -> log.info("Found Month Schedule: {}", schedule));
-
-        List<ScheduleDto> yearList = scheduleService.getSchedulesForYear(LocalDateTime.now().getYear());
-        assertFalse(yearList.isEmpty());
-        yearList.forEach(schedule -> log.info("Found Year Schedule: {}", schedule));
     }
 
     @Test

@@ -30,7 +30,6 @@ public class ScheduleRepeatDto {
     @Getter
     @NoArgsConstructor
     public static class Response extends ScheduleRepeatDto{
-
         private int id;
 
         public Response(ScheduleRepeatEntity repeatEntity) {

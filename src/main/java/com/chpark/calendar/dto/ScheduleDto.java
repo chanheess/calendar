@@ -4,6 +4,7 @@ import com.chpark.calendar.entity.ScheduleEntity;
 import com.chpark.calendar.entity.ScheduleRepeatEntity;
 import com.chpark.calendar.enumClass.ScheduleRepeatType;
 import jakarta.validation.constraints.FutureOrPresent;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -18,10 +19,19 @@ import java.util.stream.Collectors;
 public class ScheduleDto {
 
     private int id;
+
+    @NotNull
     private String title;
+
     private String description;
+
+    @NotNull
     private LocalDateTime startAt;
+
+    @NotNull
     private LocalDateTime endAt;
+
+    private Integer repeatId;
 
     public ScheduleDto(ScheduleEntity entity) {
         this.id = entity.getId();
@@ -29,6 +39,7 @@ public class ScheduleDto {
         this.description = entity.getDescription();
         this.startAt = entity.getStartAt();
         this.endAt = entity.getEndAt();
+        this.repeatId = entity.getRepeatId();
     }
 
     public static List<ScheduleDto> fromScheduleEntityList(List<ScheduleEntity> entityList) {
@@ -45,6 +56,7 @@ public class ScheduleDto {
                 ", description='" + description + '\'' +
                 ", startAt=" + startAt +
                 ", endAt=" + endAt +
+                ", repeatId=" + repeatId +
                 '}';
     }
 

@@ -73,7 +73,7 @@ public class ScheduleService {
         //일정 내용 update
         ScheduleDto resultSchedule = this.update(scheduleId, scheduleDto);
 
-        return new ScheduleDto.repeatResponse(scheduleDto);
+        return new ScheduleDto.repeatResponse(resultSchedule);
     }
 
     @Transactional
@@ -195,23 +195,8 @@ public class ScheduleService {
         return scheduleRepository.existsById(id);
     }
 
-    //TODO: year, month와 date의 통합할 방법은 없는가
-    public List<ScheduleDto> getSchedulesForYear(int year) {
-        LocalDateTime startOfYear = LocalDateTime.of(year, 1, 1, 0, 0);
-        LocalDateTime endOfYear = startOfYear.plusYears(1).minusSeconds(1);
-        return ScheduleDto.fromScheduleEntityList(scheduleRepository.findSchedules(startOfYear, endOfYear));
-    }
-
-    public List<ScheduleDto> getSchedulesForMonth(int year, int month) {
-        LocalDateTime startOfMonth = LocalDateTime.of(year, month, 1, 0, 0);
-        LocalDateTime endOfMonth = startOfMonth.plusMonths(1).minusSeconds(1);
-        return ScheduleDto.fromScheduleEntityList(scheduleRepository.findSchedules(startOfMonth, endOfMonth));
-    }
-
-    public List<ScheduleDto> getSchedulesForDate(int year, int month, int day) {
-        LocalDateTime startOfDay = LocalDateTime.of(year, month, day, 0, 0);
-        LocalDateTime endOfDay = startOfDay.plusDays(1).minusSeconds(1);
-        return ScheduleDto.fromScheduleEntityList(scheduleRepository.findSchedules(startOfDay, endOfDay));
+    public List<ScheduleDto> getSchedulesByDateRange(LocalDateTime startDate, LocalDateTime endDate) {
+        return ScheduleDto.fromScheduleEntityList(scheduleRepository.findSchedules(startDate, endDate));
     }
 
 }
