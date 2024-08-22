@@ -35,8 +35,8 @@ public class ScheduleServiceTest {
         scheduleDto.setStartAt(LocalDateTime.now());
         scheduleDto.setEndAt(LocalDateTime.now().plusDays(3));
 
-        Optional<ScheduleDto> createDto = scheduleService.create(scheduleDto);
-        assertFalse(createDto.isEmpty(), "Not created");
+        ScheduleDto createDto = scheduleService.create(scheduleDto);
+        assertNotNull(createDto, "Not created");
 
         log.info("Created schedule info: {}", createDto);
     }

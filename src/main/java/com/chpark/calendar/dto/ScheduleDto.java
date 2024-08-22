@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -63,37 +64,31 @@ public class ScheduleDto {
     @Getter
     @Setter
     @NoArgsConstructor
-    public static class repeatRequest {
+    public static class Request {
         //비교하기 쉽게 상속하지 않고 오브젝트로
         private ScheduleDto scheduleDto;
+        private List<ScheduleNotificationDto> notificationDto = new ArrayList<>();
         private ScheduleRepeatDto repeatDto;
-
-        public repeatRequest(ScheduleDto scheduleDto) {
-            this.scheduleDto = scheduleDto;
-            this.repeatDto = new ScheduleRepeatDto();
-        }
-
-        public repeatRequest(ScheduleDto scheduleDto, ScheduleRepeatDto repeatDto) {
-            this.scheduleDto = scheduleDto;
-            this.repeatDto = repeatDto;
-        }
     }
 
     @Getter
     @Setter
     @NoArgsConstructor
-    public static class repeatResponse {
+    public static class Response {
         //비교하기 쉽게 상속하지 않고 오브젝트로
         private ScheduleDto scheduleDto;
+        private List<ScheduleNotificationDto.Response> notificationDto;
         private ScheduleRepeatDto.Response repeatDto;
 
-        public repeatResponse(ScheduleDto scheduleDto) {
+        public Response(ScheduleDto scheduleDto) {
             this.scheduleDto = scheduleDto;
-            this.repeatDto = new ScheduleRepeatDto.Response();
+            this.notificationDto = null;
+            this.repeatDto = null;
         }
 
-        public repeatResponse(ScheduleDto scheduleDto, ScheduleRepeatDto.Response repeatDto) {
+        public Response(ScheduleDto scheduleDto, List<ScheduleNotificationDto.Response> notificationDto, ScheduleRepeatDto.Response repeatDto) {
             this.scheduleDto = scheduleDto;
+            this.notificationDto = notificationDto;
             this.repeatDto = repeatDto;
         }
     }

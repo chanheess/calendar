@@ -7,6 +7,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Getter
 @Setter
@@ -25,7 +27,7 @@ public class ScheduleNotificationEntity {
     @Column(name = "notification_at", nullable = false)
     private LocalDateTime notificationAt;
 
-    public ScheduleNotificationEntity(int scheduleId, ScheduleNotificationDto.Request notificationDto) {
+    public ScheduleNotificationEntity(int scheduleId, ScheduleNotificationDto notificationDto) {
         this.scheduleId = scheduleId;
         this.notificationAt = notificationDto.getNotificationAt();
     }

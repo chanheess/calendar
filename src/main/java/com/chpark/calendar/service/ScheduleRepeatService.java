@@ -53,15 +53,10 @@ public class ScheduleRepeatService {
         return new ScheduleRepeatDto.Response(createRepeatEntity);
     }
 
-    public ScheduleRepeatDto.Response findById(int id) {
-
+    public Optional<ScheduleRepeatDto.Response> findById(int id) {
         Optional<ScheduleRepeatEntity> findEntity = scheduleRepeatRepository.findById(id);
 
-        if(findEntity.isPresent()) {
-            return new ScheduleRepeatDto.Response(findEntity.get());
-        } else {
-            throw new EntityNotFoundException("ScheduleRepeat not found with id: " + id);
-        }
+        return findEntity.map(ScheduleRepeatDto.Response::new);
     }
 
     public boolean existsById(int id) {

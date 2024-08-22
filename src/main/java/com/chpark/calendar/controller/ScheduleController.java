@@ -2,15 +2,15 @@ package com.chpark.calendar.controller;
 
 import com.chpark.calendar.dto.ScheduleDto;
 import com.chpark.calendar.enumClass.ScheduleRepeatScope;
-import com.chpark.calendar.exception.CustomException;
 import com.chpark.calendar.service.ScheduleService;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
+import javax.swing.text.html.Option;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -57,19 +57,21 @@ public class ScheduleController {
 
 
     @GetMapping("/{id}")
-    public ResponseEntity<ScheduleDto> getScheduleById(@PathVariable("id") int id,
-                                                       @RequestParam("repeat_id") Integer repeatId) {
+    public ResponseEntity<ScheduleDto> getScheduleById(@PathVariable("id") int id) {
+        Optional<ScheduleDto> scheduleDto = scheduleService.findById(id);
 
-        ScheduleDto scheduleDto = scheduleService.findById(id);
-
-        return new ResponseEntity<>(scheduleDto, HttpStatus.OK);
+        return scheduleDto.map(dto -> new ResponseEntity<>(dto, HttpStatus.OK)).orElseGet(() -> new ResponseEntity<>(null, HttpStatus.OK));
     }
 
     @PostMapping
-    public ResponseEntity<ScheduleDto> createSchedule(@RequestBody ScheduleDto schedule) {
-        Optional<ScheduleDto> createDto = scheduleService.create(schedule);
+    public ResponseEntity<ScheduleDto.Response> createSchedule(@Valid @RequestBody ScheduleDto.Request schedule) {
+        if(schedule.getScheduleDto() == null) {
+            new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
 
-        return createDto.map(scheduleDto -> new ResponseEntity<>(scheduleDto, HttpStatus.CREATED)).orElseGet(() -> new ResponseEntity<>(HttpStatus.BAD_REQUEST));
+        ScheduleDto.Response result = scheduleService.createByForm(schedule);
+
+        return new ResponseEntity<>(result, HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
@@ -80,11 +82,11 @@ public class ScheduleController {
     }
 
     @PutMapping("/{id}/{update-scope}")
-    public ResponseEntity<ScheduleDto.repeatResponse> updateRepeatSchedule(@PathVariable("id") int id,
+    public ResponseEntity<ScheduleDto.Response> updateRepeatSchedule(@PathVariable("id") int id,
                                                                    @PathVariable("update-scope") ScheduleRepeatScope scheduleRepeatScope,
-                                                                   @Valid @RequestBody ScheduleDto.repeatRequest scheduleDto) {
+                                                                   @Valid @RequestBody ScheduleDto.Request scheduleDto) {
 
-        Optional<ScheduleDto.repeatResponse> updateDto = Optional.empty();
+        Optional<ScheduleDto.Response> updateDto = Optional.empty();
 
         //일정의 수정 범위가 어떻게 되는가
         switch (scheduleRepeatScope) {
@@ -97,7 +99,7 @@ public class ScheduleController {
             }
         }
 
-        return updateDto.map(repeatResponse -> new ResponseEntity<>(repeatResponse, HttpStatus.OK)).orElseGet(() -> new ResponseEntity<>(HttpStatus.BAD_REQUEST));
+        return updateDto.map(response -> new ResponseEntity<>(response, HttpStatus.OK)).orElseGet(() -> new ResponseEntity<>(HttpStatus.BAD_REQUEST));
     }
 
     @DeleteMapping("/{id}")

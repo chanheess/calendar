@@ -28,18 +28,17 @@ public class ScheduleNotificationController {
     }
 
     @PostMapping
-    public ResponseEntity<ScheduleNotificationDto.Response> createNotification(@RequestParam("scheduleId") int scheduleId,
-                                                                               @RequestBody @Valid ScheduleNotificationDto.Request notificationDto) {
-
+    public ResponseEntity<List<ScheduleNotificationDto.Response>> createNotification(@RequestParam("scheduleId") int scheduleId,
+                                                                                     @RequestBody @Valid List<ScheduleNotificationDto> notificationDto) {
         if(scheduleService.existsById(scheduleId)) {
-            Optional<ScheduleNotificationDto.Response> createResponse = scheduleNotificationService.create(scheduleId, notificationDto);
+            List<ScheduleNotificationDto.Response> createResponse = scheduleNotificationService.create(scheduleId, notificationDto);
 
-            if(createResponse.isPresent()) {
-                return ResponseEntity.status(HttpStatus.CREATED).body(createResponse.get());
+            if(!createResponse.isEmpty()) {
+                return new ResponseEntity<>(createResponse, HttpStatus.CREATED);
             }
         }
 
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
     }
 
     @GetMapping
@@ -56,10 +55,10 @@ public class ScheduleNotificationController {
 
     @PatchMapping("/{notificationId}")
     public ResponseEntity<ScheduleNotificationDto.Response> updateNotification(@PathVariable("notificationId") int notificationId,
-                                                                               @RequestBody @Valid ScheduleNotificationDto.Request notificationDto) {
-        Optional<ScheduleNotificationDto.Response> responseDto = scheduleNotificationService.update(notificationId, notificationDto);
+                                                                               @RequestBody @Valid ScheduleNotificationDto notificationDto) {
+        ScheduleNotificationDto.Response responseDto = scheduleNotificationService.update(notificationId, notificationDto);
 
-        return ResponseEntity.of(responseDto);
+        return new ResponseEntity<>(responseDto, HttpStatus.OK);
     }
 
     @DeleteMapping("/{notificationId}")

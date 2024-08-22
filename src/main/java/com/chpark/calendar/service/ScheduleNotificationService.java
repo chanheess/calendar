@@ -1,16 +1,17 @@
 package com.chpark.calendar.service;
 
 import com.chpark.calendar.dto.ScheduleNotificationDto;
-import com.chpark.calendar.entity.ScheduleEntity;
 import com.chpark.calendar.entity.ScheduleNotificationEntity;
-import com.chpark.calendar.exception.CustomException;
 import com.chpark.calendar.repository.ScheduleNotificationRepository;
 import com.chpark.calendar.repository.ScheduleRepository;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -19,20 +20,41 @@ import java.util.Optional;
 @Slf4j
 public class ScheduleNotificationService {
 
-
     private final ScheduleRepository scheduleRepository;
     private final ScheduleNotificationRepository scheduleNotificationRepository;
 
+
     @Transactional
-    public Optional<ScheduleNotificationDto.Response> create(int scheduleId, ScheduleNotificationDto.Request scheduleNotificationDto) {
+    public ScheduleNotificationDto.Response create(int scheduleId, ScheduleNotificationDto notification) {
 
-        if(scheduleRepository.existsById(scheduleId)) {
-            ScheduleNotificationEntity notificationEntity = new ScheduleNotificationEntity(scheduleId, scheduleNotificationDto);
-            ScheduleNotificationDto.Response resultDto = new ScheduleNotificationDto.Response(scheduleNotificationRepository.save(notificationEntity));
+        if (scheduleRepository.existsById(scheduleId)) {
+            ScheduleNotificationEntity notificationEntity = new ScheduleNotificationEntity(scheduleId, notification);
+            ScheduleNotificationEntity savedEntity = scheduleNotificationRepository.save(notificationEntity);
 
-            return Optional.of(resultDto);
+            return new ScheduleNotificationDto.Response(savedEntity);
         } else {
-            return Optional.empty();
+            // scheduleId가 존재하지 않는 경우 빈 리스트 반환
+            throw new EntityNotFoundException("Schedule not found with id: " + scheduleId);
+        }
+    }
+
+    @Transactional
+    public List<ScheduleNotificationDto.Response> create(int scheduleId, List<ScheduleNotificationDto> notifications) {
+
+        if (scheduleRepository.existsById(scheduleId)) {
+            List<ScheduleNotificationDto.Response> resultNotificationList = new ArrayList<>();
+
+            for (ScheduleNotificationDto notification : notifications) {
+                ScheduleNotificationEntity notificationEntity = new ScheduleNotificationEntity(scheduleId, notification);
+                ScheduleNotificationEntity savedEntity = scheduleNotificationRepository.save(notificationEntity);
+                ScheduleNotificationDto.Response resultNotification = new ScheduleNotificationDto.Response(savedEntity);
+                resultNotificationList.add(resultNotification);
+            }
+
+            return resultNotificationList;
+        } else {
+            // scheduleId가 존재하지 않는 경우 빈 리스트 반환
+            return Collections.emptyList();
         }
     }
 
@@ -60,20 +82,14 @@ public class ScheduleNotificationService {
         return scheduleNotificationRepository.existsByScheduleId(scheduleId);
     }
 
-    public Optional<ScheduleNotificationDto.Response> update(int notificationId, ScheduleNotificationDto.Request notificationDto) {
+    public ScheduleNotificationDto.Response update(int notificationId, ScheduleNotificationDto notificationDto) {
 
-        Optional<ScheduleNotificationEntity> updateData = scheduleNotificationRepository.findById(notificationId);
+        ScheduleNotificationEntity resultEntity = scheduleNotificationRepository.findById(notificationId).orElseThrow(
+                () -> new EntityNotFoundException("Schedule not found with id: " + notificationId)
+        );
+        resultEntity.setNotificationAt(notificationDto.getNotificationAt());
 
-        if(updateData.isPresent()) {
-            ScheduleNotificationEntity resultEntity = updateData.get();
-            resultEntity.setNotificationAt(notificationDto.getNotificationAt());
-
-            ScheduleNotificationDto.Response resultDto = new ScheduleNotificationDto.Response(scheduleNotificationRepository.save(resultEntity));
-
-            return Optional.of(resultDto);
-        } else {
-            return Optional.empty();
-        }
+        return new ScheduleNotificationDto.Response(scheduleNotificationRepository.save(resultEntity));
     }
 
     public void deleteById(int notificationId) {

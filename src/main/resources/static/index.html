@@ -102,16 +102,18 @@
         var popupHeader = document.getElementById('popup-header');
         var popupClose = document.getElementById('popup-close');
         var popupEditEvent = document.getElementById('popup-edit-event');
+        var popupNewEvent = document.getElementById('popup-new-event');
+
+        var scheduleFormPopup = document.getElementById('schedule-form-popup');
+        var scheduleFormHeader = document.getElementById('schedule-form-header');
+        var scheduleFormSave = document.getElementById('schedule-form-save');
+        var scheduleFormClose = document.getElementById('schedule-form-close');
+        var scheduleRepeatSection = document.getElementById('schedule-repeat-section');
+        var scheduleRepeatCheckbox = document.getElementById('schedule-repeat-checkbox');
+
+        var isEditMode = false;
+        var currentScheduleId = null;
         var selectedEvent;
-
-        var editEventPopup = document.getElementById('edit-event-popup');
-        var editEventPopupClose = document.getElementById('edit-event-popup-close');
-        var editEventPopupBack = document.getElementById('edit-event-popup-back');
-        var editEventPopupSave = document.getElementById('edit-event-popup-save');
-
-        var repeatSection = document.getElementById('repeat-section');
-        var repeatCheckbox = document.getElementById('repeat-checkbox');
-
         var isSaving = false; // 추가된 상태 변수로 중복 요청을 방지
 
         var calendar = new FullCalendar.Calendar(calendarEl, {
@@ -124,29 +126,15 @@
             },
             events: function(fetchInfo, successCallback, failureCallback) {
                 fetch('/schedules/date?start=' + fetchInfo.start.toISOString().split('T')[0] + '&end=' + fetchInfo.end.toISOString().split('T')[0])
-                    .then(response => {
-                        if (response.ok) {
-                            return response.json();
-                        }
-                        throw new Error("Failed to fetch data");
-                    })
-                    .then(data => {
-                        console.log("Fetched data:", data);
-                        if (data.length > 0) {
-                            // 이벤트가 있는 경우
-                            successCallback(data.map(event => ({
-                                id: event.id,
-                                title: event.title,
-                                start: event.startAt,
-                                end: event.endAt,
-                                description: event.description,
-                                repeat: event.repeatId
-                            })));
-                        } else {
-                            // 이벤트가 없는 경우, 빈 배열로 처리
-                            successCallback([]);
-                        }
-                    })
+                    .then(response => response.ok ? response.json() : Promise.reject("Failed to fetch data"))
+                    .then(data => successCallback(data.map(event => ({
+                        id: event.id,
+                        title: event.title,
+                        start: event.startAt,
+                        end: event.endAt,
+                        description: event.description,
+                        repeat: event.repeatId
+                    }))))
                     .catch(error => {
                         console.error('Error fetching events:', error);
                         failureCallback(error);
@@ -157,6 +145,7 @@
                 popupHeader.textContent = 'Events on ' + clickedDate;
                 popupContent.innerHTML = '<p>Loading events...</p>';
                 popupOverlay.classList.add('show');
+
                 popup.classList.add('show');
 
                 const year = info.date.getFullYear();
@@ -204,6 +193,30 @@
             }
         });
 
+        function openCreateScheduleForm() {
+            isEditMode = false;
+            currentScheduleId = null;
+            scheduleFormHeader.textContent = 'Create New Schedule';
+            scheduleFormSave.textContent = 'Create';
+            scheduleFormPopup.classList.remove('hidden');
+            scheduleFormSave.onclick = createSchedule;
+        }
+
+        function openEditScheduleForm(schedule) {
+            isEditMode = true;
+            currentScheduleId = schedule.id;
+            scheduleFormHeader.textContent = 'Edit Schedule';
+            scheduleFormActionButton.textContent = 'Save';
+            scheduleFormPopup.classList.remove('hidden');
+            // Populate form fields with schedule data
+            document.getElementById('schedule-title').value = schedule.title;
+            document.getElementById('schedule-description').value = schedule.description;
+            document.getElementById('schedule-start').value = schedule.startAt;
+            document.getElementById('schedule-end').value = schedule.endAt;
+            // ... repeat options as well
+            scheduleFormActionButton.onclick = updateSchedule;
+        }
+
         function showEventDetails(event) {
             // 이벤트 세부 정보를 표시하기 위한 팝업 내용 설정
             popupHeader.textContent = 'Event Details';
@@ -230,7 +243,7 @@
             if (isSaving) return;
             isSaving = true;
 
-            if (selectedEvent.repeatId || repeatCheckbox.checked) {
+            if (selectedEvent.repeatId || scheduleRepeatCheckbox.checked) {
                 showChoicePopup();
             } else {
                 updateEvent('/schedules/' + selectedEvent.id);
@@ -290,7 +303,7 @@
             if (selectedEvent.repeatId) {
                 var repeatDto;
 
-                if (repeatCheckbox.checked) {
+                if (scheduleRepeatCheckbox.checked) {
                     // 반복 일정이 있는 경우 repeatRequest DTO를 저장합니다.
                     repeatDto = {
                         repeatType: document.getElementById('edit-event-repeat-type').value,
@@ -341,7 +354,87 @@
             });
         }
 
+        function createSchedule() {
+            if (isSaving) return;
+            isSaving = true;
+
+            var scheduleDto = {
+                title: document.getElementById('new-event-title').value,
+                description: document.getElementById('new-event-description').value,
+                startAt: document.getElementById('new-event-start').value,
+                endAt: document.getElementById('new-event-end').value
+            };
+
+            var createEvent;
+
+            if (scheduleRepeatCheckbox.checked) {
+                var repeatDto;
+
+                // 반복 일정이 있는 경우 repeatRequest DTO를 저장합니다.
+                repeatDto = {
+                    repeatType: document.getElementById('edit-event-repeat-type').value,
+                    repeatInterval: document.getElementById('edit-event-repeat-interval').value,
+                    endAt: document.getElementById('edit-event-repeat-end').value || null // Optional end date
+                };
+
+                createEvent = {
+                    scheduleDto: scheduleDto,
+                    repeatDto: repeatDto
+                };
+            } else {
+                // 반복 일정이 없는 경우 일반 ScheduleDto를 사용합니다.
+                createEvent = scheduleDto;
+            }
+
+            fetch('/schedules', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(createEvent)
+            })
+            .then(response => response.ok ? response.json() : response.json().then(data => Promise.reject(data.message || 'Unknown error occurred')))
+            .then(() => {
+                alert('Event created successfully!');
+                calendar.refetchEvents();
+                isSaving = false;
+            })
+            .catch(error => {
+                console.error('Error creating event:', error);
+                alert('An error occurred while creating the event.');
+                isSaving = false;
+            });
+        }
+
+        function deleteEvent() {
+            if (!selectedEvent || isSaving) return;
+            isSaving = true;
+
+            fetch('/schedules/' + selectedEvent.id, {
+                method: 'DELETE'
+            })
+            .then(response => response.ok ? response.text() : Promise.reject('Failed to delete event'))
+            .then(() => {
+                alert('Event deleted successfully!');
+                calendar.refetchEvents();
+                isSaving = false;
+            })
+            .catch(error => {
+                console.error('Error deleting event:', error);
+                alert('An error occurred while deleting the event.');
+                isSaving = false;
+            });
+        }
+
         calendar.render();
+
+        popupNewEvent.addEventListener('click', openCreateScheduleForm);
+
+        popupOverlay.addEventListener('click', function() {
+            popup.classList.remove('show');
+            popupOverlay.classList.remove('show');
+            scheduleFormPopup.classList.remove('show');
+        });
 
         popupClose.addEventListener('click', function() {
             popup.classList.remove('show');
@@ -350,31 +443,25 @@
 
         popupEditEvent.addEventListener('click', function() {
             popup.classList.remove('show');
-            editEventPopup.classList.add('show');
+            scheduleFormPopup.classList.add('show');
         });
 
-        popupOverlay.addEventListener('click', function() {
+        popupNewEvent.addEventListener('click', function() {
             popup.classList.remove('show');
-            popupOverlay.classList.remove('show');
-            editEventPopup.classList.remove('show');
+            scheduleFormPopup.classList.add('show');
         });
 
-        editEventPopupClose.addEventListener('click', function() {
-            editEventPopup.classList.remove('show');
+        scheduleFormClose.addEventListener('click', function() {
+            scheduleFormPopup.classList.remove('show');
             popupOverlay.classList.remove('show');
-        });
-
-        editEventPopupBack.addEventListener('click', function() {
-            editEventPopup.classList.remove('show');
-            popup.classList.add('show');
         });
 
         // Show/hide repeat options based on checkbox state
-        repeatCheckbox.addEventListener('change', function() {
+        scheduleRepeatCheckbox.addEventListener('change', function() {
             if (this.checked) {
-                repeatSection.classList.remove('hidden');
+                scheduleRepeatSection.classList.remove('hidden');
             } else {
-                repeatSection.classList.add('hidden');
+                scheduleRepeatSection.classList.add('hidden');
             }
         });
     });
@@ -387,44 +474,14 @@
     <div id='popup-header' class="popup-header">Events on selected date</div>
     <div id='popup-content' class="popup-content"></div>
     <div class="popup-footer">
+        <button id="popup-new-event" class="popup-new-event">New Event</button>
         <button id="popup-edit-event" class="popup-new-event hidden">Edit Event</button>
         <button id="popup-close" class="popup-close">Close</button>
     </div>
 </div>
 
-<div id='edit-event-popup' class="popup hidden">
-    <div id='edit-event-popup-header' class="popup-header">Edit Event</div>
-    <div id='edit-event-popup-content' class="popup-content">
-        <label>Title<br><input type="text" id="edit-event-title"></label><br><br>
-        <label>Description<br><textarea id="edit-event-description"></textarea></label><br><br>
-        <label>Start Time<br><input type="datetime-local" id="edit-event-start"></label><br><br>
-        <label>End Time<br><input type="datetime-local" id="edit-event-end"></label><br><br>
-    </div>
-    <label><input type="checkbox" id="repeat-checkbox"> Repeat</label><br><br>
-    <!-- Existing fields (Title, Description, etc.) remain as they are -->
-    <div id='repeat-section' class='hidden'>
-        <label>Repeat Interval<br>
-            <input type="number" id="edit-event-repeat-interval" min="1" value="1">
-            <select id="edit-event-repeat-type">
-                <option value="d">Day(s)</option>
-                <option value="w">Week(s)</option>
-                <option value="m">Month(s)</option>
-                <option value="y">Year(s)</option>
-            </select>
-        </label><br><br>
-        <label>Repeat End Time<br>
-            <input type="datetime-local" id="edit-event-repeat-end">
-        </label><br><br>
-    </div>
-    <div class="popup-footer">
-        <button id="edit-event-popup-back" class="popup-back">Back</button>
-        <button id="edit-event-popup-save" class="popup-new-event">Save</button>
-        <button id="edit-event-popup-close" class="popup-close">Close</button>
-    </div>
-</div>
-
-<!-- 선택지 팝업 -->
-<div id='choice-popup' class="popup hidden">
+<!-- 반복 수정 선택지 팝업 -->
+<div id='repeat-choice-popup' class="popup hidden">
     <div id='choice-popup-header' class="popup-header">Choose an Action</div>
     <div id='choice-popup-content' class="popup-content">
         <p>This event is part of a repeating series. What would you like to do?</p>
@@ -435,6 +492,39 @@
         <button id="choice-popup-close" class="popup-close">Cancel</button>
     </div>
 </div>
+
+<!-- 일정 작성 팝업 -->
+<div id='schedule-form-popup' class="popup hidden">
+    <div id='schedule-form-header' class="popup-header"></div>
+    <div id='schedule-form-content' class="popup-content">
+        <label>Title<br><input type="text" id="schedule-title"></label><br><br>
+        <label>Description<br><textarea id="schedule-description"></textarea></label><br><br>
+        <label>Start Time<br><input type="datetime-local" id="schedule-start"></label><br><br>
+        <label>End Time<br><input type="datetime-local" id="schedule-end"></label><br><br>
+    </div>
+    <label><input type="checkbox" id='schedule-repeat-checkbox'> Repeat</label><br><br>
+    <div id='schedule-repeat-section' class="hidden">
+        <label>Repeat Interval<br>
+            <input type="number" id="schedule-repeat-interval" min="1" value="1">
+            <select id="schedule-repeat-type">
+                <option value="d">Day(s)</option>
+                <option value="w">Week(s)</option>
+                <option value="m">Month(s)</option>
+                <option value="y">Year(s)</option>
+            </select>
+        </label><br><br>
+        <label>Repeat End Time<br>
+            <input type="datetime-local" id="schedule-repeat-end">
+        </label><br><br>
+    </div>
+    <div class="popup-footer">
+        <button id="schedule-form-save" class="popup-new-event"></button>
+        <button id="schedule-form-close" class="popup-close">Close</button>
+    </div>
+</div>
+
+
+
 
 
 </body>

@@ -2,6 +2,7 @@ package com.chpark.calendar.dto;
 
 import com.chpark.calendar.entity.ScheduleNotificationEntity;
 import jakarta.validation.constraints.FutureOrPresent;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -10,35 +11,31 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Getter
+@NoArgsConstructor
 public class ScheduleNotificationDto {
 
-    @Getter
-    @NoArgsConstructor
-    public static class Request {
-        //TODO: 커스텀 메시지가 나오도록 수정
-        @FutureOrPresent(message = "The notification date must be in the present or future")
-        private LocalDateTime notificationAt;
+    @FutureOrPresent(message = "The notification date must be in the present or future")
+    private LocalDateTime notificationAt;
 
-        public Request(LocalDateTime dateAt) {
-            this.notificationAt = dateAt;
-        }
+    public ScheduleNotificationDto(LocalDateTime dateAt) {
+        this.notificationAt = dateAt;
     }
 
     @Getter
     @Setter
     @NoArgsConstructor
-    public static class Response {
+    public static class Response extends ScheduleNotificationDto {
 
         private int id;
+
+        @NotNull
         private int scheduleId;
 
-        @FutureOrPresent(message = "The notification date must be in the present or future")
-        private LocalDateTime notificationAt;
-
         public Response(ScheduleNotificationEntity entity) {
+            super(entity.getNotificationAt());
             setId(entity.getId());
             setScheduleId(entity.getScheduleId());
-            setNotificationAt(entity.getNotificationAt());
         }
 
         public static List<Response> fromScheduleNotificationEntityList(List<ScheduleNotificationEntity> entityList) {
@@ -52,7 +49,7 @@ public class ScheduleNotificationDto {
             return "ScheduleNotificationDto.Response{" +
                     "id=" + id +
                     ", scheduleId=" + scheduleId +
-                    ", notificationAt='" + notificationAt + '\'' +
+                    ", notificationAt='" + getNotificationAt() + '\'' +
                     '}';
         }
     }

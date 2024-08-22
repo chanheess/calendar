@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.sql.SQLException;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/repeats")
@@ -27,8 +28,8 @@ public class ScheduleRepeatController {
 
     @GetMapping("/{id}")
     public ResponseEntity<ScheduleRepeatDto.Response> getScheduleRepeat(@PathVariable("id") int id) {
-        ScheduleRepeatDto.Response findResponse = scheduleRepeatService.findById(id);
+        Optional<ScheduleRepeatDto.Response> findResponse = scheduleRepeatService.findById(id);
 
-        return new ResponseEntity<>(findResponse, HttpStatus.OK);
+        return findResponse.map(repeatDto -> new ResponseEntity<>(repeatDto, HttpStatus.OK)).orElseGet(() -> new ResponseEntity<>(null, HttpStatus.OK));
     }
 }

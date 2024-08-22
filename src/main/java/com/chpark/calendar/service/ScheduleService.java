@@ -1,6 +1,7 @@
 package com.chpark.calendar.service;
 
 import com.chpark.calendar.dto.ScheduleDto;
+import com.chpark.calendar.dto.ScheduleNotificationDto;
 import com.chpark.calendar.dto.ScheduleRepeatDto;
 import com.chpark.calendar.entity.ScheduleEntity;
 import com.chpark.calendar.repository.ScheduleNotificationRepository;
@@ -13,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -25,12 +27,31 @@ public class ScheduleService {
     private final ScheduleRepeatRepository scheduleRepeatRepository;
 
     private final ScheduleRepeatService scheduleRepeatService;
+    private final ScheduleNotificationService scheduleNotificationService;
 
-    public Optional<ScheduleDto> create(ScheduleDto scheduleDto) {
+    public ScheduleDto create(ScheduleDto scheduleDto) {
         ScheduleEntity savedEntity = scheduleRepository.save(new ScheduleEntity(scheduleDto));
 
-        return Optional.of(new ScheduleDto(savedEntity));
+        return new ScheduleDto(savedEntity);
     }
+
+    @Transactional
+    public ScheduleDto.Response createByForm(ScheduleDto.Request scheduleDto) {
+
+        ScheduleDto resultSchedule = this.create(scheduleDto.getScheduleDto());
+
+        List<ScheduleNotificationDto.Response> resultNotifications = scheduleNotificationService.create(resultSchedule.getId(), scheduleDto.getNotificationDto());
+
+        ScheduleRepeatDto.Response resultRepeat = null;
+
+        if(scheduleDto.getRepeatDto() != null) {
+            resultRepeat = scheduleRepeatService.create(resultSchedule.getId(), scheduleDto.getRepeatDto());
+            resultSchedule.setRepeatId(resultRepeat.getId());
+        }
+
+        return new ScheduleDto.Response(resultSchedule, resultNotifications, resultRepeat);
+    }
+
 
     public List<ScheduleDto> findSchedulesByTitle(String title) {
         return ScheduleDto.fromScheduleEntityList(scheduleRepository.findByTitleContaining(title));
@@ -51,7 +72,7 @@ public class ScheduleService {
     }
 
     @Transactional
-    public ScheduleDto.repeatResponse repeatCurrentOnlyScheduleUpdate(int scheduleId, ScheduleDto scheduleDto) {
+    public ScheduleDto.Response repeatCurrentOnlyScheduleUpdate(int scheduleId, ScheduleDto scheduleDto) {
 
         //수정된 일정이 들어오니 수정전 일정으로 비교
         ScheduleEntity standardSchedule = scheduleRepository.findById(scheduleId).orElseThrow(
@@ -73,13 +94,13 @@ public class ScheduleService {
         //일정 내용 update
         ScheduleDto resultSchedule = this.update(scheduleId, scheduleDto);
 
-        return new ScheduleDto.repeatResponse(resultSchedule);
+        return new ScheduleDto.Response(resultSchedule);
     }
 
     @Transactional
-    public ScheduleDto.repeatResponse repeatCurrentAndFutureScheduleUpdate(int scheduleId, ScheduleDto.repeatRequest scheduleDto) {
+    public ScheduleDto.Response repeatCurrentAndFutureScheduleUpdate(int scheduleId, ScheduleDto.Request scheduleDto) {
 
-        //TODO: 알림의 내용도 바뀌어서 들어왔을 때는 가정하지 않았다. 추후에 추가하자.
+
 
         //수정된 일정이 들어오니 수정전 일정으로 비교
         ScheduleEntity standardSchedule = scheduleRepository.findById(scheduleId).orElseThrow(
@@ -109,10 +130,14 @@ public class ScheduleService {
         //일정 내용 update
         ScheduleDto resultSchedule = this.update(scheduleId, scheduleDto.getScheduleDto());
 
-        //일정 반복 생성
-        ScheduleRepeatDto.Response resultScheduleRepeat = scheduleRepeatService.create(scheduleId, scheduleDto.getRepeatDto());
+        //TODO: 알림의 내용도 바뀌어서 들어왔을 때는 가정하지 않았다. 추후에 추가하자.
+        //알림 내용 수정
+        List<ScheduleNotificationDto.Response> resultNotification = new ArrayList<>();
 
-        return new ScheduleDto.repeatResponse(resultSchedule, resultScheduleRepeat);
+        //일정 반복 생성
+        ScheduleRepeatDto.Response resultRepeat = scheduleRepeatService.create(scheduleId, scheduleDto.getRepeatDto());
+
+        return new ScheduleDto.Response(resultSchedule, resultNotification, resultRepeat);
     }
 
     @Transactional
@@ -179,12 +204,10 @@ public class ScheduleService {
         this.deleteById(id);
     }
 
-    public ScheduleDto findById(int id) {
-        ScheduleEntity findEntity = scheduleRepository.findById(id).orElseThrow(
-                () -> new EntityNotFoundException("Schedule not found with id: " + id)
-        );
+    public Optional<ScheduleDto> findById(int id) {
+        Optional<ScheduleEntity> findEntity = scheduleRepository.findById(id);
 
-        return new ScheduleDto(findEntity);
+        return findEntity.map(ScheduleDto::new);
     }
 
     public List<ScheduleDto> findAll() {
