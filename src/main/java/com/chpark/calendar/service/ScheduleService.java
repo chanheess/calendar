@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @RequiredArgsConstructor
@@ -30,6 +31,11 @@ public class ScheduleService {
     private final ScheduleNotificationService scheduleNotificationService;
 
     public ScheduleDto create(ScheduleDto scheduleDto) {
+        //빈 제목일 경우 제목 없음으로 처리
+        if(Objects.equals(scheduleDto.getTitle(), "")) {
+            scheduleDto.setTitle("Untitled");
+        }
+
         ScheduleEntity savedEntity = scheduleRepository.save(new ScheduleEntity(scheduleDto));
 
         return new ScheduleDto(savedEntity);

@@ -108,8 +108,24 @@
         var scheduleFormHeader = document.getElementById('schedule-form-header');
         var scheduleFormSave = document.getElementById('schedule-form-save');
         var scheduleFormClose = document.getElementById('schedule-form-close');
+
+        // DOM 요소 변수 선언
+        var scheduleTitle = document.getElementById('schedule-title');
+        var scheduleDescription = document.getElementById('schedule-description');
+        var scheduleStart = document.getElementById('schedule-start');
+        var scheduleEnd = document.getElementById('schedule-end');
+
+        var scheduleRepeatInterval = document.getElementById('schedule-repeat-interval');
+        var scheduleRepeatType = document.getElementById('schedule-repeat-type');
+        var scheduleRepeatEnd = document.getElementById('schedule-repeat-end');
+
         var scheduleRepeatSection = document.getElementById('schedule-repeat-section');
         var scheduleRepeatCheckbox = document.getElementById('schedule-repeat-checkbox');
+
+        var scheduleNotificationSection = document.getElementById('schedule-notification-section');
+        var scheduleNotificationCheckbox = document.getElementById('schedule-notification-checkbox');
+        var scheduleNotificationList = document.getElementById('schedule-notification-list');
+        var scheduleAddNotification = document.getElementById('schedule-add-notification');
 
         var isEditMode = false;
         var currentScheduleId = null;
@@ -145,6 +161,9 @@
                 popupHeader.textContent = 'Events on ' + clickedDate;
                 popupContent.innerHTML = '<p>Loading events...</p>';
                 popupOverlay.classList.add('show');
+
+                //클릭한 날짜 저장
+                document.getElementById('schedule-form-popup').setAttribute('data-selected-date', info.dateStr);
 
                 popup.classList.add('show');
 
@@ -193,6 +212,15 @@
             }
         });
 
+        function formatDateTime(date) {
+            const year = date.getFullYear();
+            const month = ('0' + (date.getMonth() + 1)).slice(-2);
+            const day = ('0' + date.getDate()).slice(-2);
+            const hours = ('0' + date.getHours()).slice(-2);
+            const minutes = ('0' + date.getMinutes()).slice(-2);
+            return `${year}-${month}-${day}T${hours}:${minutes}`;
+        }
+
         function openCreateScheduleForm() {
             isEditMode = false;
             currentScheduleId = null;
@@ -200,6 +228,31 @@
             scheduleFormSave.textContent = 'Create';
             scheduleFormPopup.classList.remove('hidden');
             scheduleFormSave.onclick = createSchedule;
+
+            // 클릭한 날짜 가져오기
+            const clickedDate = new Date(document.getElementById('schedule-form-popup').getAttribute('data-selected-date'));
+
+            // 현재 시간 가져오기
+            const now = new Date();
+            const currentHours = now.getHours();
+            const currentMinutes = now.getMinutes();
+
+            // 클릭한 날짜와 현재 시간, 분을 결합
+            const selectedDate = new Date(clickedDate.getFullYear(), clickedDate.getMonth(), clickedDate.getDate(), currentHours, currentMinutes);
+            const selectFormatted = formatDateTime(selectedDate);
+
+            // 1시간 후 시간 가져오기
+            const oneHourLater = new Date(selectedDate.getTime() + 60 * 60 * 1000);
+            const oneHourLaterFormatted = formatDateTime(oneHourLater);
+
+            // 폼의 모든 필드를 초기화
+            document.getElementById('schedule-title').value = '';
+            document.getElementById('schedule-description').value = '';
+            document.getElementById('schedule-start').value = selectFormatted;
+            document.getElementById('schedule-end').value = oneHourLaterFormatted;
+
+            initializeDefaultNotification();
+            initializeDefaultRepeat();
         }
 
         function openEditScheduleForm(schedule) {
@@ -291,10 +344,10 @@
             // 기본 일정 정보
             var scheduleDto = {
                 id: selectedEvent.id,
-                title: document.getElementById('edit-event-title').value,
-                description: document.getElementById('edit-event-description').value,
-                startAt: document.getElementById('edit-event-start').value,
-                endAt: document.getElementById('edit-event-end').value
+                title: scheduleTitle.value,
+                description: scheduleDescription.value,
+                startAt: scheduleStart.value,
+                endAt: scheduleEnd.value
             };
 
             var updatedEvent;
@@ -306,9 +359,9 @@
                 if (scheduleRepeatCheckbox.checked) {
                     // 반복 일정이 있는 경우 repeatRequest DTO를 저장합니다.
                     repeatDto = {
-                        repeatType: document.getElementById('edit-event-repeat-type').value,
-                        repeatInterval: document.getElementById('edit-event-repeat-interval').value,
-                        endAt: document.getElementById('edit-event-repeat-end').value || null // Optional end date
+                        repeatType: scheduleRepeatType.value,
+                        repeatInterval: scheduleRepeatInterval.value,
+                        endAt: scheduleRepeatEnd.value || null // Optional end date
                     };
                 }
 
@@ -358,32 +411,37 @@
             if (isSaving) return;
             isSaving = true;
 
-            var scheduleDto = {
-                title: document.getElementById('new-event-title').value,
-                description: document.getElementById('new-event-description').value,
-                startAt: document.getElementById('new-event-start').value,
-                endAt: document.getElementById('new-event-end').value
+            var createEvent = {
+                scheduleDto: {},
+                notificationDto: [],
+                repeatDto: null
             };
 
-            var createEvent;
+            // scheduleDto 설정
+            createEvent.scheduleDto = {
+                title: scheduleTitle.value,
+                description: scheduleDescription.value,
+                startAt: scheduleStart.value,
+                endAt: scheduleEnd.value
+            };
+
+            if (scheduleNotificationCheckbox.checked) {
+                document.querySelectorAll('.notification-row').forEach(function(row) {
+                    var timeValue = row.querySelector('.notification-time').value;
+                    var timeUnit = row.querySelector('.notification-unit').value;
+                    if (timeValue && timeUnit) {
+                        var notificationTime = convertToLocalDateTime(scheduleStart.value, parseInt(timeValue), timeUnit);
+                        createEvent.notificationDto.push({ notificationAt: notificationTime });
+                    }
+                });
+            }
 
             if (scheduleRepeatCheckbox.checked) {
-                var repeatDto;
-
-                // 반복 일정이 있는 경우 repeatRequest DTO를 저장합니다.
-                repeatDto = {
-                    repeatType: document.getElementById('edit-event-repeat-type').value,
-                    repeatInterval: document.getElementById('edit-event-repeat-interval').value,
-                    endAt: document.getElementById('edit-event-repeat-end').value || null // Optional end date
+                createEvent.repeatDto = {
+                    repeatType: scheduleRepeatType.value,
+                    repeatInterval: scheduleRepeatInterval.value,
+                    endAt: scheduleRepeatEnd.value || null // Optional end date
                 };
-
-                createEvent = {
-                    scheduleDto: scheduleDto,
-                    repeatDto: repeatDto
-                };
-            } else {
-                // 반복 일정이 없는 경우 일반 ScheduleDto를 사용합니다.
-                createEvent = scheduleDto;
             }
 
             fetch('/schedules', {
@@ -398,6 +456,10 @@
                 alert('Event created successfully!');
                 calendar.refetchEvents();
                 isSaving = false;
+                
+                // 폼 닫기
+                scheduleFormPopup.classList.remove('show');
+                popupOverlay.classList.remove('show');
             })
             .catch(error => {
                 console.error('Error creating event:', error);
@@ -424,6 +486,112 @@
                 alert('An error occurred while deleting the event.');
                 isSaving = false;
             });
+        }
+
+        function initializeDefaultNotification() {
+            // 기본 알림 행 추가
+            scheduleNotificationList.innerHTML = ''; // 기존 알림 목록 초기화
+            addNotificationRow(); // 기본 1시간 알림 추가
+            scheduleNotificationCheckbox.checked = false;
+            scheduleNotificationSection.classList.add('hidden');
+        }
+
+        function initializeDefaultRepeat() {
+            // 반복 체크박스와 반복 섹션 초기화
+            scheduleRepeatCheckbox.checked = false;
+            scheduleRepeatSection.classList.add('hidden');
+
+            // 반복 인터벌과 타입 초기화
+            document.getElementById('schedule-repeat-interval').value = '1'; // 기본값 1
+            document.getElementById('schedule-repeat-type').value = 'd'; // 기본값 Day(s)
+
+            // 반복 종료 시간을 빈값으로 설정
+            document.getElementById('schedule-repeat-end').value = '';
+        }
+
+        function convertToLocalDateTime(startAt, timeValue, timeUnit) {
+            // Date 객체로 변환
+            startAt = new Date(startAt);
+
+            switch (timeUnit) {
+                case 'minutes':
+                    startAt.setMinutes(startAt.getMinutes() - timeValue);
+                    break;
+                case 'hours':
+                    startAt.setHours(startAt.getHours() - timeValue);
+                    break;
+                case 'days':
+                    startAt.setDate(startAt.getDate() - timeValue);
+                    break;
+                case 'weeks':
+                    startAt.setDate(startAt.getDate() - timeValue * 7);
+                    break;
+            }
+
+            return formatDateTime(startAt);
+        }
+
+        function formatDateTime(date) {
+            const year = date.getFullYear();
+            const month = ('0' + (date.getMonth() + 1)).slice(-2);
+            const day = ('0' + date.getDate()).slice(-2);
+            const hours = ('0' + date.getHours()).slice(-2);
+            const minutes = ('0' + date.getMinutes()).slice(-2);
+            return `${year}-${month}-${day}T${hours}:${minutes}`;
+        }
+
+        function addNotificationRow(timeValue = 1, timeUnit = 'hours') {
+            // 알림 행을 감쌀 div 생성
+            var notificationRow = document.createElement('div');
+            notificationRow.className = 'notification-row';
+
+            // 추가 옵션을 원하는 경우 여기서 옵션을 더 추가
+
+            // 알림 시간 설정 필드
+            var timeInput = document.createElement('input');
+            timeInput.type = 'number';
+            timeInput.className = 'notification-time';
+            timeInput.min = '1';
+            timeInput.value = timeValue;
+
+            // 알림 시간 단위 선택 필드
+            var timeUnitSelect = document.createElement('select');
+            timeUnitSelect.className = 'notification-unit';
+            var optionMinutes = document.createElement('option');
+            optionMinutes.value = 'minutes';
+            optionMinutes.text = 'minutes';
+            var optionHours = document.createElement('option');
+            optionHours.value = 'hours';
+            optionHours.text = 'hours';
+            var optionDays = document.createElement('option');
+            optionDays.value = 'days';
+            optionDays.text = 'days';
+            var optionWeeks = document.createElement('option');
+            optionWeeks.value = 'weeks';
+            optionWeeks.text = 'weeks';
+            timeUnitSelect.appendChild(optionMinutes);
+            timeUnitSelect.appendChild(optionHours);
+            timeUnitSelect.appendChild(optionDays);
+            timeUnitSelect.appendChild(optionWeeks);
+
+            // 시간 단위 기본 선택 설정
+            timeUnitSelect.value = timeUnit;
+
+            // 삭제 버튼
+            var removeButton = document.createElement('button');
+            removeButton.type = 'button';
+            removeButton.textContent = 'X';
+            removeButton.addEventListener('click', function() {
+                notificationRow.remove();
+            });
+
+            // 행에 추가
+            notificationRow.appendChild(timeInput);
+            notificationRow.appendChild(timeUnitSelect);
+            notificationRow.appendChild(removeButton);
+
+            // 알림 목록에 행 추가
+            scheduleNotificationList.appendChild(notificationRow);
         }
 
         calendar.render();
@@ -464,6 +632,18 @@
                 scheduleRepeatSection.classList.add('hidden');
             }
         });
+        scheduleNotificationCheckbox.addEventListener('change', function() {
+            if (this.checked) {
+                scheduleNotificationSection.classList.remove('hidden');
+            } else {
+                scheduleNotificationSection.classList.add('hidden');
+            }
+        });
+
+        scheduleAddNotification.addEventListener('click', function() {
+            addNotificationRow();
+        });
+
     });
 </script>
 <body>
@@ -494,7 +674,7 @@
 </div>
 
 <!-- 일정 작성 팝업 -->
-<div id='schedule-form-popup' class="popup hidden">
+<div id='schedule-form-popup' class="popup hidden" data-selected-date="">
     <div id='schedule-form-header' class="popup-header"></div>
     <div id='schedule-form-content' class="popup-content">
         <label>Title<br><input type="text" id="schedule-title"></label><br><br>
@@ -502,6 +682,13 @@
         <label>Start Time<br><input type="datetime-local" id="schedule-start"></label><br><br>
         <label>End Time<br><input type="datetime-local" id="schedule-end"></label><br><br>
     </div>
+    <!-- 알림 설정 -->
+    <label><input type="checkbox" id="schedule-notification-checkbox"> Notifications</label><br><br>
+    <div id='schedule-notification-section' class="hidden">
+        <div id="schedule-notification-list"></div><br>
+        <button id="schedule-add-notification" type="button">Add Notification</button><br><br>
+    </div>
+
     <label><input type="checkbox" id='schedule-repeat-checkbox'> Repeat</label><br><br>
     <div id='schedule-repeat-section' class="hidden">
         <label>Repeat Interval<br>
@@ -522,10 +709,5 @@
         <button id="schedule-form-close" class="popup-close">Close</button>
     </div>
 </div>
-
-
-
-
-
 </body>
 </html>
