@@ -42,7 +42,7 @@ public class ScheduleNotificationController {
     }
 
     @GetMapping
-    public ResponseEntity<List<ScheduleNotificationDto.Response>> getNotifications(@RequestParam("scheduleId") int scheduleId) {
+    public ResponseEntity<List<ScheduleNotificationDto.Response>> getNotifications(@RequestParam("schedule-id") int scheduleId) {
 
         List<ScheduleNotificationDto.Response> findResponses = scheduleNotificationService.findByScheduleId(scheduleId);
 
