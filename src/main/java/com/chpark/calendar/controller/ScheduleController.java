@@ -1,6 +1,8 @@
 package com.chpark.calendar.controller;
 
 import com.chpark.calendar.dto.ScheduleDto;
+import com.chpark.calendar.dto.ScheduleNotificationDto;
+import com.chpark.calendar.dto.ScheduleRepeatDto;
 import com.chpark.calendar.enumClass.ScheduleRepeatScope;
 import com.chpark.calendar.exception.ValidGroup;
 import com.chpark.calendar.service.ScheduleNotificationService;
@@ -64,10 +66,6 @@ public class ScheduleController {
 
     @PostMapping
     public ResponseEntity<ScheduleDto.Response> createSchedule(@Validated(ValidGroup.CreateGroup.class) @RequestBody ScheduleDto.Request schedule) {
-        if(schedule.getScheduleDto() == null) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        }
-
         ScheduleDto.Response result = scheduleService.createByForm(schedule);
 
         return new ResponseEntity<>(result, HttpStatus.CREATED);
@@ -118,10 +116,12 @@ public class ScheduleController {
         switch (scheduleRepeatScope){
             case CURRENT -> {
                 scheduleService.deleteCurrentOnlyRepeatSchedule(id);
+                scheduleService.update(id, new ScheduleDto(), true);
                 scheduleService.deleteById(id);
             }
             case FUTURE -> {
                 scheduleService.deleteFutureRepeatSchedules(id);
+                scheduleService.update(id, new ScheduleDto(), true);
                 scheduleService.deleteById(id);
             }
         }

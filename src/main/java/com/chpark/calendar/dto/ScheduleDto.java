@@ -63,9 +63,11 @@ public class ScheduleDto {
     @NoArgsConstructor
     public static class Request {
         //비교하기 쉽게 상속하지 않고 오브젝트로
-        private ScheduleDto scheduleDto;
+        @NotNull(groups = ValidGroup.CreateGroup.class)
+        private ScheduleDto scheduleDto = new ScheduleDto();
+
         private List<ScheduleNotificationDto> notificationDto = new ArrayList<>();
-        private ScheduleRepeatDto repeatDto;
+        private ScheduleRepeatDto repeatDto = new ScheduleRepeatDto();
     }
 
     @Getter

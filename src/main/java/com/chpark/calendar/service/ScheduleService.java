@@ -45,7 +45,11 @@ public class ScheduleService {
 
         ScheduleDto resultSchedule = this.create(scheduleDto.getScheduleDto());
         List<ScheduleNotificationDto> resultNotifications = scheduleNotificationService.create(resultSchedule.getId(), scheduleDto.getNotificationDto());
-        ScheduleRepeatDto resultRepeat = scheduleRepeatService.create(resultSchedule.getId(), scheduleDto.getRepeatDto());
+        ScheduleRepeatDto resultRepeat = null;
+
+        if(scheduleDto.getRepeatDto() != null) {
+            resultRepeat = scheduleRepeatService.create(resultSchedule.getId(), scheduleDto.getRepeatDto());;
+        }
 
         return new ScheduleDto.Response(resultSchedule, resultNotifications, resultRepeat);
     }

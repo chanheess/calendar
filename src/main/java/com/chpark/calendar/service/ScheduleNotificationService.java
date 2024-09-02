@@ -27,6 +27,9 @@ public class ScheduleNotificationService {
 
     @Transactional
     public List<ScheduleNotificationDto> create(int scheduleId, List<ScheduleNotificationDto> notifications) {
+        if(notifications.isEmpty()) {
+            return new ArrayList<>();
+        }
 
         if (scheduleRepository.existsById(scheduleId)) {
             // DTO 리스트를 엔티티 리스트로 변환
