@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface ScheduleRepository extends JpaRepository<ScheduleEntity, Integer> {
@@ -20,10 +21,13 @@ public interface ScheduleRepository extends JpaRepository<ScheduleEntity, Intege
     @Query("SELECT s FROM ScheduleEntity s WHERE s.repeatId = :repeatId AND s.startAt > :startAt")
     List<ScheduleEntity> findFutureRepeatSchedules(@Param("repeatId") Integer repeatId, @Param("startAt") LocalDateTime startAt);
 
-    @Query("SELECT COUNT(s) = 0 FROM ScheduleEntity s WHERE s.repeatId = :repeatId AND s.startAt < :startAt")
-    boolean existsByPreviousRepeatedSchedule(@Param("repeatId") Integer repeatId, @Param("startAt") LocalDateTime startAt);
+    @Query("SELECT s FROM ScheduleEntity s WHERE s.repeatId = :repeatId AND s.startAt >= :startAt")
+    List<ScheduleEntity> findCurrentAndFutureRepeatSchedules(@Param("repeatId") Integer repeatId, @Param("startAt") LocalDateTime startAt);
 
-    @Query("SELECT s FROM ScheduleEntity s WHERE s.repeatId = :repeatId")
-    List<ScheduleEntity> findSchedulesByRepeatId(@Param("repeatId") Integer repeatId);
+    @Query("SELECT COUNT(s) = 1 FROM ScheduleEntity s WHERE s.repeatId = :repeatId")
+    boolean isLastRemainingRepeatSchedule(@Param("repeatId") Integer repeatId);
+
+    @Query("SELECT s.repeatId FROM ScheduleEntity s WHERE s.id = :id")
+    Optional<Integer> findRepeatIdById(@Param("id") int id);
 
 }

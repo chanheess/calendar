@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
@@ -25,81 +26,65 @@ public class ScheduleNotificationService {
 
 
     @Transactional
-    public ScheduleNotificationDto.Response create(int scheduleId, ScheduleNotificationDto notification) {
+    public List<ScheduleNotificationDto> create(int scheduleId, List<ScheduleNotificationDto> notifications) {
 
         if (scheduleRepository.existsById(scheduleId)) {
-            ScheduleNotificationEntity notificationEntity = new ScheduleNotificationEntity(scheduleId, notification);
-            ScheduleNotificationEntity savedEntity = scheduleNotificationRepository.save(notificationEntity);
+            // DTO 리스트를 엔티티 리스트로 변환
+            List<ScheduleNotificationEntity> notificationEntities = ScheduleNotificationEntity.fromScheduleNotificationDtoList(scheduleId, notifications);
 
-            return new ScheduleNotificationDto.Response(savedEntity);
+            // 엔티티 리스트를 저장
+            List<ScheduleNotificationEntity> savedEntities = scheduleNotificationRepository.saveAll(notificationEntities);
+
+            // 저장된 엔티티 리스트를 DTO 리스트로 변환하여 반환
+            return ScheduleNotificationDto.fromScheduleNotificationEntityList(savedEntities);
         } else {
             // scheduleId가 존재하지 않는 경우 빈 리스트 반환
             throw new EntityNotFoundException("Schedule not found with id: " + scheduleId);
         }
     }
 
-    @Transactional
-    public List<ScheduleNotificationDto.Response> create(int scheduleId, List<ScheduleNotificationDto> notifications) {
-
-        if (scheduleRepository.existsById(scheduleId)) {
-            List<ScheduleNotificationDto.Response> resultNotificationList = new ArrayList<>();
-
-            for (ScheduleNotificationDto notification : notifications) {
-                ScheduleNotificationEntity notificationEntity = new ScheduleNotificationEntity(scheduleId, notification);
-                ScheduleNotificationEntity savedEntity = scheduleNotificationRepository.save(notificationEntity);
-                ScheduleNotificationDto.Response resultNotification = new ScheduleNotificationDto.Response(savedEntity);
-                resultNotificationList.add(resultNotification);
-            }
-
-            return resultNotificationList;
-        } else {
-            // scheduleId가 존재하지 않는 경우 빈 리스트 반환
-            return Collections.emptyList();
-        }
-    }
-
-    public List<ScheduleNotificationDto.Response> findByScheduleId(int id) {
-        return ScheduleNotificationDto.Response.fromScheduleNotificationEntityList(scheduleNotificationRepository.findByScheduleId(id));
-    }
-
-    public Optional<ScheduleNotificationDto.Response> findById(int id) {
-        Optional<ScheduleNotificationEntity> findEntity = scheduleNotificationRepository.findById(id);
-
-        if(findEntity.isPresent()) {
-            ScheduleNotificationDto.Response resultResponse = new ScheduleNotificationDto.Response(findEntity.get());
-
-            return Optional.of(resultResponse);
-        } else {
-            return Optional.empty();
-        }
-    }
-
-    public boolean existsById(int id) {
-        return scheduleNotificationRepository.existsById(id);
+    public List<ScheduleNotificationDto> findByScheduleId(int id) {
+        return ScheduleNotificationDto.fromScheduleNotificationEntityList(scheduleNotificationRepository.findByScheduleId(id));
     }
 
     public boolean existsByScheduleId(int scheduleId) {
         return scheduleNotificationRepository.existsByScheduleId(scheduleId);
     }
 
-    public ScheduleNotificationDto.Response update(int notificationId, ScheduleNotificationDto notificationDto) {
+    @Transactional
+    public List<ScheduleNotificationDto> update(int scheduleId, List<ScheduleNotificationDto> notifications) {
 
-        ScheduleNotificationEntity resultEntity = scheduleNotificationRepository.findById(notificationId).orElseThrow(
-                () -> new EntityNotFoundException("Schedule not found with id: " + notificationId)
-        );
-        resultEntity.setNotificationAt(notificationDto.getNotificationAt());
+        List<ScheduleNotificationEntity> resultEntities = scheduleNotificationRepository.findByScheduleId(scheduleId);
+        List<ScheduleNotificationDto> updatedNotifications = new ArrayList<>();
 
-        return new ScheduleNotificationDto.Response(scheduleNotificationRepository.save(resultEntity));
-    }
+        int existingSize = resultEntities.size();
+        int newSize = notifications.size();
 
-    public void deleteById(int notificationId) {
-        scheduleNotificationRepository.deleteById(notificationId);
+        // 매칭 및 업데이트, 새로 생성, 남은 엔티티 삭제
+        for (int i = 0; i < Math.max(existingSize, newSize); i++) {
+            if (i < newSize && i < existingSize) {
+                // 매칭된 엔티티를 업데이트
+                ScheduleNotificationEntity resultEntity = resultEntities.get(i);
+                resultEntity.setNotificationAt(notifications.get(i).getNotificationAt());
+                resultEntity = scheduleNotificationRepository.save(resultEntity);
+                updatedNotifications.add(new ScheduleNotificationDto(resultEntity));
+            } else if (i < newSize) {
+                // 새로 생성해야 할 DTO가 있는 경우
+                ScheduleNotificationEntity newEntity = new ScheduleNotificationEntity(scheduleId, notifications.get(i));
+                newEntity = scheduleNotificationRepository.save(newEntity);
+                updatedNotifications.add(new ScheduleNotificationDto(newEntity));
+            } else {
+                // 삭제해야 할 기존 엔티티가 있는 경우
+                scheduleNotificationRepository.delete(resultEntities.get(i));
+            }
+        }
+
+        return updatedNotifications;
     }
 
     @Transactional
     public void deleteByScheduleId(int scheduleId) {
         scheduleNotificationRepository.deleteByScheduleId(scheduleId);
     }
-
 
 }

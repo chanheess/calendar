@@ -1,9 +1,7 @@
 package com.chpark.calendar.dto;
 
 import com.chpark.calendar.entity.ScheduleEntity;
-import com.chpark.calendar.entity.ScheduleRepeatEntity;
-import com.chpark.calendar.enumClass.ScheduleRepeatType;
-import jakarta.validation.constraints.FutureOrPresent;
+import com.chpark.calendar.exception.ValidGroup;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -21,15 +19,15 @@ public class ScheduleDto {
 
     private int id;
 
-    @NotNull
+    @NotNull(groups = ValidGroup.CreateGroup.class)
     private String title;
 
     private String description;
 
-    @NotNull
+    @NotNull(groups = ValidGroup.CreateGroup.class)
     private LocalDateTime startAt;
 
-    @NotNull
+    @NotNull(groups = ValidGroup.CreateGroup.class)
     private LocalDateTime endAt;
 
     private Integer repeatId;
@@ -57,7 +55,6 @@ public class ScheduleDto {
                 ", description='" + description + '\'' +
                 ", startAt=" + startAt +
                 ", endAt=" + endAt +
-                ", repeatId=" + repeatId +
                 '}';
     }
 
@@ -77,16 +74,16 @@ public class ScheduleDto {
     public static class Response {
         //비교하기 쉽게 상속하지 않고 오브젝트로
         private ScheduleDto scheduleDto;
-        private List<ScheduleNotificationDto.Response> notificationDto;
-        private ScheduleRepeatDto.Response repeatDto;
+        private List<ScheduleNotificationDto> notificationDto;
+        private ScheduleRepeatDto repeatDto;
 
-        public Response(ScheduleDto scheduleDto) {
+        public Response(ScheduleDto scheduleDto, List<ScheduleNotificationDto> notificationDto) {
             this.scheduleDto = scheduleDto;
-            this.notificationDto = null;
+            this.notificationDto = notificationDto;
             this.repeatDto = null;
         }
 
-        public Response(ScheduleDto scheduleDto, List<ScheduleNotificationDto.Response> notificationDto, ScheduleRepeatDto.Response repeatDto) {
+        public Response(ScheduleDto scheduleDto, List<ScheduleNotificationDto> notificationDto, ScheduleRepeatDto repeatDto) {
             this.scheduleDto = scheduleDto;
             this.notificationDto = notificationDto;
             this.repeatDto = repeatDto;

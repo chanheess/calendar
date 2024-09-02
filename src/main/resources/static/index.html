@@ -127,10 +127,20 @@
         var scheduleNotificationList = document.getElementById('schedule-notification-list');
         var scheduleAddNotification = document.getElementById('schedule-add-notification');
 
+        var choicePopup = document.getElementById('repeat-choice-popup');
+        var choicePopupClose = document.getElementById('repeat-choice-popup-close');
+        var updateSingleEvent = document.getElementById('update-single-event');
+        var updateAllEvents = document.getElementById('update-all-events');
+
         var isEditMode = false;
         var currentScheduleId = null;
         var selectedEvent;
-        var isSaving = false; // 추가된 상태 변수로 중복 요청을 방지
+        var isSaving = false;   // 추가된 상태 변수로 중복 요청을 방지
+        var initialData = {
+                scheduleDto: {},
+                notificationDto: [],
+                repeatDto: null
+            };   // 변경된 값만 patch 해주기 위해
 
         var calendar = new FullCalendar.Calendar(calendarEl, {
             initialView: 'dayGridMonth',
@@ -229,6 +239,9 @@
             scheduleFormPopup.classList.remove('hidden');
             scheduleFormSave.onclick = createSchedule;
 
+            // 생성 모드일 때 삭제 버튼 숨기기
+            document.getElementById('schedule-form-delete').classList.add('hidden');
+
             // 클릭한 날짜 가져오기
             const clickedDate = new Date(document.getElementById('schedule-form-popup').getAttribute('data-selected-date'));
 
@@ -255,19 +268,16 @@
             initializeDefaultRepeat();
         }
 
-        function openEditScheduleForm(schedule) {
+        function openEditScheduleForm() {
             isEditMode = true;
-            currentScheduleId = schedule.id;
             scheduleFormHeader.textContent = 'Edit Schedule';
-            scheduleFormActionButton.textContent = 'Save';
+            scheduleFormSave.textContent = 'Save';
             scheduleFormPopup.classList.remove('hidden');
-            // Populate form fields with schedule data
-            document.getElementById('schedule-title').value = schedule.title;
-            document.getElementById('schedule-description').value = schedule.description;
-            document.getElementById('schedule-start').value = schedule.startAt;
-            document.getElementById('schedule-end').value = schedule.endAt;
-            // ... repeat options as well
-            scheduleFormActionButton.onclick = updateSchedule;
+
+            // 수정 모드일 때 삭제 버튼 보이기
+            document.getElementById('schedule-form-delete').classList.remove('hidden');
+
+            scheduleFormSave.onclick = saveHandler;
         }
 
         function showEventDetails(event) {
@@ -278,17 +288,106 @@
                 <p><strong>Start:</strong> ${new Date(event.startAt).toLocaleString()}</p>
                 <p><strong>End:</strong> ${new Date(event.endAt).toLocaleString()}</p>
                 <p><strong>Description:</strong> ${event.description}</p>`;
-            popupEditEvent.classList.remove('hidden');
 
             // Edit 팝업에 원본 데이터 채우기
-            document.getElementById('edit-event-title').value = event.title;
-            document.getElementById('edit-event-description').value = event.description;
-            document.getElementById('edit-event-start').value = event.startAt.substring(0, 16); // datetime-local 형식에 맞추기 위해
-            document.getElementById('edit-event-end').value = event.endAt.substring(0, 16); // datetime-local 형식에 맞추기 위해
+            scheduleTitle.value = event.title;
+            scheduleDescription.value = event.description;
+            scheduleStart.value = event.startAt.substring(0, 16); // datetime-local 형식에 맞추기 위해
+            scheduleEnd.value = event.endAt.substring(0, 16); // datetime-local 형식에 맞추기 위해
 
-            // 기존의 리스너 제거 후 새롭게 추가
-            editEventPopupSave.removeEventListener('click', saveHandler);
-            editEventPopupSave.addEventListener('click', saveHandler);
+            initialData.scheduleDto = event;
+
+            // 버튼 변경
+            popupNewEvent.classList.add('hidden');
+            popupEditEvent.classList.remove('hidden');
+
+            const notificationsFetch = fetch(`/notifications?schedule-id=${event.id}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            }).then(response => response.json());
+
+            const repeatDetailsFetch = event.repeatId ? fetch(`/repeats/${event.repeatId}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            }).then(response => response.json()) : Promise.resolve(null);
+
+            Promise.all([notificationsFetch, repeatDetailsFetch])
+                .then(([notifications, repeatDetails]) => {
+                    // Notifications Display
+                    popupContent.innerHTML += '<p><strong>Notifications:</strong></p>';
+                    if (notifications.length > 0) {
+                        const notificationList = document.createElement('ul');
+                        notifications.forEach((notification) => {
+                            const notificationTime = convertToNotificationAt(event.startAt, notification.notificationAt);
+                            const notificationItem = document.createElement('li');
+                            notificationItem.textContent = `${notificationTime.value} ${notificationTime.type}`;
+                            notificationList.appendChild(notificationItem);
+
+                            // 알림 데이터를 initialData에 저장
+                            initialData.notificationDto.push({ notificationAt: notification.notificationAt });
+                        });
+                        popupContent.appendChild(notificationList);
+                    } else {
+                        popupContent.innerHTML += '<p>No notifications found.</p>';
+                    }
+
+                    // Repeat Details Display
+                    popupContent.innerHTML += '<p><strong>Repeat Details:</strong></p>';
+                    if (repeatDetails) {
+                        const repeatInfo = `
+                            <p>Repeat Type: ${repeatDetails.repeatType}</p>
+                            <p>Repeat Interval: ${repeatDetails.repeatInterval}</p>
+                            <p>End Time: ${repeatDetails.endAt ? new Date(repeatDetails.endAt).toLocaleString() : 'N/A'}</p>
+                        `;
+                        popupContent.innerHTML += repeatInfo;
+
+                        // 반복 데이터를 initialData에 저장
+                        initialData.repeatDto = {
+                            repeatType: repeatDetails.repeatType,
+                            repeatInterval: repeatDetails.repeatInterval,
+                            endAt: repeatDetails.endAt ? repeatDetails.endAt.substring(0, 16) : null
+                        };
+                    } else {
+                        popupContent.innerHTML += '<p>No repeat details found.</p>';
+                    }
+
+                    // 폼 데이터 채우기 (Edit Mode)
+                    // Notifications
+                    scheduleNotificationList.innerHTML = ''; // 기존 알림 목록 초기화
+                    if (notifications.length > 0) {
+                        notifications.forEach((notification) => {
+                            const notificationTime = convertToNotificationAt(event.startAt, notification.notificationAt);
+                            addNotificationRow(notificationTime.value, notificationTime.type);
+                        });
+                        scheduleNotificationCheckbox.checked = true;
+                        scheduleNotificationSection.classList.remove('hidden');
+                    } else {
+                        scheduleNotificationCheckbox.checked = false;
+                        scheduleNotificationSection.classList.add('hidden');
+                    }
+
+                    // Repeat Details
+                    if (repeatDetails) {
+                        scheduleRepeatInterval.value = repeatDetails.repeatInterval;
+                        scheduleRepeatType.value = repeatDetails.repeatType;
+                        scheduleRepeatEnd.value = repeatDetails.endAt ? repeatDetails.endAt.substring(0, 16) : '';
+                        scheduleRepeatCheckbox.checked = true;
+                        scheduleRepeatSection.classList.remove('hidden');
+                    } else {
+                        scheduleRepeatCheckbox.checked = false;
+                        scheduleRepeatSection.classList.add('hidden');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching details:', error);
+                    popupContent.innerHTML += '<p>Error loading event details.</p>';
+                });
+
+            currentScheduleId = event.id;
         }
 
         function saveHandler() {
@@ -296,90 +395,49 @@
             if (isSaving) return;
             isSaving = true;
 
-            if (selectedEvent.repeatId || scheduleRepeatCheckbox.checked) {
-                showChoicePopup();
+            if (selectedEvent.repeatId) {
+                showChoicePopup("save");
             } else {
-                updateEvent('/schedules/' + selectedEvent.id);
+                updateEvent('/schedules/' + selectedEvent.id + '?repeat=' + scheduleRepeatCheckbox.checked);
             }
         }
 
-        function showChoicePopup() {
-            var choicePopup = document.getElementById('choice-popup');
-            var choicePopupClose = document.getElementById('choice-popup-close');
-            var updateSingleEvent = document.getElementById('update-single-event');
-            var updateAllEvents = document.getElementById('update-all-events');
+        function showChoicePopup(mode) {
+            updateSingleEvent.dataset.mode = mode;
+            updateAllEvents.dataset.mode = mode;
 
             choicePopup.classList.add('show');
             popupOverlay.classList.add('show');
-
-            // 리스너 중복 등록을 방지하기 위해 기존 리스너를 제거
-            choicePopupClose.removeEventListener('click', closePopup);
-            updateSingleEvent.removeEventListener('click', updateSingle);
-            updateAllEvents.removeEventListener('click', updateAll);
-
-            // 새로운 리스너 등록
-            choicePopupClose.addEventListener('click', closePopup);
-            updateSingleEvent.addEventListener('click', updateSingle);
-            updateAllEvents.addEventListener('click', updateAll);
-
-            function closePopup() {
-                choicePopup.classList.remove('show');
-                popupOverlay.classList.remove('show');
-            }
-
-            function updateSingle() {
-                closePopup();
-                updateEvent('/schedules/' + selectedEvent.id + '/currentonly');
-            }
-
-            function updateAll() {
-                closePopup();
-                updateEvent('/schedules/' + selectedEvent.id + '/currentandfuture');
-            }
         }
 
         function updateEvent(apiUrl) {
             console.log("Data Url: ", apiUrl);
 
-            // 기본 일정 정보
-            var scheduleDto = {
-                id: selectedEvent.id,
-                title: scheduleTitle.value,
-                description: scheduleDescription.value,
-                startAt: scheduleStart.value,
-                endAt: scheduleEnd.value
-            };
+            var currentData = getScheduleData();
+            const updatedData = {};
 
-            var updatedEvent;
-
-            // Check if repeat settings are visible (i.e., if it's a repeating event)
-            if (selectedEvent.repeatId) {
-                var repeatDto;
-
-                if (scheduleRepeatCheckbox.checked) {
-                    // 반복 일정이 있는 경우 repeatRequest DTO를 저장합니다.
-                    repeatDto = {
-                        repeatType: scheduleRepeatType.value,
-                        repeatInterval: scheduleRepeatInterval.value,
-                        endAt: scheduleRepeatEnd.value || null // Optional end date
-                    };
+            // 기존 데이터 비교 로직
+            for (let key in currentData) {
+                if ((key === "notificationDto" && !scheduleNotificationCheckbox.checked) ||
+                    (key === "repeatDto" && !scheduleRepeatCheckbox.checked)){
+                    continue;
                 }
 
-                updatedEvent = {
-                    scheduleDto: scheduleDto,
-                    repeatDto: repeatDto
-                };
-            } else {
-                // 반복 일정이 없는 경우 일반 ScheduleDto를 사용합니다.
-                updatedEvent = scheduleDto;
+                if (key === "scheduleDto") {
+                    if (currentData[key] !== initialData[key]) {
+                        updatedData[key] = currentData[key];
+                    }
+                } else {
+                    updatedData[key] = currentData[key];
+                }
             }
 
             fetch(apiUrl, {
-                method: 'PUT',
+                method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(updatedEvent)
+                body: JSON.stringify(updatedData)
             })
             .then(response => {
                 if (!response.ok) {
@@ -392,57 +450,61 @@
             })
             .then(data => {
                 alert('Event updated successfully!');
-                editEventPopup.classList.remove('show');
+                scheduleFormPopup.classList.remove('show');
                 popupOverlay.classList.remove('show');
                 calendar.refetchEvents();
-                isSaving = false;
             })
             .catch(error => {
                 console.error('Error updating event:', error);
                 alert('An error occurred while updating the event.');
-                isSaving = false;
             })
             .finally(() => {
                 isSaving = false; // 요청이 완료되면 isSaving을 false로 되돌려 중복 요청을 방지
             });
         }
 
+        function getScheduleData() {
+            var createEvent = {
+                    scheduleDto: {},
+                    notificationDto: [],
+                    repeatDto: null
+                };
+
+                // scheduleDto 설정
+                createEvent.scheduleDto = {
+                    title: scheduleTitle.value,
+                    description: scheduleDescription.value,
+                    startAt: scheduleStart.value,
+                    endAt: scheduleEnd.value
+                };
+
+                if (scheduleNotificationCheckbox.checked) {
+                    document.querySelectorAll('.notification-row').forEach(function(row) {
+                        var timeValue = row.querySelector('.notification-time').value;
+                        var timeUnit = row.querySelector('.notification-unit').value;
+                        if (timeValue && timeUnit) {
+                            var notificationTime = convertToLocalDateTime(scheduleStart.value, parseInt(timeValue), timeUnit);
+                            createEvent.notificationDto.push({ notificationAt: notificationTime });
+                        }
+                    });
+                }
+
+                if (scheduleRepeatCheckbox.checked) {
+                    createEvent.repeatDto = {
+                        repeatType: scheduleRepeatType.value,
+                        repeatInterval: scheduleRepeatInterval.value,
+                        endAt: scheduleRepeatEnd.value || null // Optional end date
+                    };
+                }
+
+            return createEvent;
+        }
+
         function createSchedule() {
             if (isSaving) return;
             isSaving = true;
 
-            var createEvent = {
-                scheduleDto: {},
-                notificationDto: [],
-                repeatDto: null
-            };
-
-            // scheduleDto 설정
-            createEvent.scheduleDto = {
-                title: scheduleTitle.value,
-                description: scheduleDescription.value,
-                startAt: scheduleStart.value,
-                endAt: scheduleEnd.value
-            };
-
-            if (scheduleNotificationCheckbox.checked) {
-                document.querySelectorAll('.notification-row').forEach(function(row) {
-                    var timeValue = row.querySelector('.notification-time').value;
-                    var timeUnit = row.querySelector('.notification-unit').value;
-                    if (timeValue && timeUnit) {
-                        var notificationTime = convertToLocalDateTime(scheduleStart.value, parseInt(timeValue), timeUnit);
-                        createEvent.notificationDto.push({ notificationAt: notificationTime });
-                    }
-                });
-            }
-
-            if (scheduleRepeatCheckbox.checked) {
-                createEvent.repeatDto = {
-                    repeatType: scheduleRepeatType.value,
-                    repeatInterval: scheduleRepeatInterval.value,
-                    endAt: scheduleRepeatEnd.value || null // Optional end date
-                };
-            }
+            var createEvent = getScheduleData();
 
             fetch('/schedules', {
                 method: 'POST',
@@ -456,7 +518,7 @@
                 alert('Event created successfully!');
                 calendar.refetchEvents();
                 isSaving = false;
-                
+
                 // 폼 닫기
                 scheduleFormPopup.classList.remove('show');
                 popupOverlay.classList.remove('show');
@@ -468,23 +530,22 @@
             });
         }
 
-        function deleteEvent() {
-            if (!selectedEvent || isSaving) return;
-            isSaving = true;
+        function deleteEvent(apiUrl) {
+            if (!currentScheduleId) return; // 수정 중인 일정이 없으면 삭제하지 않음
 
-            fetch('/schedules/' + selectedEvent.id, {
+            fetch(apiUrl, {
                 method: 'DELETE'
             })
             .then(response => response.ok ? response.text() : Promise.reject('Failed to delete event'))
             .then(() => {
                 alert('Event deleted successfully!');
+                scheduleFormPopup.classList.remove('show');
+                popupOverlay.classList.remove('show');
                 calendar.refetchEvents();
-                isSaving = false;
             })
             .catch(error => {
                 console.error('Error deleting event:', error);
                 alert('An error occurred while deleting the event.');
-                isSaving = false;
             });
         }
 
@@ -529,6 +590,32 @@
             }
 
             return formatDateTime(startAt);
+        }
+
+        function convertToNotificationAt(startAt, notificationAt) {
+            // Date 객체로 변환
+            const startDate = new Date(startAt);
+            const notificationDate = new Date(notificationAt);
+
+            // 시간 차이를 밀리초로 계산
+            const diffInMillis = startDate - notificationDate;
+
+            // 시간 차이를 분, 시간, 일, 주 단위로 계산
+            const diffInMinutes = Math.floor(diffInMillis / (1000 * 60));
+            const diffInHours = Math.floor(diffInMillis / (1000 * 60 * 60));
+            const diffInDays = Math.floor(diffInMillis / (1000 * 60 * 60 * 24));
+            const diffInWeeks = Math.floor(diffInMillis / (1000 * 60 * 60 * 24 * 7));
+
+            // 가장 적합한 단위를 선택
+            if (diffInWeeks > 0) {
+                return { type: 'weeks', value: diffInWeeks };
+            } else if (diffInDays > 0) {
+                return { type: 'days', value: diffInDays };
+            } else if (diffInHours > 0) {
+                return { type: 'hours', value: diffInHours };
+            } else {
+                return { type: 'minutes', value: diffInMinutes };
+            }
         }
 
         function formatDateTime(date) {
@@ -594,29 +681,42 @@
             scheduleNotificationList.appendChild(notificationRow);
         }
 
+        function closePopup() {
+            choicePopup.classList.remove('show');
+            popupOverlay.classList.remove('show');
+        }
+
         calendar.render();
 
-        popupNewEvent.addEventListener('click', openCreateScheduleForm);
+        popupClose.addEventListener('click', function() {
+            popup.classList.remove('show');
+            popupOverlay.classList.remove('show');
+
+            // 버튼 원래대로 변경
+            popupEditEvent.classList.add('hidden');
+            popupNewEvent.classList.remove('hidden');
+        });
 
         popupOverlay.addEventListener('click', function() {
             popup.classList.remove('show');
             popupOverlay.classList.remove('show');
             scheduleFormPopup.classList.remove('show');
-        });
 
-        popupClose.addEventListener('click', function() {
-            popup.classList.remove('show');
-            popupOverlay.classList.remove('show');
+            // 버튼 원래대로 변경
+            popupEditEvent.classList.add('hidden');
+            popupNewEvent.classList.remove('hidden');
         });
 
         popupEditEvent.addEventListener('click', function() {
             popup.classList.remove('show');
             scheduleFormPopup.classList.add('show');
+            openEditScheduleForm();
         });
 
         popupNewEvent.addEventListener('click', function() {
             popup.classList.remove('show');
             scheduleFormPopup.classList.add('show');
+            openCreateScheduleForm();
         });
 
         scheduleFormClose.addEventListener('click', function() {
@@ -644,6 +744,36 @@
             addNotificationRow();
         });
 
+        choicePopupClose.addEventListener('click', closePopup());
+        updateSingleEvent.addEventListener('click', function() {
+            closePopup();
+            if (this.dataset.mode === "delete") {
+                deleteEvent('/schedules/' + selectedEvent.id + '/current-only');
+            } else if (this.dataset.mode === "save") {
+                updateEvent('/schedules/' + selectedEvent.id + '/current-only?repeat=' + scheduleRepeatCheckbox.checked);
+            }
+        });
+        updateAllEvents.addEventListener('click', function() {
+            closePopup();
+            if (this.dataset.mode === "delete") {
+                deleteEvent('/schedules/' + selectedEvent.id + '/current-and-future');
+            } else if (this.dataset.mode === "save") {
+                updateEvent('/schedules/' + selectedEvent.id + '/current-and-future?repeat=' + scheduleRepeatCheckbox.checked);
+            }
+        });
+
+        document.getElementById('schedule-form-delete').addEventListener('click', function() {
+
+            if (selectedEvent.repeatId) {
+                showChoicePopup("delete");
+            } else {
+                if (confirm('Are you sure you want to delete this event?')) {
+                    closePopup();
+                    deleteEvent('/schedules/' + selectedEvent.id); // 삭제 이벤트 처리 함수 호출
+                }
+            }
+        });
+
     });
 </script>
 <body>
@@ -661,15 +791,15 @@
 </div>
 
 <!-- 반복 수정 선택지 팝업 -->
-<div id='repeat-choice-popup' class="popup hidden">
-    <div id='choice-popup-header' class="popup-header">Choose an Action</div>
-    <div id='choice-popup-content' class="popup-content">
+<div id='repeat-choice-popup' class="popup hidden" style="z-index: 1001;">
+    <div id='repeat-choice-popup-header' class="popup-header">Choose an Action</div>
+    <div id='repeat-choice-popup-content' class="popup-content">
         <p>This event is part of a repeating series. What would you like to do?</p>
     </div>
     <div class="popup-footer">
-        <button id="update-single-event" class="popup-new-event">Update Single Event</button>
-        <button id="update-all-events" class="popup-new-event">Update All Events</button>
-        <button id="choice-popup-close" class="popup-close">Cancel</button>
+        <button id="update-single-event" class="popup-new-event" data-mode="save-single">Update Single Event</button>
+        <button id="update-all-events" class="popup-new-event" data-mode="save-all">Update All Events</button>
+        <button id="repeat-choice-popup-close" class="popup-close">Cancel</button>
     </div>
 </div>
 
@@ -706,8 +836,10 @@
     </div>
     <div class="popup-footer">
         <button id="schedule-form-save" class="popup-new-event"></button>
+        <button id="schedule-form-delete" class="popup-delete hidden">Delete</button>
         <button id="schedule-form-close" class="popup-close">Close</button>
     </div>
+
 </div>
 </body>
 </html>

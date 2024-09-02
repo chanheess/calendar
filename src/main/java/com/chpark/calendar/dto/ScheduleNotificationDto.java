@@ -1,6 +1,7 @@
 package com.chpark.calendar.dto;
 
 import com.chpark.calendar.entity.ScheduleNotificationEntity;
+import com.chpark.calendar.exception.ValidGroup;
 import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -12,45 +13,31 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Getter
+@Setter
 @NoArgsConstructor
 public class ScheduleNotificationDto {
-
+    @NotNull
     @FutureOrPresent(message = "The notification date must be in the present or future")
     private LocalDateTime notificationAt;
 
-    public ScheduleNotificationDto(LocalDateTime dateAt) {
-        this.notificationAt = dateAt;
+    public ScheduleNotificationDto(LocalDateTime notificationAt) {
+        this.notificationAt = notificationAt;
     }
 
-    @Getter
-    @Setter
-    @NoArgsConstructor
-    public static class Response extends ScheduleNotificationDto {
+    public ScheduleNotificationDto(ScheduleNotificationEntity entity) {
+        this.notificationAt = entity.getNotificationAt();
+    }
 
-        private int id;
+    public static List<ScheduleNotificationDto> fromScheduleNotificationEntityList(List<ScheduleNotificationEntity> entityList) {
+        return entityList.stream()
+                .map(ScheduleNotificationDto::new)
+                .collect(Collectors.toList());
+    }
 
-        @NotNull
-        private int scheduleId;
-
-        public Response(ScheduleNotificationEntity entity) {
-            super(entity.getNotificationAt());
-            setId(entity.getId());
-            setScheduleId(entity.getScheduleId());
-        }
-
-        public static List<Response> fromScheduleNotificationEntityList(List<ScheduleNotificationEntity> entityList) {
-            return entityList.stream()
-                    .map(Response::new)
-                    .collect(Collectors.toList());
-        }
-
-        @Override
-        public String toString() {
-            return "ScheduleNotificationDto.Response{" +
-                    "id=" + id +
-                    ", scheduleId=" + scheduleId +
-                    ", notificationAt='" + getNotificationAt() + '\'' +
-                    '}';
-        }
+    @Override
+    public String toString() {
+        return "ScheduleNotificationDto.Response{"+
+                " notificationAt='" + getNotificationAt() + '\'' +
+                '}';
     }
 }
