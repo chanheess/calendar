@@ -22,6 +22,11 @@
             cursor: pointer;
         }
 
+        .dimmed-background {
+            background-color: rgba(0, 0, 0, 0.5); /* 회색 반투명 */
+            pointer-events: none; /* 배경에 클릭 방지 */
+        }
+
         .popup-overlay {
             display: none;
             position: fixed;
@@ -237,6 +242,7 @@
             scheduleFormHeader.textContent = 'Create New Schedule';
             scheduleFormSave.textContent = 'Create';
             scheduleFormPopup.classList.remove('hidden');
+            scheduleFormPopup.classList.add('show');
             scheduleFormSave.onclick = createSchedule;
 
             // 생성 모드일 때 삭제 버튼 숨기기
@@ -273,6 +279,7 @@
             scheduleFormHeader.textContent = 'Edit Schedule';
             scheduleFormSave.textContent = 'Save';
             scheduleFormPopup.classList.remove('hidden');
+            scheduleFormPopup.classList.add('show');
 
             // 수정 모드일 때 삭제 버튼 보이기
             document.getElementById('schedule-form-delete').classList.remove('hidden');
@@ -406,8 +413,12 @@
             updateSingleEvent.dataset.mode = mode;
             updateAllEvents.dataset.mode = mode;
 
+            scheduleFormPopup.classList.remove('show');
+            scheduleFormPopup.classList.add('hidden');
+
             choicePopup.classList.add('show');
             popupOverlay.classList.add('show');
+            popupOverlay.classList.add('dimmed-background');
         }
 
         function updateEvent(apiUrl) {
@@ -682,8 +693,12 @@
         }
 
         function closePopup() {
+            scheduleFormPopup.classList.remove('hidden'); // 수정 폼 다시 열기
+            scheduleFormPopup.classList.add('hidden');
+
             choicePopup.classList.remove('show');
             popupOverlay.classList.remove('show');
+            popupOverlay.classList.remove('dimmed-background');
         }
 
         calendar.render();
@@ -744,7 +759,7 @@
             addNotificationRow();
         });
 
-        choicePopupClose.addEventListener('click', closePopup());
+        choicePopupClose.addEventListener('click', closePopup);
         updateSingleEvent.addEventListener('click', function() {
             closePopup();
             if (this.dataset.mode === "delete") {
