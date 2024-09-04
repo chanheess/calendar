@@ -4,6 +4,7 @@ import com.chpark.calendar.enumClass.ScheduleRepeatType;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import org.apache.commons.validator.routines.EmailValidator;
 
 public class ScheduleUtility {
 
@@ -48,6 +49,13 @@ public class ScheduleUtility {
             case m -> date.plusMonths(repeatInterval);
             case y -> date.plusYears(repeatInterval);
         };
+    }
+
+    public static void validateEmail(String email) {
+        EmailValidator validator = EmailValidator.getInstance();
+        if (!validator.isValid(email)) {
+            throw new IllegalArgumentException("Invalid email format: " + email);
+        }
     }
 
 }
