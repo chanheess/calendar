@@ -4,17 +4,15 @@ import com.chpark.calendar.dto.ScheduleRepeatDto;
 import com.chpark.calendar.entity.ScheduleEntity;
 import com.chpark.calendar.entity.ScheduleRepeatEntity;
 import com.chpark.calendar.exception.CustomException;
-import com.chpark.calendar.repository.ScheduleBatchRepository;
-import com.chpark.calendar.repository.ScheduleNotificationRepository;
-import com.chpark.calendar.repository.ScheduleRepeatRepository;
-import com.chpark.calendar.repository.ScheduleRepository;
+import com.chpark.calendar.repository.schedule.ScheduleBatchRepository;
+import com.chpark.calendar.repository.schedule.ScheduleRepeatRepository;
+import com.chpark.calendar.repository.schedule.ScheduleRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Objects;
 import java.util.Optional;
 
 @RequiredArgsConstructor

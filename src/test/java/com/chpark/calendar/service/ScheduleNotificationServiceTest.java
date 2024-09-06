@@ -4,7 +4,7 @@ import com.chpark.calendar.dto.ScheduleDto;
 import com.chpark.calendar.dto.ScheduleNotificationDto;
 import com.chpark.calendar.entity.ScheduleEntity;
 import com.chpark.calendar.entity.ScheduleNotificationEntity;
-import com.chpark.calendar.repository.ScheduleRepository;
+import com.chpark.calendar.repository.schedule.ScheduleRepository;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;

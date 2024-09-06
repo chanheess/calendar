@@ -1,6 +1,5 @@
-package com.chpark.calendar.repository;
+package com.chpark.calendar.repository.schedule;
 
-import com.chpark.calendar.dto.ScheduleDto;
 import com.chpark.calendar.entity.ScheduleEntity;
 import com.chpark.calendar.entity.ScheduleNotificationEntity;
 import com.chpark.calendar.entity.ScheduleRepeatEntity;

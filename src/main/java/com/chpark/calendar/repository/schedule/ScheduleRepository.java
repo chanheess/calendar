@@ -1,4 +1,4 @@
-package com.chpark.calendar.repository;
+package com.chpark.calendar.repository.schedule;
 
 import com.chpark.calendar.entity.ScheduleEntity;
 import org.springframework.data.jpa.repository.JpaRepository;

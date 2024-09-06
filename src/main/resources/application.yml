@@ -7,3 +7,5 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
+      format_sql: true
+      show_sql: true

@@ -1,8 +1,6 @@
 package com.chpark.calendar.controller;
 
 import com.chpark.calendar.dto.ScheduleDto;
-import com.chpark.calendar.dto.ScheduleNotificationDto;
-import com.chpark.calendar.dto.ScheduleRepeatDto;
 import com.chpark.calendar.enumClass.ScheduleRepeatScope;
 import com.chpark.calendar.exception.ValidGroup;
 import com.chpark.calendar.service.ScheduleNotificationService;

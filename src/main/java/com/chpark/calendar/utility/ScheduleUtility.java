@@ -1,10 +1,10 @@
 package com.chpark.calendar.utility;
 
 import com.chpark.calendar.enumClass.ScheduleRepeatType;
+import org.apache.commons.validator.routines.EmailValidator;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import org.apache.commons.validator.routines.EmailValidator;
 
 public class ScheduleUtility {
 
