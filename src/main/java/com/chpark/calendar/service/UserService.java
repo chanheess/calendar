@@ -19,7 +19,7 @@ public class UserService {
         //TODO: email 가지고 있는지 확인
         //TODO: 닉네임 가지고 있는지 확인
 
-        ScheduleUtility.validateEmail(requestUser.getEmailId());
+        ScheduleUtility.validateEmail(requestUser.getEmail());
 
         userRepository.save(new UserEntity(requestUser, passwordEncoder));
     }
