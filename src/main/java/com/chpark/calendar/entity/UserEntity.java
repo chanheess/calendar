@@ -15,8 +15,8 @@ public class UserEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @Column(name = "email_id")
-    private String emailId;
+    @Column(name = "email")
+    private String email;
 
     @Column(name = "password")
     private String password;
@@ -30,7 +30,7 @@ public class UserEntity {
 
 
     public UserEntity(UserDto.PostRequest request, PasswordEncoder passwordEncoder) {
-        this.emailId = request.getEmailId();
+        this.email = request.getEmail();
         this.password = passwordEncoder.encode(request.getPassword());
         this.nickname = request.getNickname();
         this.status = UserStatus.ACTIVE;
