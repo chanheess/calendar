@@ -3,7 +3,7 @@ package com.chpark.calendar.service;
 import com.chpark.calendar.dto.ScheduleDto;
 import com.chpark.calendar.dto.ScheduleNotificationDto;
 import com.chpark.calendar.entity.ScheduleEntity;
-import com.chpark.calendar.repository.ScheduleNotificationRepository;
+import com.chpark.calendar.entity.ScheduleNotificationEntity;
 import com.chpark.calendar.repository.ScheduleRepository;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
@@ -17,6 +17,8 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @SpringBootTest
 @EnableTransactionManagement
@@ -32,12 +34,8 @@ class ScheduleNotificationServiceTest {
     @Autowired
     ScheduleNotificationService notificationService;
 
-    @Autowired
-    ScheduleNotificationRepository notificationRepository;
-
     //일정 생성 메서드
-    public Optional<ScheduleNotificationDto.Response> createNotification() {
-
+    public ScheduleEntity createNotification() {
         //given
         ScheduleDto scheduleDto = new ScheduleDto();
         scheduleDto.setTitle("hello world");
@@ -48,22 +46,24 @@ class ScheduleNotificationServiceTest {
         ScheduleEntity scheduleEntity = new ScheduleEntity(scheduleDto);
         scheduleEntity = scheduleRepository.save(scheduleEntity);
 
-        ScheduleNotificationDto.Request request = new ScheduleNotificationDto.Request(LocalDateTime.now());
-        Optional<ScheduleNotificationDto.Response> createResponse = Optional.empty();
+        List<ScheduleNotificationEntity> requestEntities = new ArrayList<>();
+        requestEntities.add(new ScheduleNotificationEntity(scheduleEntity.getId(), LocalDateTime.now().minusHours(1)));
+        requestEntities.add(new ScheduleNotificationEntity(scheduleEntity.getId(), LocalDateTime.now().minusHours(2)));
+        List<ScheduleNotificationDto> requestNotifications = ScheduleNotificationDto.fromScheduleNotificationEntityList(requestEntities);
 
         //일정이 있을 때만 알림 생성 가능
         if(scheduleService.existsById(scheduleEntity.getId())) {
             //when
-            createResponse = notificationService.create(scheduleEntity.getId(), request);
+            List<ScheduleNotificationDto> createResponse = notificationService.create(scheduleEntity.getId(), requestNotifications);
 
             //then
-            Assert.isTrue(createResponse.isPresent(), "Notification has not been created.");
+            assertNotNull(createResponse, "Notification has not been created.");
             log.info("Created notification: {}", createResponse);
-        } else {
-            throw new IllegalArgumentException("id that does not exist.");
+
+            return scheduleEntity;
         }
 
-        return createResponse;
+        throw new IllegalArgumentException("id that does not exist.");
     }
 
     @Test
@@ -74,135 +74,74 @@ class ScheduleNotificationServiceTest {
 
     @Test
     @Transactional
-    void findById() {
-        //given
-        Optional<ScheduleNotificationDto.Response> response = createNotification();
-
-        if(response.isPresent()) {
-            //when
-            response = notificationService.findById(response.get().getId());
-
-            //then
-            Assert.isTrue(response.isPresent(), "Not found notifications");
-            log.info("Found notification: {}", response);
-        } else {
-            throw new IllegalArgumentException("Notification has not been created.");
-        }
-    }
-
-    @Test
-    @Transactional
     void findByScheduleId() {
         //given
-        Optional<ScheduleNotificationDto.Response> response = createNotification();
-        List<ScheduleNotificationDto.Response> findResponse = new ArrayList<>();
+        ScheduleEntity scheduleEntity = createNotification();
 
-        if(response.isPresent()) {
-            //when
-            findResponse = notificationService.findByScheduleId(response.get().getScheduleId());
+        List<ScheduleNotificationDto> findResponse = new ArrayList<>();
 
-            //then
-            Assert.notEmpty(findResponse, "Not found notifications");
-            findResponse.forEach(schedule -> log.info("Found Notifications: {}", schedule));
-        } else {
-            throw new IllegalArgumentException("Notification has not been created.");
-        }
+        //when
+        findResponse = notificationService.findByScheduleId(scheduleEntity.getId());
+
+        //then
+        Assert.notEmpty(findResponse, "Not found notifications");
     }
 
     @Test
     @Transactional
     void update() {
         //given
-        Optional<ScheduleNotificationDto.Response> updateResponse = createNotification();
+        ScheduleEntity scheduleEntity = createNotification();
 
-        if(updateResponse.isPresent()) {
-            //when
-            ScheduleNotificationDto.Request updateRequest = new ScheduleNotificationDto.Request(LocalDateTime.now().plusDays(30));
-            updateResponse = notificationService.update(updateResponse.get().getId(), updateRequest);
+        //when
+        List<ScheduleNotificationDto> updateRequest = new ArrayList<>();
+        updateRequest.add(new ScheduleNotificationDto(LocalDateTime.now().plusDays(30)));
+        List<ScheduleNotificationDto> updateResponse = notificationService.update(scheduleEntity.getId(), updateRequest);
 
-            //then
-            Assert.isTrue(updateResponse.isPresent(),"Not Updated ScheduleNotification");
-            log.info("Updated notification: {}", updateResponse);
-        } else {
-            throw new IllegalArgumentException("Notification has not been created.");
-        }
-    }
-
-    @Test
-    @Transactional
-    void deleteById() {
-        //given
-        Optional<ScheduleNotificationDto.Response> deleteResponse = createNotification();
-
-        if(deleteResponse.isPresent()) {
-            //when
-            notificationService.deleteById(deleteResponse.get().getId());
-
-            //then
-            Optional<ScheduleNotificationDto.Response> response = notificationService.findById(deleteResponse.get().getId());
-            Assert.isTrue(response.isEmpty(), "Not Removed Notification");
-            log.info("Removed ScheduleNotification");
-        } else {
-            throw new IllegalArgumentException("Notification has not been created.");
-        }
+        //then
+        Assert.isTrue(updateResponse != null,"Not Updated ScheduleNotification");
+        log.info("Updated notification: {}", updateResponse);
     }
 
     @Test
     @Transactional
     void deleteNotifications() {
         //given
-        Optional<ScheduleNotificationDto.Response> deleteResponse = createNotification();
+        ScheduleEntity scheduleEntity = createNotification();
 
-        if(deleteResponse.isPresent()) {
-            //when
-            notificationService.deleteByScheduleId(deleteResponse.get().getScheduleId());
+        //when
+        notificationService.deleteByScheduleId(scheduleEntity.getId());
 
-            //then
-            List<ScheduleNotificationDto.Response> response = notificationService.findByScheduleId(deleteResponse.get().getScheduleId());
-            Assert.isTrue(response.isEmpty(), "Not Removed Notification");
-            log.info("Removed ScheduleNotifications");
-        } else {
-            throw new IllegalArgumentException("Notification has not been created.");
-        }
+        //then
+        List<ScheduleNotificationDto> response = notificationService.findByScheduleId(scheduleEntity.getId());
+        Assert.isTrue(response.isEmpty(), "Not Removed Notification");
+        log.info("Removed ScheduleNotifications");
     }
 
     @Test
     @Transactional
     void cascadeRemoveTest() {
         //given
-        Optional<ScheduleNotificationDto.Response> deleteResponse = createNotification();
+        ScheduleEntity scheduleEntity = createNotification();
 
-        //일정을 삭제해서 연결되어 있는 알림들이 자동으로 삭제
-        if(deleteResponse.isPresent()) {
-            //when
-            scheduleRepository.deleteById(deleteResponse.get().getScheduleId());
+        //when
+        scheduleService.deleteById(scheduleEntity.getId());
 
-            //then
-            List<ScheduleNotificationDto.Response> response = notificationService.findByScheduleId(deleteResponse.get().getScheduleId());
-            ScheduleDto scheduleDto = scheduleService.findById(deleteResponse.get().getScheduleId());
+        //then
+        List<ScheduleNotificationDto> response = notificationService.findByScheduleId(scheduleEntity.getId());
+        Optional<ScheduleDto> resultScheduleDto = scheduleService.findById(scheduleEntity.getId());
 
-            Assert.isTrue(response.isEmpty(), "Not Removed Notification");
-            Assert.isTrue(scheduleDto == null, "Not Removed Notification");
-            log.info("Removed Schedule and ScheduleNotifications");
-        } else {
-            throw new IllegalArgumentException("Notification has not been created.");
-        }
-
+        Assert.isTrue(response.isEmpty(), "Not Removed Notifications");
+        Assert.isTrue(resultScheduleDto.isEmpty(), "Not Removed Schedule");
+        log.info("Removed Schedule and ScheduleNotifications");
     }
 
     @Test
     @Transactional
     void existsTest() {
         //given
-        Optional<ScheduleNotificationDto.Response> response = createNotification();
+        ScheduleEntity scheduleEntity = createNotification();
 
-        //then
-        if(response.isPresent()) {
-            Assert.isTrue(notificationService.existsById(response.get().getId()), "Not Found Notification");
-            Assert.isTrue(notificationService.existsByScheduleId(response.get().getScheduleId()), "Not Found Schedule");
-        } else {
-            throw new IllegalArgumentException("Notification has not been created.");
-        }
+        Assert.isTrue(notificationService.existsByScheduleId(scheduleEntity.getId()), "Not Found Notifications");
     }
-
 }

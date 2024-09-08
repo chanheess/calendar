@@ -35,8 +35,11 @@ public class ScheduleUtility {
      * @return 반복 타입에 따른 추가된 일자
      */
     public static LocalDateTime calculateRepeatPlusDate(LocalDateTime date, ScheduleRepeatType repeatType, int repeatInterval) {
-        if(date == null || repeatInterval < 1) {
-            throw new IllegalArgumentException("The date parameters must not be null, and repeatInterval must be greater than zero.");
+        if(date == null) {
+            throw new IllegalArgumentException("The date parameters must not be null");
+        }
+        if(repeatInterval < 1) {
+            return date;
         }
 
         return switch (repeatType) {

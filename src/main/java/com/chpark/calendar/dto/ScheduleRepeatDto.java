@@ -2,41 +2,35 @@ package com.chpark.calendar.dto;
 
 import com.chpark.calendar.entity.ScheduleRepeatEntity;
 import com.chpark.calendar.enumClass.ScheduleRepeatType;
+import com.chpark.calendar.exception.ValidGroup;
+import jakarta.validation.constraints.FutureOrPresent;
+import jakarta.validation.constraints.NotNull;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 
 @Getter
+@Setter
 @NoArgsConstructor
+@EqualsAndHashCode
 public class ScheduleRepeatDto {
-
+    @NotNull
     private ScheduleRepeatType repeatType;
-    private int repeatInterval;
+
+    @NotNull
+    private Integer repeatInterval;
+
+    @NotNull
+    @FutureOrPresent(message = "The notification date must be in the present or future")
     private LocalDateTime endAt;
 
     public ScheduleRepeatDto(ScheduleRepeatEntity repeatEntity) {
         this.repeatType = repeatEntity.getRepeatType();
         this.repeatInterval = repeatEntity.getRepeatInterval();
         this.endAt = repeatEntity.getEndAt();
-    }
-
-    public ScheduleRepeatDto(ScheduleRepeatDto repeatDto) {
-        this.repeatType = repeatDto.getRepeatType();
-        this.repeatInterval = repeatDto.getRepeatInterval();
-        this.endAt = repeatDto.getEndAt();
-    }
-
-    @Getter
-    @NoArgsConstructor
-    public static class Response extends ScheduleRepeatDto{
-
-        private int id;
-
-        public Response(ScheduleRepeatEntity repeatEntity) {
-            super(repeatEntity);
-            this.id = repeatEntity.getId();
-        }
     }
 }
 

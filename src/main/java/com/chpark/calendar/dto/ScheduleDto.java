@@ -1,14 +1,14 @@
 package com.chpark.calendar.dto;
 
 import com.chpark.calendar.entity.ScheduleEntity;
-import com.chpark.calendar.entity.ScheduleRepeatEntity;
-import com.chpark.calendar.enumClass.ScheduleRepeatType;
-import jakarta.validation.constraints.FutureOrPresent;
+import com.chpark.calendar.exception.ValidGroup;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -18,10 +18,19 @@ import java.util.stream.Collectors;
 public class ScheduleDto {
 
     private int id;
+
+    @NotNull(groups = ValidGroup.CreateGroup.class)
     private String title;
+
     private String description;
+
+    @NotNull(groups = ValidGroup.CreateGroup.class)
     private LocalDateTime startAt;
+
+    @NotNull(groups = ValidGroup.CreateGroup.class)
     private LocalDateTime endAt;
+
+    private Integer repeatId;
 
     public ScheduleDto(ScheduleEntity entity) {
         this.id = entity.getId();
@@ -29,6 +38,7 @@ public class ScheduleDto {
         this.description = entity.getDescription();
         this.startAt = entity.getStartAt();
         this.endAt = entity.getEndAt();
+        this.repeatId = entity.getRepeatId();
     }
 
     public static List<ScheduleDto> fromScheduleEntityList(List<ScheduleEntity> entityList) {
@@ -51,37 +61,33 @@ public class ScheduleDto {
     @Getter
     @Setter
     @NoArgsConstructor
-    public static class repeatRequest {
+    public static class Request {
         //비교하기 쉽게 상속하지 않고 오브젝트로
-        private ScheduleDto scheduleDto;
-        private ScheduleRepeatDto repeatDto;
+        @NotNull(groups = ValidGroup.CreateGroup.class)
+        private ScheduleDto scheduleDto = new ScheduleDto();
 
-        public repeatRequest(ScheduleDto scheduleDto) {
-            this.scheduleDto = scheduleDto;
-            this.repeatDto = new ScheduleRepeatDto();
-        }
-
-        public repeatRequest(ScheduleDto scheduleDto, ScheduleRepeatDto repeatDto) {
-            this.scheduleDto = scheduleDto;
-            this.repeatDto = repeatDto;
-        }
+        private List<ScheduleNotificationDto> notificationDto = new ArrayList<>();
+        private ScheduleRepeatDto repeatDto = new ScheduleRepeatDto();
     }
 
     @Getter
     @Setter
     @NoArgsConstructor
-    public static class repeatResponse {
+    public static class Response {
         //비교하기 쉽게 상속하지 않고 오브젝트로
         private ScheduleDto scheduleDto;
-        private ScheduleRepeatDto.Response repeatDto;
+        private List<ScheduleNotificationDto> notificationDto;
+        private ScheduleRepeatDto repeatDto;
 
-        public repeatResponse(ScheduleDto scheduleDto) {
+        public Response(ScheduleDto scheduleDto, List<ScheduleNotificationDto> notificationDto) {
             this.scheduleDto = scheduleDto;
-            this.repeatDto = new ScheduleRepeatDto.Response();
+            this.notificationDto = notificationDto;
+            this.repeatDto = null;
         }
 
-        public repeatResponse(ScheduleDto scheduleDto, ScheduleRepeatDto.Response repeatDto) {
+        public Response(ScheduleDto scheduleDto, List<ScheduleNotificationDto> notificationDto, ScheduleRepeatDto repeatDto) {
             this.scheduleDto = scheduleDto;
+            this.notificationDto = notificationDto;
             this.repeatDto = repeatDto;
         }
     }

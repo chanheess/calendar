@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang='en'>
 <head>
-    <meta charset='utf-8' />
-    <title>FullCalendar Example</title>
-    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.14/index.global.min.js'></script>
+    <meta charset='utf-8'/>
+    <title>FullCalendar</title>
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js'></script>
+    <!-- 브라우저가 favicon.ico를 요청하지 않도록 -->
+    <link rel="icon" href="data:,">
     <style>
-        /* 캘린더의 크기와 위치 조정 */
+        /* Calendar and popup styling */
         #calendar {
             max-width: 800px;
             margin: 40px auto;
@@ -14,44 +16,17 @@
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             background-color: #f9f9f9;
         }
-        /* 날짜 셀에 마우스 오버 시 스타일 변경 */
+
         .fc-daygrid-day:hover {
             background-color: #e6f7ff;
             cursor: pointer;
         }
-        /* 일정 목록에서는 마우스 커서가 변경되지 않도록 설정 */
-        .fc-event, .fc-daygrid-day-events {
-            cursor: default;
+
+        .dimmed-background {
+            background-color: rgba(0, 0, 0, 0.5); /* 회색 반투명 */
+            pointer-events: none; /* 배경에 클릭 방지 */
         }
-        /* 선택된 날짜 셀 스타일 */
-        .fc-daygrid-day.fc-day-selected {
-            background-color: #bae7ff;
-        }
-        /* FullCalendar 버튼 스타일 변경 */
-        .fc-button {
-            background-color: #4CAF50; /* 녹색 */
-            border: none;
-            color: white;
-            padding: 10px 24px;
-            text-align: center;
-            text-decoration: none;
-            display: inline-block;
-            font-size: 16px;
-            margin: 4px 2px;
-            cursor: pointer;
-            border-radius: 12px; /* 둥근 모서리 */
-            transition: background-color 0.3s ease;
-        }
-        .fc-button:hover {
-            background-color: #45a049; /* 마우스 오버 시 색상 */
-        }
-        /* FullCalendar 버튼 비활성화 스타일 */
-        .fc-button.fc-button-disabled {
-            background-color: #ccc;
-            color: #666;
-            cursor: not-allowed;
-        }
-        /* 팝업 스타일 */
+
         .popup-overlay {
             display: none;
             position: fixed;
@@ -59,12 +34,14 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.2);
-            z-index: 999;
+            background: rgba(0, 0, 0, 0.2); /* This darkens the background */
+            z-index: 998; /* Ensure it appears above the calendar but below the popup */
         }
+
         .popup-overlay.show {
             display: block;
         }
+
         .popup {
             display: none;
             position: fixed;
@@ -76,19 +53,23 @@
             background-color: white;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             border-radius: 8px;
-            z-index: 1000;
+            z-index: 1000; /* Ensure it appears above the overlay */
         }
+
         .popup.show {
             display: block;
         }
+
         .popup-header {
             font-size: 18px;
             margin-bottom: 10px;
         }
+
         .popup-content {
             margin-bottom: 20px;
         }
-        .popup-close, .popup-new-event, .popup-back, .popup-save {
+
+        .popup-close, .popup-edit-event, .popup-back, .popup-save {
             background-color: #4CAF50;
             color: white;
             border: none;
@@ -96,134 +77,720 @@
             border-radius: 8px;
             cursor: pointer;
         }
+
         .popup-close {
             background-color: #f44336;
             margin-left: 10px;
         }
+
         .popup-back {
             background-color: #ff9800;
         }
+
         .popup-footer {
             display: flex;
             justify-content: flex-end;
             gap: 10px;
         }
+
         .hidden {
             display: none;
         }
     </style>
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            var calendarEl = document.getElementById('calendar');
-            var popup = document.getElementById('popup');
-            var popupOverlay = document.getElementById('popup-overlay');
-            var popupContent = document.getElementById('popup-content');
-            var popupHeader = document.getElementById('popup-header');
-            var popupClose = document.getElementById('popup-close');
-            var popupNewEvent = document.getElementById('popup-new-event');
-            var popupBack = document.getElementById('popup-back');
-
-            var newEventPopup = document.getElementById('new-event-popup');
-            var newEventPopupClose = document.getElementById('new-event-popup-close');
-            var newEventPopupBack = document.getElementById('new-event-popup-back');
-            var newEventPopupSave = document.getElementById('new-event-popup-save');
-
-            var calendar = new FullCalendar.Calendar(calendarEl, {
-                initialView: 'dayGridMonth',
-                headerToolbar: {
-                    left: 'prev,next today',
-                    center: 'title',
-                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
-                },
-                events: function(fetchInfo, successCallback, failureCallback) {
-                    // Fetch API를 사용하여 일정 데이터를 가져오는 로직
-                    fetch('/schedules?year=' + fetchInfo.start.getFullYear() + '&month=' + (fetchInfo.start.getMonth() + 1))
-                        .then(response => response.json())
-                        .then(data => {
-                            var events = data.map(event => ({
-                                title: event.title,
-                                start: event.startAt,
-                                end: event.endAt,
-                                description: event.description
-                            }));
-                            successCallback(events);
-                        })
-                        .catch(error => {
-                            console.error('Error fetching events:', error);
-                            failureCallback(error);
-                        });
-                },
-                dateClick: function(info) {
-                    // 날짜 셀 클릭 시 팝업 표시 및 내용 업데이트
-                    var clickedDate = info.dateStr;
-                    console.log('Clicked on: ' + clickedDate);
-
-                    // 팝업 표시 및 내용 업데이트
-                    popupHeader.textContent = 'Events on ' + clickedDate;
-                    popupContent.innerHTML = '<p>Loading events...</p>';
-                    popupOverlay.classList.add('show');
-                    popup.classList.add('show');
-
-                    // Fetch API를 사용하여 GET 요청을 보냅니다.
-                    fetch('/schedules?year=' + info.date.getFullYear() + '&month=' + (info.date.getMonth() + 1) + '&day=' + info.date.getDate())
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.length > 0) {
-                                popupContent.innerHTML = '<ul>' + data.map(event => '<li>' + event.title + '</li>').join('') + '</ul>';
-                            } else {
-                                popupContent.innerHTML = '<p>No events found.</p>';
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error fetching data:', error);
-                            popupContent.innerHTML = '<p>Error loading events.</p>';
-                        });
-                }
-            });
-
-            calendar.render();
-
-            // 팝업 닫기 버튼 핸들러
-            popupClose.addEventListener('click', function() {
-                popup.classList.remove('show');
-                popupOverlay.classList.remove('show');
-            });
-
-            // 팝업 오버레이 클릭 핸들러
-            popupOverlay.addEventListener('click', function() {
-                popup.classList.remove('show');
-                popupOverlay.classList.remove('show');
-                newEventPopup.classList.remove('show');
-            });
-
-            // 새 일정 생성 버튼 핸들러
-            popupNewEvent.addEventListener('click', function() {
-                popup.classList.remove('show');
-                newEventPopup.classList.add('show');
-            });
-
-            // 새 일정 팝업 닫기 버튼 핸들러
-            newEventPopupClose.addEventListener('click', function() {
-                newEventPopup.classList.remove('show');
-                popupOverlay.classList.remove('show');
-            });
-
-            // 새 일정 팝업 뒤로 가기 버튼 핸들러
-            newEventPopupBack.addEventListener('click', function() {
-                newEventPopup.classList.remove('show');
-                popup.classList.add('show');
-            });
-
-            // 새 일정 팝업 저장 버튼 핸들러
-            newEventPopupSave.addEventListener('click', function() {
-                // API를 사용하여 새로운 일정 생성 로직 추가
-                alert('New event created!');
-                newEventPopup.classList.remove('show');
-                popupOverlay.classList.remove('show');
-            });
-        });
-    </script>
 </head>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var calendarEl = document.getElementById('calendar');
+        var popup = document.getElementById('popup');
+        var popupOverlay = document.getElementById('popup-overlay');
+        var popupContent = document.getElementById('popup-content');
+        var popupHeader = document.getElementById('popup-header');
+        var popupClose = document.getElementById('popup-close');
+        var popupEditEvent = document.getElementById('popup-edit-event');
+        var popupNewEvent = document.getElementById('popup-new-event');
+
+        var scheduleFormPopup = document.getElementById('schedule-form-popup');
+        var scheduleFormHeader = document.getElementById('schedule-form-header');
+        var scheduleFormSave = document.getElementById('schedule-form-save');
+        var scheduleFormClose = document.getElementById('schedule-form-close');
+
+        // DOM 요소 변수 선언
+        var scheduleTitle = document.getElementById('schedule-title');
+        var scheduleDescription = document.getElementById('schedule-description');
+        var scheduleStart = document.getElementById('schedule-start');
+        var scheduleEnd = document.getElementById('schedule-end');
+
+        var scheduleRepeatInterval = document.getElementById('schedule-repeat-interval');
+        var scheduleRepeatType = document.getElementById('schedule-repeat-type');
+        var scheduleRepeatEnd = document.getElementById('schedule-repeat-end');
+
+        var scheduleRepeatSection = document.getElementById('schedule-repeat-section');
+        var scheduleRepeatCheckbox = document.getElementById('schedule-repeat-checkbox');
+
+        var scheduleNotificationSection = document.getElementById('schedule-notification-section');
+        var scheduleNotificationCheckbox = document.getElementById('schedule-notification-checkbox');
+        var scheduleNotificationList = document.getElementById('schedule-notification-list');
+        var scheduleAddNotification = document.getElementById('schedule-add-notification');
+
+        var choicePopup = document.getElementById('repeat-choice-popup');
+        var choicePopupClose = document.getElementById('repeat-choice-popup-close');
+        var updateSingleEvent = document.getElementById('update-single-event');
+        var updateAllEvents = document.getElementById('update-all-events');
+
+        var isEditMode = false;
+        var currentScheduleId = null;
+        var selectedEvent;
+        var isSaving = false;   // 추가된 상태 변수로 중복 요청을 방지
+        var initialData = {
+                scheduleDto: {},
+                notificationDto: [],
+                repeatDto: null
+            };   // 변경된 값만 patch 해주기 위해
+
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            editable: true,
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,timeGridDay'
+            },
+            events: function(fetchInfo, successCallback, failureCallback) {
+                fetch('/schedules/date?start=' + fetchInfo.start.toISOString().split('T')[0] + '&end=' + fetchInfo.end.toISOString().split('T')[0])
+                    .then(response => response.ok ? response.json() : Promise.reject("Failed to fetch data"))
+                    .then(data => successCallback(data.map(event => ({
+                        id: event.id,
+                        title: event.title,
+                        start: event.startAt,
+                        end: event.endAt,
+                        description: event.description,
+                        repeat: event.repeatId
+                    }))))
+                    .catch(error => {
+                        console.error('Error fetching events:', error);
+                        failureCallback(error);
+                    });
+            },
+            dateClick: function(info) {
+                var clickedDate = info.dateStr;
+                popupHeader.textContent = 'Events on ' + clickedDate;
+                popupContent.innerHTML = '<p>Loading events...</p>';
+                popupOverlay.classList.add('show');
+
+                //클릭한 날짜 저장
+                document.getElementById('schedule-form-popup').setAttribute('data-selected-date', info.dateStr);
+
+                popup.classList.add('show');
+
+                const year = info.date.getFullYear();
+                const month = ('0' + (info.date.getMonth() + 1)).slice(-2);  // 월을 두 자리 숫자로 포맷팅
+                const day = ('0' + info.date.getDate()).slice(-2);           // 일을 두 자리 숫자로 포맷팅
+
+                const dateStr = `${year}-${month}-${day}`;
+
+                fetch(`/schedules/date?start=${dateStr}&end=${dateStr}`)
+                    .then(response => {
+                        if (response.status === 204) { // NO_CONTENT인 경우
+                            return []; // 빈 배열을 반환
+                        } else {
+                            return response.json(); // 정상적으로 JSON 응답을 받을 경우
+                        }
+                    })
+                    .then(data => {
+                        if (data.length > 0) {
+                            var eventListHtml = '<ul>';
+                            data.forEach((event, index) => {
+                                eventListHtml += `<li><a href="#" class="event-item" data-event-index="${index}">${event.title}</a></li>`;
+                            });
+                            eventListHtml += '</ul>';
+                            popupContent.innerHTML = eventListHtml;
+
+                            // 중복 리스너 등록을 피하기 위해 기존 리스너를 제거
+                            document.querySelectorAll('.event-item').forEach(function(element) {
+                                element.removeEventListener('click', handleEventClick);
+                                element.addEventListener('click', handleEventClick);
+                            });
+
+                            function handleEventClick(event) {
+                                var eventIndex = event.target.getAttribute('data-event-index');
+                                selectedEvent = data[eventIndex];
+                                showEventDetails(selectedEvent);
+                            }
+                        } else {
+                            popupContent.innerHTML = '<p>No events found.</p>';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching data:', error);
+                        popupContent.innerHTML = '<p>Error loading events.</p>';
+                    });
+            }
+        });
+
+        function formatDateTime(date) {
+            const year = date.getFullYear();
+            const month = ('0' + (date.getMonth() + 1)).slice(-2);
+            const day = ('0' + date.getDate()).slice(-2);
+            const hours = ('0' + date.getHours()).slice(-2);
+            const minutes = ('0' + date.getMinutes()).slice(-2);
+            return `${year}-${month}-${day}T${hours}:${minutes}`;
+        }
+
+        function openCreateScheduleForm() {
+            isEditMode = false;
+            currentScheduleId = null;
+            scheduleFormHeader.textContent = 'Create New Schedule';
+            scheduleFormSave.textContent = 'Create';
+            scheduleFormPopup.classList.remove('hidden');
+            scheduleFormPopup.classList.add('show');
+            scheduleFormSave.onclick = createSchedule;
+
+            // 생성 모드일 때 삭제 버튼 숨기기
+            document.getElementById('schedule-form-delete').classList.add('hidden');
+
+            // 클릭한 날짜 가져오기
+            const clickedDate = new Date(document.getElementById('schedule-form-popup').getAttribute('data-selected-date'));
+
+            // 현재 시간 가져오기
+            const now = new Date();
+            const currentHours = now.getHours();
+            const currentMinutes = now.getMinutes();
+
+            // 클릭한 날짜와 현재 시간, 분을 결합
+            const selectedDate = new Date(clickedDate.getFullYear(), clickedDate.getMonth(), clickedDate.getDate(), currentHours, currentMinutes);
+            const selectFormatted = formatDateTime(selectedDate);
+
+            // 1시간 후 시간 가져오기
+            const oneHourLater = new Date(selectedDate.getTime() + 60 * 60 * 1000);
+            const oneHourLaterFormatted = formatDateTime(oneHourLater);
+
+            // 폼의 모든 필드를 초기화
+            document.getElementById('schedule-title').value = '';
+            document.getElementById('schedule-description').value = '';
+            document.getElementById('schedule-start').value = selectFormatted;
+            document.getElementById('schedule-end').value = oneHourLaterFormatted;
+
+            initializeDefaultNotification();
+            initializeDefaultRepeat();
+        }
+
+        function openEditScheduleForm() {
+            isEditMode = true;
+            scheduleFormHeader.textContent = 'Edit Schedule';
+            scheduleFormSave.textContent = 'Save';
+            scheduleFormPopup.classList.remove('hidden');
+            scheduleFormPopup.classList.add('show');
+
+            // 수정 모드일 때 삭제 버튼 보이기
+            document.getElementById('schedule-form-delete').classList.remove('hidden');
+
+            scheduleFormSave.onclick = saveHandler;
+        }
+
+        function showEventDetails(event) {
+            // 이벤트 세부 정보를 표시하기 위한 팝업 내용 설정
+            popupHeader.textContent = 'Event Details';
+            popupContent.innerHTML = `
+                <p><strong>Title:</strong> ${event.title}</p>
+                <p><strong>Start:</strong> ${new Date(event.startAt).toLocaleString()}</p>
+                <p><strong>End:</strong> ${new Date(event.endAt).toLocaleString()}</p>
+                <p><strong>Description:</strong> ${event.description}</p>`;
+
+            // Edit 팝업에 원본 데이터 채우기
+            scheduleTitle.value = event.title;
+            scheduleDescription.value = event.description;
+            scheduleStart.value = event.startAt.substring(0, 16); // datetime-local 형식에 맞추기 위해
+            scheduleEnd.value = event.endAt.substring(0, 16); // datetime-local 형식에 맞추기 위해
+
+            initialData.scheduleDto = event;
+
+            // 버튼 변경
+            popupNewEvent.classList.add('hidden');
+            popupEditEvent.classList.remove('hidden');
+
+            const notificationsFetch = fetch(`/notifications?schedule-id=${event.id}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            }).then(response => response.json());
+
+            const repeatDetailsFetch = event.repeatId ? fetch(`/repeats/${event.repeatId}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            }).then(response => response.json()) : Promise.resolve(null);
+
+            Promise.all([notificationsFetch, repeatDetailsFetch])
+                .then(([notifications, repeatDetails]) => {
+                    // Notifications Display
+                    popupContent.innerHTML += '<p><strong>Notifications:</strong></p>';
+                    if (notifications.length > 0) {
+                        const notificationList = document.createElement('ul');
+                        notifications.forEach((notification) => {
+                            const notificationTime = convertToNotificationAt(event.startAt, notification.notificationAt);
+                            const notificationItem = document.createElement('li');
+                            notificationItem.textContent = `${notificationTime.value} ${notificationTime.type}`;
+                            notificationList.appendChild(notificationItem);
+
+                            // 알림 데이터를 initialData에 저장
+                            initialData.notificationDto.push({ notificationAt: notification.notificationAt });
+                        });
+                        popupContent.appendChild(notificationList);
+                    } else {
+                        popupContent.innerHTML += '<p>No notifications found.</p>';
+                    }
+
+                    // Repeat Details Display
+                    popupContent.innerHTML += '<p><strong>Repeat Details:</strong></p>';
+                    if (repeatDetails) {
+                        const repeatInfo = `
+                            <p>Repeat Type: ${repeatDetails.repeatType}</p>
+                            <p>Repeat Interval: ${repeatDetails.repeatInterval}</p>
+                            <p>End Time: ${repeatDetails.endAt ? new Date(repeatDetails.endAt).toLocaleString() : 'N/A'}</p>
+                        `;
+                        popupContent.innerHTML += repeatInfo;
+
+                        // 반복 데이터를 initialData에 저장
+                        initialData.repeatDto = {
+                            repeatType: repeatDetails.repeatType,
+                            repeatInterval: repeatDetails.repeatInterval,
+                            endAt: repeatDetails.endAt ? repeatDetails.endAt.substring(0, 16) : null
+                        };
+                    } else {
+                        popupContent.innerHTML += '<p>No repeat details found.</p>';
+                    }
+
+                    // 폼 데이터 채우기 (Edit Mode)
+                    // Notifications
+                    scheduleNotificationList.innerHTML = ''; // 기존 알림 목록 초기화
+                    if (notifications.length > 0) {
+                        notifications.forEach((notification) => {
+                            const notificationTime = convertToNotificationAt(event.startAt, notification.notificationAt);
+                            addNotificationRow(notificationTime.value, notificationTime.type);
+                        });
+                        scheduleNotificationCheckbox.checked = true;
+                        scheduleNotificationSection.classList.remove('hidden');
+                    } else {
+                        scheduleNotificationCheckbox.checked = false;
+                        scheduleNotificationSection.classList.add('hidden');
+                    }
+
+                    // Repeat Details
+                    if (repeatDetails) {
+                        scheduleRepeatInterval.value = repeatDetails.repeatInterval;
+                        scheduleRepeatType.value = repeatDetails.repeatType;
+                        scheduleRepeatEnd.value = repeatDetails.endAt ? repeatDetails.endAt.substring(0, 16) : '';
+                        scheduleRepeatCheckbox.checked = true;
+                        scheduleRepeatSection.classList.remove('hidden');
+                    } else {
+                        scheduleRepeatCheckbox.checked = false;
+                        scheduleRepeatSection.classList.add('hidden');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching details:', error);
+                    popupContent.innerHTML += '<p>Error loading event details.</p>';
+                });
+
+            currentScheduleId = event.id;
+        }
+
+        function saveHandler() {
+            // isSaving 변수를 확인하여 중복 요청 방지
+            if (isSaving) return;
+            isSaving = true;
+
+            if (selectedEvent.repeatId) {
+                showChoicePopup("save");
+            } else {
+                updateEvent('/schedules/' + selectedEvent.id + '?repeat=' + scheduleRepeatCheckbox.checked);
+            }
+        }
+
+        function showChoicePopup(mode) {
+            updateSingleEvent.dataset.mode = mode;
+            updateAllEvents.dataset.mode = mode;
+
+            scheduleFormPopup.classList.remove('show');
+            scheduleFormPopup.classList.add('hidden');
+
+            choicePopup.classList.add('show');
+            popupOverlay.classList.add('show');
+            popupOverlay.classList.add('dimmed-background');
+        }
+
+        function updateEvent(apiUrl) {
+            console.log("Data Url: ", apiUrl);
+
+            var currentData = getScheduleData();
+            const updatedData = {};
+
+            // 기존 데이터 비교 로직
+            for (let key in currentData) {
+                if ((key === "notificationDto" && !scheduleNotificationCheckbox.checked) ||
+                    (key === "repeatDto" && !scheduleRepeatCheckbox.checked)){
+                    continue;
+                }
+
+                if (key === "scheduleDto") {
+                    if (currentData[key] !== initialData[key]) {
+                        updatedData[key] = currentData[key];
+                    }
+                } else {
+                    updatedData[key] = currentData[key];
+                }
+            }
+
+            fetch(apiUrl, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(updatedData)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(data => {
+                        const errorMessage = data.message || 'Unknown error occurred';
+                        throw new Error(errorMessage);
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                alert('Event updated successfully!');
+                scheduleFormPopup.classList.remove('show');
+                popupOverlay.classList.remove('show');
+                calendar.refetchEvents();
+            })
+            .catch(error => {
+                console.error('Error updating event:', error);
+                alert('An error occurred while updating the event.');
+            })
+            .finally(() => {
+                isSaving = false; // 요청이 완료되면 isSaving을 false로 되돌려 중복 요청을 방지
+            });
+        }
+
+        function getScheduleData() {
+            var createEvent = {
+                    scheduleDto: {},
+                    notificationDto: [],
+                    repeatDto: null
+                };
+
+                // scheduleDto 설정
+                createEvent.scheduleDto = {
+                    title: scheduleTitle.value,
+                    description: scheduleDescription.value,
+                    startAt: scheduleStart.value,
+                    endAt: scheduleEnd.value
+                };
+
+                if (scheduleNotificationCheckbox.checked) {
+                    document.querySelectorAll('.notification-row').forEach(function(row) {
+                        var timeValue = row.querySelector('.notification-time').value;
+                        var timeUnit = row.querySelector('.notification-unit').value;
+                        if (timeValue && timeUnit) {
+                            var notificationTime = convertToLocalDateTime(scheduleStart.value, parseInt(timeValue), timeUnit);
+                            createEvent.notificationDto.push({ notificationAt: notificationTime });
+                        }
+                    });
+                }
+
+                if (scheduleRepeatCheckbox.checked) {
+                    createEvent.repeatDto = {
+                        repeatType: scheduleRepeatType.value,
+                        repeatInterval: scheduleRepeatInterval.value,
+                        endAt: scheduleRepeatEnd.value || null // Optional end date
+                    };
+                }
+
+            return createEvent;
+        }
+
+        function createSchedule() {
+            if (isSaving) return;
+            isSaving = true;
+
+            var createEvent = getScheduleData();
+
+            fetch('/schedules', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(createEvent)
+            })
+            .then(response => response.ok ? response.json() : response.json().then(data => Promise.reject(data.message || 'Unknown error occurred')))
+            .then(() => {
+                alert('Event created successfully!');
+                calendar.refetchEvents();
+                isSaving = false;
+
+                // 폼 닫기
+                scheduleFormPopup.classList.remove('show');
+                popupOverlay.classList.remove('show');
+            })
+            .catch(error => {
+                console.error('Error creating event:', error);
+                alert('An error occurred while creating the event.');
+                isSaving = false;
+            });
+        }
+
+        function deleteEvent(apiUrl) {
+            if (!currentScheduleId) return; // 수정 중인 일정이 없으면 삭제하지 않음
+
+            fetch(apiUrl, {
+                method: 'DELETE'
+            })
+            .then(response => response.ok ? response.text() : Promise.reject('Failed to delete event'))
+            .then(() => {
+                alert('Event deleted successfully!');
+                scheduleFormPopup.classList.remove('show');
+                popupOverlay.classList.remove('show');
+                calendar.refetchEvents();
+            })
+            .catch(error => {
+                console.error('Error deleting event:', error);
+                alert('An error occurred while deleting the event.');
+            });
+        }
+
+        function initializeDefaultNotification() {
+            // 기본 알림 행 추가
+            scheduleNotificationList.innerHTML = ''; // 기존 알림 목록 초기화
+            addNotificationRow(); // 기본 1시간 알림 추가
+            scheduleNotificationCheckbox.checked = false;
+            scheduleNotificationSection.classList.add('hidden');
+        }
+
+        function initializeDefaultRepeat() {
+            // 반복 체크박스와 반복 섹션 초기화
+            scheduleRepeatCheckbox.checked = false;
+            scheduleRepeatSection.classList.add('hidden');
+
+            // 반복 인터벌과 타입 초기화
+            document.getElementById('schedule-repeat-interval').value = '1'; // 기본값 1
+            document.getElementById('schedule-repeat-type').value = 'd'; // 기본값 Day(s)
+
+            // 반복 종료 시간을 빈값으로 설정
+            document.getElementById('schedule-repeat-end').value = '';
+        }
+
+        function convertToLocalDateTime(startAt, timeValue, timeUnit) {
+            // Date 객체로 변환
+            startAt = new Date(startAt);
+
+            switch (timeUnit) {
+                case 'minutes':
+                    startAt.setMinutes(startAt.getMinutes() - timeValue);
+                    break;
+                case 'hours':
+                    startAt.setHours(startAt.getHours() - timeValue);
+                    break;
+                case 'days':
+                    startAt.setDate(startAt.getDate() - timeValue);
+                    break;
+                case 'weeks':
+                    startAt.setDate(startAt.getDate() - timeValue * 7);
+                    break;
+            }
+
+            return formatDateTime(startAt);
+        }
+
+        function convertToNotificationAt(startAt, notificationAt) {
+            // Date 객체로 변환
+            const startDate = new Date(startAt);
+            const notificationDate = new Date(notificationAt);
+
+            // 시간 차이를 밀리초로 계산
+            const diffInMillis = startDate - notificationDate;
+
+            // 시간 차이를 분, 시간, 일, 주 단위로 계산
+            const diffInMinutes = Math.floor(diffInMillis / (1000 * 60));
+            const diffInHours = Math.floor(diffInMillis / (1000 * 60 * 60));
+            const diffInDays = Math.floor(diffInMillis / (1000 * 60 * 60 * 24));
+            const diffInWeeks = Math.floor(diffInMillis / (1000 * 60 * 60 * 24 * 7));
+
+            // 가장 적합한 단위를 선택
+            if (diffInWeeks > 0) {
+                return { type: 'weeks', value: diffInWeeks };
+            } else if (diffInDays > 0) {
+                return { type: 'days', value: diffInDays };
+            } else if (diffInHours > 0) {
+                return { type: 'hours', value: diffInHours };
+            } else {
+                return { type: 'minutes', value: diffInMinutes };
+            }
+        }
+
+        function formatDateTime(date) {
+            const year = date.getFullYear();
+            const month = ('0' + (date.getMonth() + 1)).slice(-2);
+            const day = ('0' + date.getDate()).slice(-2);
+            const hours = ('0' + date.getHours()).slice(-2);
+            const minutes = ('0' + date.getMinutes()).slice(-2);
+            return `${year}-${month}-${day}T${hours}:${minutes}`;
+        }
+
+        function addNotificationRow(timeValue = 1, timeUnit = 'hours') {
+            // 알림 행을 감쌀 div 생성
+            var notificationRow = document.createElement('div');
+            notificationRow.className = 'notification-row';
+
+            // 추가 옵션을 원하는 경우 여기서 옵션을 더 추가
+
+            // 알림 시간 설정 필드
+            var timeInput = document.createElement('input');
+            timeInput.type = 'number';
+            timeInput.className = 'notification-time';
+            timeInput.min = '1';
+            timeInput.value = timeValue;
+
+            // 알림 시간 단위 선택 필드
+            var timeUnitSelect = document.createElement('select');
+            timeUnitSelect.className = 'notification-unit';
+            var optionMinutes = document.createElement('option');
+            optionMinutes.value = 'minutes';
+            optionMinutes.text = 'minutes';
+            var optionHours = document.createElement('option');
+            optionHours.value = 'hours';
+            optionHours.text = 'hours';
+            var optionDays = document.createElement('option');
+            optionDays.value = 'days';
+            optionDays.text = 'days';
+            var optionWeeks = document.createElement('option');
+            optionWeeks.value = 'weeks';
+            optionWeeks.text = 'weeks';
+            timeUnitSelect.appendChild(optionMinutes);
+            timeUnitSelect.appendChild(optionHours);
+            timeUnitSelect.appendChild(optionDays);
+            timeUnitSelect.appendChild(optionWeeks);
+
+            // 시간 단위 기본 선택 설정
+            timeUnitSelect.value = timeUnit;
+
+            // 삭제 버튼
+            var removeButton = document.createElement('button');
+            removeButton.type = 'button';
+            removeButton.textContent = 'X';
+            removeButton.addEventListener('click', function() {
+                notificationRow.remove();
+            });
+
+            // 행에 추가
+            notificationRow.appendChild(timeInput);
+            notificationRow.appendChild(timeUnitSelect);
+            notificationRow.appendChild(removeButton);
+
+            // 알림 목록에 행 추가
+            scheduleNotificationList.appendChild(notificationRow);
+        }
+
+        function closePopup() {
+            scheduleFormPopup.classList.remove('hidden'); // 수정 폼 다시 열기
+            scheduleFormPopup.classList.add('hidden');
+
+            choicePopup.classList.remove('show');
+            popupOverlay.classList.remove('show');
+            popupOverlay.classList.remove('dimmed-background');
+        }
+
+        calendar.render();
+
+        popupClose.addEventListener('click', function() {
+            popup.classList.remove('show');
+            popupOverlay.classList.remove('show');
+
+            // 버튼 원래대로 변경
+            popupEditEvent.classList.add('hidden');
+            popupNewEvent.classList.remove('hidden');
+        });
+
+        popupOverlay.addEventListener('click', function() {
+            popup.classList.remove('show');
+            popupOverlay.classList.remove('show');
+            scheduleFormPopup.classList.remove('show');
+
+            // 버튼 원래대로 변경
+            popupEditEvent.classList.add('hidden');
+            popupNewEvent.classList.remove('hidden');
+        });
+
+        popupEditEvent.addEventListener('click', function() {
+            popup.classList.remove('show');
+            scheduleFormPopup.classList.add('show');
+            openEditScheduleForm();
+        });
+
+        popupNewEvent.addEventListener('click', function() {
+            popup.classList.remove('show');
+            scheduleFormPopup.classList.add('show');
+            openCreateScheduleForm();
+        });
+
+        scheduleFormClose.addEventListener('click', function() {
+            scheduleFormPopup.classList.remove('show');
+            popupOverlay.classList.remove('show');
+        });
+
+        // Show/hide repeat options based on checkbox state
+        scheduleRepeatCheckbox.addEventListener('change', function() {
+            if (this.checked) {
+                scheduleRepeatSection.classList.remove('hidden');
+            } else {
+                scheduleRepeatSection.classList.add('hidden');
+            }
+        });
+        scheduleNotificationCheckbox.addEventListener('change', function() {
+            if (this.checked) {
+                scheduleNotificationSection.classList.remove('hidden');
+            } else {
+                scheduleNotificationSection.classList.add('hidden');
+            }
+        });
+
+        scheduleAddNotification.addEventListener('click', function() {
+            addNotificationRow();
+        });
+
+        choicePopupClose.addEventListener('click', closePopup);
+        updateSingleEvent.addEventListener('click', function() {
+            closePopup();
+            if (this.dataset.mode === "delete") {
+                deleteEvent('/schedules/' + selectedEvent.id + '/current-only');
+            } else if (this.dataset.mode === "save") {
+                updateEvent('/schedules/' + selectedEvent.id + '/current-only?repeat=' + scheduleRepeatCheckbox.checked);
+            }
+        });
+        updateAllEvents.addEventListener('click', function() {
+            closePopup();
+            if (this.dataset.mode === "delete") {
+                deleteEvent('/schedules/' + selectedEvent.id + '/current-and-future');
+            } else if (this.dataset.mode === "save") {
+                updateEvent('/schedules/' + selectedEvent.id + '/current-and-future?repeat=' + scheduleRepeatCheckbox.checked);
+            }
+        });
+
+        document.getElementById('schedule-form-delete').addEventListener('click', function() {
+
+            if (selectedEvent.repeatId) {
+                showChoicePopup("delete");
+            } else {
+                if (confirm('Are you sure you want to delete this event?')) {
+                    closePopup();
+                    deleteEvent('/schedules/' + selectedEvent.id); // 삭제 이벤트 처리 함수 호출
+                }
+            }
+        });
+
+    });
+</script>
 <body>
 <div id='calendar'></div>
 
@@ -233,23 +800,61 @@
     <div id='popup-content' class="popup-content"></div>
     <div class="popup-footer">
         <button id="popup-new-event" class="popup-new-event">New Event</button>
+        <button id="popup-edit-event" class="popup-new-event hidden">Edit Event</button>
         <button id="popup-close" class="popup-close">Close</button>
     </div>
 </div>
 
-<div id='new-event-popup' class="popup hidden">
-    <div id='new-event-popup-header' class="popup-header">Create New Event</div>
-    <div id='new-event-popup-content' class="popup-content">
-            <label>Title: <input type="text" id="new-event-title"></label><br><br>
-    <label>Description: <textarea id="new-event-description"></textarea></label><br><br>
-    <label>Start Time: <input type="datetime-local" id="new-event-start"></label><br><br>
-    <label>End Time: <input type="datetime-local" id="new-event-end"></label>
+<!-- 반복 수정 선택지 팝업 -->
+<div id='repeat-choice-popup' class="popup hidden" style="z-index: 1001;">
+    <div id='repeat-choice-popup-header' class="popup-header">Choose an Action</div>
+    <div id='repeat-choice-popup-content' class="popup-content">
+        <p>This event is part of a repeating series. What would you like to do?</p>
+    </div>
+    <div class="popup-footer">
+        <button id="update-single-event" class="popup-new-event" data-mode="save-single">Update Single Event</button>
+        <button id="update-all-events" class="popup-new-event" data-mode="save-all">Update All Events</button>
+        <button id="repeat-choice-popup-close" class="popup-close">Cancel</button>
+    </div>
 </div>
-<div class="popup-footer">
-    <button id="new-event-popup-back" class="popup-back">Back</button>
-    <button id="new-event-popup-save" class="popup-new-event">Save</button>
-    <button id="new-event-popup-close" class="popup-close">Close</button>
-</div>
+
+<!-- 일정 작성 팝업 -->
+<div id='schedule-form-popup' class="popup hidden" data-selected-date="">
+    <div id='schedule-form-header' class="popup-header"></div>
+    <div id='schedule-form-content' class="popup-content">
+        <label>Title<br><input type="text" id="schedule-title"></label><br><br>
+        <label>Description<br><textarea id="schedule-description"></textarea></label><br><br>
+        <label>Start Time<br><input type="datetime-local" id="schedule-start"></label><br><br>
+        <label>End Time<br><input type="datetime-local" id="schedule-end"></label><br><br>
+    </div>
+    <!-- 알림 설정 -->
+    <label><input type="checkbox" id="schedule-notification-checkbox"> Notifications</label><br><br>
+    <div id='schedule-notification-section' class="hidden">
+        <div id="schedule-notification-list"></div><br>
+        <button id="schedule-add-notification" type="button">Add Notification</button><br><br>
+    </div>
+
+    <label><input type="checkbox" id='schedule-repeat-checkbox'> Repeat</label><br><br>
+    <div id='schedule-repeat-section' class="hidden">
+        <label>Repeat Interval<br>
+            <input type="number" id="schedule-repeat-interval" min="1" value="1">
+            <select id="schedule-repeat-type">
+                <option value="d">Day(s)</option>
+                <option value="w">Week(s)</option>
+                <option value="m">Month(s)</option>
+                <option value="y">Year(s)</option>
+            </select>
+        </label><br><br>
+        <label>Repeat End Time<br>
+            <input type="datetime-local" id="schedule-repeat-end">
+        </label><br><br>
+    </div>
+    <div class="popup-footer">
+        <button id="schedule-form-save" class="popup-new-event"></button>
+        <button id="schedule-form-delete" class="popup-delete hidden">Delete</button>
+        <button id="schedule-form-close" class="popup-close">Close</button>
+    </div>
+
 </div>
 </body>
 </html>

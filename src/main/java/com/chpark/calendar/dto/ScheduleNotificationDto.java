@@ -1,7 +1,9 @@
 package com.chpark.calendar.dto;
 
 import com.chpark.calendar.entity.ScheduleNotificationEntity;
+import com.chpark.calendar.exception.ValidGroup;
 import jakarta.validation.constraints.FutureOrPresent;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -10,50 +12,32 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Getter
+@Setter
+@NoArgsConstructor
 public class ScheduleNotificationDto {
+    @NotNull
+    @FutureOrPresent(message = "The notification date must be in the present or future")
+    private LocalDateTime notificationAt;
 
-    @Getter
-    @NoArgsConstructor
-    public static class Request {
-        //TODO: 커스텀 메시지가 나오도록 수정
-        @FutureOrPresent(message = "The notification date must be in the present or future")
-        private LocalDateTime notificationAt;
-
-        public Request(LocalDateTime dateAt) {
-            this.notificationAt = dateAt;
-        }
+    public ScheduleNotificationDto(LocalDateTime notificationAt) {
+        this.notificationAt = notificationAt;
     }
 
-    @Getter
-    @Setter
-    @NoArgsConstructor
-    public static class Response {
+    public ScheduleNotificationDto(ScheduleNotificationEntity entity) {
+        this.notificationAt = entity.getNotificationAt();
+    }
 
-        private int id;
-        private int scheduleId;
+    public static List<ScheduleNotificationDto> fromScheduleNotificationEntityList(List<ScheduleNotificationEntity> entityList) {
+        return entityList.stream()
+                .map(ScheduleNotificationDto::new)
+                .collect(Collectors.toList());
+    }
 
-        @FutureOrPresent(message = "The notification date must be in the present or future")
-        private LocalDateTime notificationAt;
-
-        public Response(ScheduleNotificationEntity entity) {
-            setId(entity.getId());
-            setScheduleId(entity.getScheduleId());
-            setNotificationAt(entity.getNotificationAt());
-        }
-
-        public static List<Response> fromScheduleNotificationEntityList(List<ScheduleNotificationEntity> entityList) {
-            return entityList.stream()
-                    .map(Response::new)
-                    .collect(Collectors.toList());
-        }
-
-        @Override
-        public String toString() {
-            return "ScheduleNotificationDto.Response{" +
-                    "id=" + id +
-                    ", scheduleId=" + scheduleId +
-                    ", notificationAt='" + notificationAt + '\'' +
-                    '}';
-        }
+    @Override
+    public String toString() {
+        return "ScheduleNotificationDto.Response{"+
+                " notificationAt='" + getNotificationAt() + '\'' +
+                '}';
     }
 }

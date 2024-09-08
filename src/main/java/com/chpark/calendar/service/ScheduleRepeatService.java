@@ -14,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Objects;
 import java.util.Optional;
 
 @RequiredArgsConstructor
@@ -26,16 +27,19 @@ public class ScheduleRepeatService {
     private final ScheduleBatchRepository scheduleBatchRepository;
 
     @Transactional
-    public ScheduleRepeatDto.Response create(int scheduleId, ScheduleRepeatDto repeatDto){
+    public ScheduleRepeatDto create(int scheduleId, ScheduleRepeatDto repeatDto) {
 
-        //기준 일정 가져오기
-        Optional<ScheduleEntity> scheduleEntity = scheduleRepository.findById(scheduleId);
-        if(scheduleEntity.isEmpty()) {
-            throw new EntityNotFoundException("Schedule not found with id: " + scheduleId);
+        if(repeatDto == null) {
+            throw new CustomException("repeat");
         }
 
+        //기준 일정 가져오기
+        ScheduleEntity scheduleEntity = scheduleRepository.findById(scheduleId).orElseThrow(
+                () -> new EntityNotFoundException("Schedule not found with id: " + scheduleId)
+        );
+
         //이미 반복이 만들어져있다면 실패
-        if(scheduleEntity.get().getRepeatId() != null) {
+        if(scheduleEntity.getRepeatId() != null) {
             throw new CustomException("This value already exists.");
         }
 
@@ -44,24 +48,27 @@ public class ScheduleRepeatService {
         ScheduleRepeatEntity createRepeatEntity = scheduleRepeatRepository.save(repeatEntity);
 
         //기준 일정의 데이터 반복 일정 적용
-        scheduleEntity.get().setRepeatId(createRepeatEntity.getId());
-        scheduleRepository.save(scheduleEntity.get());
+        scheduleEntity.setRepeatId(createRepeatEntity.getId());
+        scheduleRepository.save(scheduleEntity);
 
-        //일정 생성후 일정 알림 생성
-        scheduleBatchRepository.saveRepeatAll(scheduleEntity.get(), createRepeatEntity);
+        //반복 일정 생성 (알림 포함)
+        scheduleBatchRepository.saveRepeatAll(scheduleEntity, createRepeatEntity);
 
-        return new ScheduleRepeatDto.Response(createRepeatEntity);
+        return new ScheduleRepeatDto(createRepeatEntity);
     }
 
-    public ScheduleRepeatDto.Response findById(int id) {
+    public boolean isModified(int repeatId, ScheduleRepeatDto scheduleRepeatDto) {
+        ScheduleRepeatEntity repeatEntity = scheduleRepeatRepository.findById(repeatId).orElseThrow(
+                () -> new EntityNotFoundException("ScheduleRepeatEntity not found with id: " + repeatId)
+        );
 
+        return !scheduleRepeatDto.equals(new ScheduleRepeatDto(repeatEntity));
+    }
+
+    public Optional<ScheduleRepeatDto> findById(int id) {
         Optional<ScheduleRepeatEntity> findEntity = scheduleRepeatRepository.findById(id);
 
-        if(findEntity.isPresent()) {
-            return new ScheduleRepeatDto.Response(findEntity.get());
-        } else {
-            throw new EntityNotFoundException("ScheduleRepeat not found with id: " + id);
-        }
+        return findEntity.map(ScheduleRepeatDto::new);
     }
 
     public boolean existsById(int id) {
