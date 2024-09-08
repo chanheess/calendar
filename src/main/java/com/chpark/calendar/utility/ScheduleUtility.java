@@ -12,7 +12,6 @@ public class ScheduleUtility {
     private ScheduleUtility() {
         throw new UnsupportedOperationException("Utility class");
     }
-
     public static int calculateRepeatCount(LocalDateTime startDate, LocalDateTime endDate, int interval, ScheduleRepeatType repeatType) {
         int repeatCount = 500;
 
