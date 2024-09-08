@@ -13,14 +13,14 @@ public class UserDto {
     public static class PostRequest {
         @NotBlank(groups = ValidGroup.CreateGroup.class)
         @Email
-        String emailId;
+        String email;
         @NotBlank(groups = ValidGroup.CreateGroup.class)
         String password;
         @NotBlank(groups = ValidGroup.CreateGroup.class)
         String nickname;
 
-        public PostRequest(String emailId, String password, String nickname) {
-            this.emailId = emailId;
+        public PostRequest(String email, String password, String nickname) {
+            this.email = email;
             this.password = password;
             this.nickname = nickname;
         }
