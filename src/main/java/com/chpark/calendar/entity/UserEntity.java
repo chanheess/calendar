@@ -1,8 +1,6 @@
 package com.chpark.calendar.entity;
 
 import com.chpark.calendar.dto.UserDto;
-import com.chpark.calendar.enumClass.UserStatus;
-import com.chpark.calendar.utility.UserStatusConverter;
 import jakarta.persistence.*;
 import lombok.Getter;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -24,21 +22,11 @@ public class UserEntity {
     @Column(name = "nickname")
     private String nickname;
 
-    @Convert(converter = UserStatusConverter.class)
-    @Column(name = "status")
-    private UserStatus status;
-
 
     public UserEntity(UserDto.PostRequest request, PasswordEncoder passwordEncoder) {
         this.email = request.getEmail();
         this.password = passwordEncoder.encode(request.getPassword());
         this.nickname = request.getNickname();
-        this.status = UserStatus.ACTIVE;
-    }
-
-    public UserEntity setHashPassword(PasswordEncoder passwordEncoder) {
-        this.password = passwordEncoder.encode(this.password);
-        return this;
     }
 
     public boolean checkPassword(String plainPassword, PasswordEncoder passwordEncoder) {

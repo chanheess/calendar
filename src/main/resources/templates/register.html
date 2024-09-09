@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="icon" href="data:,">
+</head>
+<body>
+<div class="form-container">
+    <h2>Sign up</h2>
+    <form id="register-form" th:action="@{/register/users}" th:object="${userRequest}" method="post">
+        <input type="email" th:field="*{email}" placeholder="Email" autocomplete="email" required />
+        <input type="password" th:field="*{password}" placeholder="Password" autocomplete="new-password" required>
+        <input type="password" id="confirm-password" placeholder="Confirm Password" autocomplete="new-password" required>
+        <input type="text" th:field="*{nickname}" placeholder="Nickname" autocomplete="nickname" required/>
+        <small id="password-error" style="color:red; display:none;">Passwords do not match</small>
+        <button type="submit" class="signup-btn">Sign Up</button>
+    </form>
+    <button onclick="location.href='/login'" class="signin" style="background-color: #ff5733; color: white;">Back to Sign In</button>
+    <div th:if="${errorMessage}" style="color: red;">
+        <p th:text="${errorMessage}"></p>
+    </div>
+</div>
+
+<script>
+    const password = document.getElementById('password');
+    const confirmPassword = document.getElementById('confirm-password');
+    const errorMessage = document.getElementById('password-error');
+    const form = document.getElementById('register-form');
+
+    confirmPassword.addEventListener('input', function() {
+        if (password.value !== confirmPassword.value) {
+            errorMessage.style.display = 'block';
+        } else {
+            errorMessage.style.display = 'none';
+        }
+    });
+
+    form.addEventListener('submit', function (event) {
+        if (password.value !== confirmPassword.value) {
+            event.preventDefault();
+            errorMessage.style.display = 'block';
+            alert('Passwords do not match.');
+        }
+    });
+</script>
+</body>
+</html>

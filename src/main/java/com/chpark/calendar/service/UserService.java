@@ -16,11 +16,16 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
 
     public void createUser(UserDto.PostRequest requestUser) {
-        //TODO: email 가지고 있는지 확인
-        //TODO: 닉네임 가지고 있는지 확인
+        if(userRepository.existsByEmail(requestUser.getEmail())) {
+            throw new IllegalArgumentException("이미 해당 \"이메일\"을 가진 사용자가 존재합니다.");
+        }
+        if(userRepository.existsByNickname(requestUser.getNickname())) {
+            throw new IllegalArgumentException("이미 해당 \"닉네임\"을 가진 사용자가 존재합니다.");
+        }
 
         ScheduleUtility.validateEmail(requestUser.getEmail());
 
         userRepository.save(new UserEntity(requestUser, passwordEncoder));
     }
+
 }

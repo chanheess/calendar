@@ -1,12 +1,13 @@
 package com.chpark.calendar.security;
 
 import io.jsonwebtoken.*;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.stereotype.Component;
 import java.util.Date;
 
 @Component
-public class JwtProvider {
-    private final String SECRET_KEY = "yourSecretKey";  // 꼭 안전한 키로 변경하세요.
+public class JwtTokenProvider {
+    private final String SECRET_KEY = "yourSecretKey";
     private final long EXPIRATION_TIME = 1000 * 60 * 60; // 1시간
 
     // JWT 토큰 생성
@@ -19,6 +20,15 @@ public class JwtProvider {
                 .compact();
     }
 
+    public String resolveToken(HttpServletRequest request) {
+        String bearerToken = request.getHeader("Authorization");
+        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
+            return bearerToken.substring(7); // Bearer 접두사 제거
+        }
+        return null;
+    }
+
+
     // JWT 토큰 검증
     public boolean validateToken(String token) {
         try {
@@ -29,7 +39,7 @@ public class JwtProvider {
         }
     }
 
-    // JWT 토큰에서 사용자 이름 가져오기
+    // JWT에서 사용자 이름 추출
     public String getUsernameFromToken(String token) {
         return Jwts.parser().setSigningKey(SECRET_KEY)
                 .parseClaimsJws(token)
@@ -37,4 +47,5 @@ public class JwtProvider {
                 .getSubject();
     }
 }
+
 
