@@ -1,31 +1,33 @@
 package com.chpark.calendar.dto;
 
-import com.chpark.calendar.exception.ValidGroup;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+@Getter
+@Setter
+@NoArgsConstructor
 public class UserDto {
+
+    @NotBlank
+    @Email
+    String email;
+    @NotBlank
+    String password;
 
     @Getter
     @Setter
     @NoArgsConstructor
-    public static class PostRequest {
-        @NotBlank(groups = ValidGroup.CreateGroup.class)
-        @Email
-        String email;
-        @NotBlank(groups = ValidGroup.CreateGroup.class)
-        String password;
-        @NotBlank(groups = ValidGroup.CreateGroup.class)
+    public static class RegisterRequest extends UserDto{
+        @NotBlank
         String nickname;
 
-        public PostRequest(String email, String password, String nickname) {
+        public RegisterRequest(String email, String password, String nickname) {
             this.email = email;
             this.password = password;
             this.nickname = nickname;
         }
     }
-
 }

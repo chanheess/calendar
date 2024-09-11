@@ -56,7 +56,7 @@ class ScheduleUtilityTest {
 
     @Test
     void hashPasswordTest() {
-        UserDto.PostRequest userRequest = new UserDto.PostRequest(
+        UserDto.RegisterRequest userRequest = new UserDto.RegisterRequest(
                 "email@naver.com",
                 "password123!@#",
                 "test_king"

@@ -3,31 +3,24 @@ package com.chpark.calendar.controller;
 import com.chpark.calendar.dto.UserDto;
 import com.chpark.calendar.service.UserService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 
-@Controller
+@RestController
 @RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
 
-    @PostMapping("/register/users")
-    public String createUser(@Validated @ModelAttribute UserDto.PostRequest userRequest,
-                                             RedirectAttributes redirectAttributes, Model model) {
+    @PostMapping("/login/users")
+    public ResponseEntity<String> loginUser(@Validated @RequestBody UserDto userRequest) {
         try {
-            userService.createUser(userRequest);
+            String token = userService.loginUser(userRequest);
+            return ResponseEntity.ok().header("Authorization", "Bearer " + token).body("{\"message\": \"Login successful\"}");
         } catch (IllegalArgumentException ex) {
-            model.addAttribute("userRequest", userRequest);
-            model.addAttribute("errorMessage", ex.getMessage());
-            return "register";
+            return ResponseEntity.badRequest().body("{\"message\": \"" + ex.getMessage() + "\"}");
         }
-
-        redirectAttributes.addFlashAttribute("message", "회원가입이 성공적으로 완료되었습니다.");
-        return "redirect:/login";
     }
-
 }

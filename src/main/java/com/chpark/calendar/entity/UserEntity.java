@@ -23,7 +23,7 @@ public class UserEntity {
     private String nickname;
 
 
-    public UserEntity(UserDto.PostRequest request, PasswordEncoder passwordEncoder) {
+    public UserEntity(UserDto.RegisterRequest request, PasswordEncoder passwordEncoder) {
         this.email = request.getEmail();
         this.password = passwordEncoder.encode(request.getPassword());
         this.nickname = request.getNickname();

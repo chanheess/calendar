@@ -2,16 +2,21 @@ package com.chpark.calendar.security;
 
 import io.jsonwebtoken.*;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import java.util.Date;
 
 @Component
 public class JwtTokenProvider {
-    private final String SECRET_KEY = "yourSecretKey";
-    private final long EXPIRATION_TIME = 1000 * 60 * 60; // 1시간
+    @Value("${JWT_SECRET}")
+    private String SECRET_KEY;
 
-    // JWT 토큰 생성
-    public String generateToken(String username) {
+    public String generateToken(Authentication authentication) {
+        String username = ((UserDetails) authentication.getPrincipal()).getUsername();
+        // 1시간
+        long EXPIRATION_TIME = 1000 * 60 * 60;
         return Jwts.builder()
                 .setSubject(username)
                 .setIssuedAt(new Date())
