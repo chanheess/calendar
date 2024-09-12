@@ -1,5 +1,6 @@
 package com.chpark.calendar.controller;
 
+import com.chpark.calendar.dto.JwtAuthenticationResponseDto;
 import com.chpark.calendar.dto.UserDto;
 import com.chpark.calendar.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -15,10 +16,10 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping("/login/users")
-    public ResponseEntity<String> loginUser(@Validated @RequestBody UserDto userRequest) {
+    public ResponseEntity<?> loginUser(@Validated @RequestBody UserDto userRequest) {
         try {
             String token = userService.loginUser(userRequest);
-            return ResponseEntity.ok().header("Authorization", "Bearer " + token).body("{\"message\": \"Login successful\"}");
+            return ResponseEntity.ok(new JwtAuthenticationResponseDto(token, "Login successful!"));
         } catch (IllegalArgumentException ex) {
             return ResponseEntity.badRequest().body("{\"message\": \"" + ex.getMessage() + "\"}");
         }

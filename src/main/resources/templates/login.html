@@ -21,6 +21,7 @@
 <script>
     document.getElementById("loginForm").addEventListener("submit", function(event) {
         event.preventDefault();
+
         const formData = new FormData(this);
         const jsonData = JSON.stringify({
             email: formData.get("email"),
@@ -35,7 +36,16 @@
             body: jsonData
         })
         .then(response => response.json())
-        .then(data => alert(data.message))
+        .then(data => {
+            if (data.accessToken) {
+                localStorage.setItem('jwt', data.accessToken);
+
+                alert(data.message);
+                window.location.href = "/";
+            } else {
+                alert("Login failed");
+            }
+        })
         .catch(error => console.error("Error:", error));
     });
 </script>

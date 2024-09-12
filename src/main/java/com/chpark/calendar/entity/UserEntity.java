@@ -3,10 +3,12 @@ package com.chpark.calendar.entity;
 import com.chpark.calendar.dto.UserDto;
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Getter
 @Entity
+@NoArgsConstructor
 @Table(name="user")
 public class UserEntity {
     @Id

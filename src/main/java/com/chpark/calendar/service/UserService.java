@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,9 +38,13 @@ public class UserService {
 
     @Transactional
     public String loginUser(UserDto requestUser) {
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(requestUser.getEmail(), requestUser.getPassword())
-        );
-        return jwtTokenProvider.generateToken(authentication);
+        try {
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(requestUser.getEmail(), requestUser.getPassword())
+            );
+            return jwtTokenProvider.generateToken(authentication);
+        } catch (AuthenticationException e) {
+            throw new IllegalArgumentException("Invalid credentials provided.");
+        }
     }
 }
