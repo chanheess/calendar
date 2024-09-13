@@ -31,12 +31,12 @@ public class JwtTokenProvider {
     // JWT 토큰 생성
     public String generateToken(Authentication authentication) {
         String username = ((UserDetails) authentication.getPrincipal()).getUsername();
-        long EXPIRATION_TIME = 1000 * 60 * 60; // 1시간 유효
+        long EXPIRATION_TIME = 86400000;
         return Jwts.builder()
                 .setSubject(username)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
-                .signWith(SignatureAlgorithm.HS512, SECRET_KEY)
+                .signWith(key, SignatureAlgorithm.HS512)
                 .compact();
     }
 
@@ -44,7 +44,7 @@ public class JwtTokenProvider {
     public String resolveToken(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
         if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
-            return bearerToken.substring(7); // Bearer 접두사 제거
+            return bearerToken.substring(7);
         }
         return null;
     }
@@ -52,16 +52,17 @@ public class JwtTokenProvider {
     // JWT 토큰 검증
     public boolean validateToken(String token) {
         try {
-            Jwts.parser().setSigningKey(SECRET_KEY).parseClaimsJws(token);
+            Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token); // 수정된 부분
             return true;
         } catch (JwtException | IllegalArgumentException e) {
+            System.out.println("validateToken, JWT 검증 실패: " + e.getMessage());
             return false;
         }
     }
 
     // JWT에서 사용자 이름 추출
     public String getUsernameFromToken(String token) {
-        return Jwts.parser().setSigningKey(SECRET_KEY)
+        return Jwts.parserBuilder().setSigningKey(key).build()
                 .parseClaimsJws(token)
                 .getBody()
                 .getSubject();

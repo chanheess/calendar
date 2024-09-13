@@ -38,10 +38,8 @@
         .then(response => response.json())
         .then(data => {
             if (data.accessToken) {
-                localStorage.setItem('jwt', data.accessToken);
-
-                alert(data.message);
-                window.location.href = "/";
+                localStorage.setItem('jwtToken', data.accessToken);
+                window.location.href = '/index.html';
             } else {
                 alert("Login failed");
             }
