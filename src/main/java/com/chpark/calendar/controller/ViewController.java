@@ -2,7 +2,6 @@ package com.chpark.calendar.controller;
 
 import com.chpark.calendar.dto.UserDto;
 import com.chpark.calendar.service.UserService;
-import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;

@@ -10,9 +10,13 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.lang.module.FindException;
+import java.util.Optional;
 
 @RequiredArgsConstructor
 @Service
@@ -42,7 +46,11 @@ public class UserService {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(requestUser.getEmail(), requestUser.getPassword())
             );
-            return jwtTokenProvider.generateToken(authentication);
+            UserEntity userEntity = userRepository.findByEmail(requestUser.getEmail()).orElseThrow(
+                    () -> new UsernameNotFoundException("User not found with email: " + requestUser.getEmail())
+            );
+
+            return jwtTokenProvider.generateToken(authentication, userEntity.getId());
         } catch (AuthenticationException e) {
             throw new IllegalArgumentException("Invalid credentials provided.");
         }

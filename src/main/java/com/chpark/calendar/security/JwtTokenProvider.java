@@ -15,7 +15,6 @@ import java.security.Key;
 import java.util.Collections;
 import java.util.Date;
 
-//
 @Component
 public class JwtTokenProvider {
     @Value("${JWT_SECRET}")
@@ -29,11 +28,12 @@ public class JwtTokenProvider {
     }
 
     // JWT 토큰 생성
-    public String generateToken(Authentication authentication) {
+    public String generateToken(Authentication authentication, int userId) {
         String username = ((UserDetails) authentication.getPrincipal()).getUsername();
         long EXPIRATION_TIME = 86400000;
         return Jwts.builder()
                 .setSubject(username)
+                .claim("userId", userId) // 사용자 ID를 payload에 추가
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
                 .signWith(key, SignatureAlgorithm.HS512)
@@ -55,7 +55,6 @@ public class JwtTokenProvider {
             Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token); // 수정된 부분
             return true;
         } catch (JwtException | IllegalArgumentException e) {
-            System.out.println("validateToken, JWT 검증 실패: " + e.getMessage());
             return false;
         }
     }
