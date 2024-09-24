@@ -4,6 +4,7 @@ import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -40,11 +41,14 @@ public class JwtTokenProvider {
                 .compact();
     }
 
-    // HTTP 요청에서 토큰 추출
+    // 쿠키에서 JWT 토큰 추출
     public String resolveToken(HttpServletRequest request) {
-        String bearerToken = request.getHeader("Authorization");
-        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
-            return bearerToken.substring(7);
+        if (request.getCookies() != null) {
+            for (Cookie cookie : request.getCookies()) {
+                if ("jwtToken".equals(cookie.getName())) {
+                    return cookie.getValue();
+                }
+            }
         }
         return null;
     }
@@ -72,4 +76,16 @@ public class JwtTokenProvider {
         String username = getUsernameFromToken(token);
         return new UsernamePasswordAuthenticationToken(username, "", Collections.emptyList());
     }
+
+    public int getUserIdFromToken(String token) {
+        Claims claims = Jwts.parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+
+        Integer userId = claims.get("userId", Integer.class);
+        return userId != null ? userId : 0;
+    }
+
 }

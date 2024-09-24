@@ -34,6 +34,9 @@ public class ScheduleEntity {
     @Column(name = "repeat_id")
     private Integer repeatId;
 
+    @Column(name = "user_id")
+    private Integer userId;
+
     @Override
     public String toString() {
         return "ScheduleEntity{" +
@@ -43,6 +46,7 @@ public class ScheduleEntity {
                 ", startAt=" + startAt +
                 ", endAt=" + endAt +
                 ", repeatId=" + repeatId +
+                ", userId=" + userId +
                 '}';
     }
 

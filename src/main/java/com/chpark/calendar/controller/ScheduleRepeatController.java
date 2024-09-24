@@ -3,6 +3,7 @@ package com.chpark.calendar.controller;
 import com.chpark.calendar.dto.ScheduleRepeatDto;
 import com.chpark.calendar.exception.ValidGroup;
 import com.chpark.calendar.service.ScheduleRepeatService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -22,8 +23,9 @@ public class ScheduleRepeatController {
 
     @PostMapping
     public ResponseEntity<ScheduleRepeatDto> createScheduleRepeat(@RequestParam("scheduleId") int scheduleId,
-                                                                           @Validated @RequestBody ScheduleRepeatDto repeatDto) {
-        ScheduleRepeatDto createResponse = scheduleRepeatService.create(scheduleId, repeatDto);
+                                                                  @Validated @RequestBody ScheduleRepeatDto repeatDto,
+                                                                  HttpServletRequest request) {
+        ScheduleRepeatDto createResponse = scheduleRepeatService.create(scheduleId, repeatDto, request);
 
         return new ResponseEntity<>(createResponse, HttpStatus.CREATED);
     }

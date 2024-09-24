@@ -35,11 +35,9 @@
             },
             body: jsonData
         })
-        .then(response => response.json())
-        .then(data => {
-            if (data.accessToken) {
-                localStorage.setItem('jwtToken', data.accessToken);
-                window.location.href = '/index.html';
+        .then(response => {
+            if (response.ok) {
+                window.location.href = '/index.html';  // 로그인 성공 시 리다이렉트
             } else {
                 alert("Login failed");
             }

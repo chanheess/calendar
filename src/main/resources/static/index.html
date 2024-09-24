@@ -165,9 +165,9 @@
                 fetch('/schedules/date?start=' + fetchInfo.start.toISOString().split('T')[0] + '&end=' + fetchInfo.end.toISOString().split('T')[0], {
                     method: 'GET',
                     headers: {
-                        'Authorization': 'Bearer ' + jwtToken,
                         'Content-Type': 'application/json'
-                    }
+                    },
+                    credentials: 'include'
                 })
                 .then(response => response.ok ? response.json() : Promise.reject("Failed to fetch data"))
                 .then(data => successCallback(data.map(event => ({
@@ -203,9 +203,9 @@
                 fetch(`/schedules/date?start=${dateStr}&end=${dateStr}`, {
                     method: 'GET',
                     headers: {
-                        'Authorization': 'Bearer ' + jwtToken,
                         'Content-Type': 'application/json'
-                    }
+                    },
+                    credentials: 'include'
                 })
                     .then(response => {
                         if (response.status === 204) { // NO_CONTENT인 경우
@@ -329,17 +329,17 @@
             const notificationsFetch = fetch(`/notifications?schedule-id=${event.id}`, {
                 method: 'GET',
                 headers: {
-                    'Authorization': 'Bearer ' + jwtToken,
                     'Content-Type': 'application/json'
-                }
+                },
+                credentials: 'include'
             }).then(response => response.json());
 
             const repeatDetailsFetch = event.repeatId ? fetch(`/repeats/${event.repeatId}`, {
                 method: 'GET',
                 headers: {
-                    'Authorization': 'Bearer ' + jwtToken,
                     'Content-Type': 'application/json'
-                }
+                },
+                credentials: 'include'
             }).then(response => response.json()) : Promise.resolve(null);
 
             Promise.all([notificationsFetch, repeatDetailsFetch])
@@ -466,9 +466,9 @@
             fetch(apiUrl, {
                 method: 'PATCH',
                 headers: {
-                    'Authorization': 'Bearer ' + jwtToken,
                     'Content-Type': 'application/json'
                 },
+                credentials: 'include',
                 body: JSON.stringify(updatedData)
             })
             .then(response => {
@@ -541,9 +541,9 @@
             fetch('/schedules', {
                 method: 'POST',
                 headers: {
-                    'Authorization': 'Bearer ' + jwtToken,
                     'Content-Type': 'application/json'
                 },
+                credentials: 'include',
                 body: JSON.stringify(createEvent)
             })
             .then(response => response.ok ? response.json() : response.json().then(data => Promise.reject(data.message || 'Unknown error occurred')))
@@ -569,9 +569,9 @@
             fetch(apiUrl, {
                 method: 'DELETE',
                 headers: {
-                    'Authorization': 'Bearer ' + jwtToken,
                     'Content-Type': 'application/json'
-                }
+                },
+                credentials: 'include'
             })
             .then(response => response.ok ? response.text() : Promise.reject('Failed to delete event'))
             .then(() => {

@@ -7,7 +7,9 @@ import com.chpark.calendar.exception.CustomException;
 import com.chpark.calendar.repository.schedule.ScheduleBatchRepository;
 import com.chpark.calendar.repository.schedule.ScheduleRepeatRepository;
 import com.chpark.calendar.repository.schedule.ScheduleRepository;
+import com.chpark.calendar.security.JwtTokenProvider;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -24,15 +26,26 @@ public class ScheduleRepeatService {
     private final ScheduleRepeatRepository scheduleRepeatRepository;
     private final ScheduleBatchRepository scheduleBatchRepository;
 
+    private final JwtTokenProvider jwtTokenProvider;
+
+
     @Transactional
-    public ScheduleRepeatDto create(int scheduleId, ScheduleRepeatDto repeatDto) {
+    public ScheduleRepeatDto create(int scheduleId, ScheduleRepeatDto repeatDto, HttpServletRequest request) {
+        String token = jwtTokenProvider.resolveToken(request);
+        int userId = jwtTokenProvider.getUserIdFromToken(token);
+
+        return this.create(scheduleId, repeatDto, userId);
+    }
+
+    @Transactional
+    public ScheduleRepeatDto create(int scheduleId, ScheduleRepeatDto repeatDto, int userId) {
 
         if(repeatDto == null) {
             throw new CustomException("repeat");
         }
 
         //기준 일정 가져오기
-        ScheduleEntity scheduleEntity = scheduleRepository.findById(scheduleId).orElseThrow(
+        ScheduleEntity scheduleEntity = scheduleRepository.findByIdAndUserId(scheduleId, userId).orElseThrow(
                 () -> new EntityNotFoundException("Schedule not found with id: " + scheduleId)
         );
 
