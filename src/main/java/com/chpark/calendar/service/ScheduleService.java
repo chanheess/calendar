@@ -9,10 +9,8 @@ import com.chpark.calendar.exception.CustomException;
 import com.chpark.calendar.repository.schedule.ScheduleNotificationRepository;
 import com.chpark.calendar.repository.schedule.ScheduleRepeatRepository;
 import com.chpark.calendar.repository.schedule.ScheduleRepository;
-import com.chpark.calendar.security.JwtTokenProvider;
 import com.chpark.calendar.utility.ScheduleUtility;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
@@ -33,8 +31,6 @@ public class ScheduleService {
     private final ScheduleRepeatService scheduleRepeatService;
     private final ScheduleNotificationService scheduleNotificationService;
 
-    private final JwtTokenProvider jwtTokenProvider;
-
 
     public ScheduleDto create(ScheduleDto scheduleDto, int userId) {
         //빈 제목일 경우 제목 없음으로 처리
@@ -48,10 +44,7 @@ public class ScheduleService {
     }
 
     @Transactional
-    public ScheduleDto.Response createByForm(ScheduleDto.Request scheduleDto, HttpServletRequest request) {
-        String token = jwtTokenProvider.resolveToken(request);
-        int userId = jwtTokenProvider.getUserIdFromToken(token);
-
+    public ScheduleDto.Response createByForm(ScheduleDto.Request scheduleDto, int userId) {
         ScheduleDto resultSchedule = this.create(scheduleDto.getScheduleDto(), userId);
         List<ScheduleNotificationDto> resultNotifications = scheduleNotificationService.create(resultSchedule.getId(), scheduleDto.getNotificationDto());
         ScheduleRepeatDto resultRepeat = null;
@@ -64,10 +57,7 @@ public class ScheduleService {
     }
 
 
-    public List<ScheduleDto> findSchedulesByTitle(String title, HttpServletRequest request) {
-        String token = jwtTokenProvider.resolveToken(request);
-        int userId = jwtTokenProvider.getUserIdFromToken(token);
-
+    public List<ScheduleDto> findSchedulesByTitle(String title, int userId) {
         return ScheduleDto.fromScheduleEntityList(scheduleRepository.findByTitleContainingAndUserId(title, userId));
     }
 
@@ -101,11 +91,8 @@ public class ScheduleService {
     }
 
     @Transactional
-    public ScheduleDto.Response updateSchedule(int scheduleId, boolean isRepeatChecked, ScheduleDto.Request scheduleDto, HttpServletRequest request) {
-        String token = jwtTokenProvider.resolveToken(request);
-        int userId = jwtTokenProvider.getUserIdFromToken(token);
-
-        if(scheduleRepository.findRepeatIdById(scheduleId, userId).isPresent()) {
+    public ScheduleDto.Response updateSchedule(int scheduleId, boolean isRepeatChecked, ScheduleDto.Request scheduleDto, int userId) {
+        if(scheduleRepository.getRepeatId(scheduleId, userId).isPresent()) {
             throw new CustomException("has repeat-id");
         }
 
@@ -121,11 +108,8 @@ public class ScheduleService {
     }
 
     @Transactional
-    public ScheduleDto.Response updateRepeatSchedule(int scheduleId, boolean isRepeatChecked, ScheduleDto.Request scheduleDto, HttpServletRequest request) {
-        String token = jwtTokenProvider.resolveToken(request);
-        int userId = jwtTokenProvider.getUserIdFromToken(token);
-
-        Integer repeatId = scheduleRepository.findRepeatIdById(scheduleId, userId).orElseThrow(
+    public ScheduleDto.Response updateRepeatSchedule(int scheduleId, boolean isRepeatChecked, ScheduleDto.Request scheduleDto, int userId) {
+        Integer repeatId = scheduleRepository.getRepeatId(scheduleId, userId).orElseThrow(
                 () -> new EntityNotFoundException("not found repeat-id")
         );
 
@@ -154,15 +138,12 @@ public class ScheduleService {
             return new ScheduleDto.Response(updateDto, updateNotificationDto, updateRepeatDto);
         }
 
-        return updateRepeatCurrentAndFutureSchedules(scheduleId, scheduleDto, userId);
+        return this.updateRepeatCurrentAndFutureSchedules(scheduleId, scheduleDto, userId);
     }
 
     @Transactional
-    public ScheduleDto.Response updateRepeatCurrentOnlySchedule(int scheduleId, ScheduleDto.Request scheduleDto, HttpServletRequest request) {
-        String token = jwtTokenProvider.resolveToken(request);
-        int userId = jwtTokenProvider.getUserIdFromToken(token);
-
-        if(scheduleRepository.findRepeatIdById(scheduleId, userId).isEmpty()) {
+    public ScheduleDto.Response updateRepeatCurrentOnlySchedule(int scheduleId, ScheduleDto.Request scheduleDto, int userId) {
+        if(scheduleRepository.getRepeatId(scheduleId, userId).isEmpty()) {
             throw new EntityNotFoundException("not found repeat-id");
         }
 
@@ -219,11 +200,8 @@ public class ScheduleService {
     }
 
     @Transactional
-    public void deleteById(int scheduleId, HttpServletRequest request) {
-        String token = jwtTokenProvider.resolveToken(request);
-        int userId = jwtTokenProvider.getUserIdFromToken(token);
-
-        if(scheduleRepository.findRepeatIdById(scheduleId, userId).isPresent()) {
+    public void deleteById(int scheduleId, int userId) {
+        if(scheduleRepository.getRepeatId(scheduleId, userId).isPresent()) {
             throw new CustomException("has repeat-id");
         }
 
@@ -277,10 +255,7 @@ public class ScheduleService {
         }
     }
 
-    public Optional<ScheduleDto> findById(int scheduleId, HttpServletRequest request) {
-        String token = jwtTokenProvider.resolveToken(request);
-        int userId = jwtTokenProvider.getUserIdFromToken(token);
-
+    public Optional<ScheduleDto> findById(int scheduleId, int userId) {
         Optional<ScheduleEntity> findEntity = scheduleRepository.findByIdAndUserId(scheduleId, userId);
 
         return findEntity.map(ScheduleDto::new);
@@ -290,10 +265,7 @@ public class ScheduleService {
         return ScheduleDto.fromScheduleEntityList(scheduleRepository.findAll());
     }
 
-    public List<ScheduleDto> findByUserId(HttpServletRequest request) {
-        String token = jwtTokenProvider.resolveToken(request);
-        int userId = jwtTokenProvider.getUserIdFromToken(token);
-
+    public List<ScheduleDto> findByUserId(int userId) {
         return ScheduleDto.fromScheduleEntityList(scheduleRepository.findByUserId(userId));
     }
 
@@ -301,10 +273,7 @@ public class ScheduleService {
         return scheduleRepository.existsById(scheduleId);
     }
 
-    public List<ScheduleDto> getSchedulesByDateRange(LocalDateTime startDate, LocalDateTime endDate, HttpServletRequest request) {
-        String token = jwtTokenProvider.resolveToken(request);
-        int userId = jwtTokenProvider.getUserIdFromToken(token);
-
+    public List<ScheduleDto> getSchedulesByDateRange(LocalDateTime startDate, LocalDateTime endDate, int userId) {
         return ScheduleDto.fromScheduleEntityList(scheduleRepository.findSchedules(startDate, endDate, userId));
     }
 

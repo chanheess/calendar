@@ -32,6 +32,13 @@ public class ScheduleDto {
 
     private Integer repeatId;
 
+    public ScheduleDto(String title, String description, LocalDateTime startAt, LocalDateTime endAt) {
+        this.title = title;
+        this.description = description;
+        this.startAt = startAt;
+        this.endAt = endAt;
+    }
+
     public ScheduleDto(ScheduleEntity entity) {
         this.id = entity.getId();
         this.title = entity.getTitle();

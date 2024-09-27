@@ -1,30 +1,79 @@
 package com.chpark.calendar.service;
 
 import com.chpark.calendar.dto.ScheduleDto;
+import com.chpark.calendar.dto.UserDto;
 import com.chpark.calendar.entity.ScheduleEntity;
 import com.chpark.calendar.repository.schedule.ScheduleRepository;
+import com.chpark.calendar.security.JwtTokenProvider;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
 @EnableTransactionManagement
 @Slf4j
+@AutoConfigureMockMvc
 public class ScheduleServiceTest {
 
     @Autowired
     ScheduleService scheduleService;
     @Autowired
     ScheduleRepository scheduleRepository;
+
+    @Autowired
+    JwtTokenProvider jwtTokenProvider;
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    private String loginCookie;
+    private int userId;
+
+    @BeforeEach
+    void userSignUpAndLogin() throws Exception {
+
+        mockMvc.perform(post("/register/users")
+                        .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                        .param("email", "test@example.com")
+                        .param("password", "password")
+                        .param("nickname", "testUser"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/login"));
+
+        MvcResult result = mockMvc.perform(post("/login/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\":\"test@example.com\", \"password\":\"password\"}"))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        loginCookie = result.getResponse().getHeader("Set-Cookie");
+
+        String token = Arrays.stream(loginCookie.split(";"))
+                .filter(c -> c.trim().startsWith("jwtToken="))
+                .findFirst()
+                .map(c -> c.substring("jwtToken=".length()))
+                .orElseThrow(() -> new IllegalArgumentException("JWT Token not found in cookie"));
+        userId = jwtTokenProvider.getUserIdFromToken(token);
+    }
 
     @Test
     @Transactional
@@ -35,11 +84,10 @@ public class ScheduleServiceTest {
         scheduleDto.setStartAt(LocalDateTime.now());
         scheduleDto.setEndAt(LocalDateTime.now().plusDays(3));
 
-        //TODO:
-//        ScheduleDto createDto = scheduleService.create(scheduleDto);
-//        assertNotNull(createDto, "Not created");
-//
-//        log.info("Created schedule info: {}", createDto);
+        ScheduleDto createDto = scheduleService.create(scheduleDto, userId);
+        assertNotNull(createDto, "Not created");
+
+        log.info("Created schedule info: {}", createDto);
     }
 
     @Test
@@ -58,8 +106,9 @@ public class ScheduleServiceTest {
         scheduleEntity2.setStartAt(LocalDateTime.now());
         scheduleEntity2.setEndAt(LocalDateTime.now().plusDays(4));
         scheduleRepository.save(scheduleEntity2);
-//TODO:
-//        List<ScheduleDto> result = scheduleService.findSchedulesByTitle("나");
+
+        //TODO:
+//        List<ScheduleDto> result = scheduleService.findSchedulesByTitle("나", );
 //        assertFalse(result.isEmpty());
 //
 //        result.forEach(schedule -> log.info("Found Schedule: {}", schedule));

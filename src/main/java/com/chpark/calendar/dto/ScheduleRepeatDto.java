@@ -20,9 +20,8 @@ public class ScheduleRepeatDto {
     private ScheduleRepeatType repeatType;
 
     @NotNull
-    private Integer repeatInterval;
+    private int repeatInterval;
 
-    @NotNull
     @FutureOrPresent(message = "The notification date must be in the present or future")
     private LocalDateTime endAt;
 

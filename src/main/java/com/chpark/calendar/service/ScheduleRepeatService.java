@@ -28,15 +28,6 @@ public class ScheduleRepeatService {
 
     private final JwtTokenProvider jwtTokenProvider;
 
-
-    @Transactional
-    public ScheduleRepeatDto create(int scheduleId, ScheduleRepeatDto repeatDto, HttpServletRequest request) {
-        String token = jwtTokenProvider.resolveToken(request);
-        int userId = jwtTokenProvider.getUserIdFromToken(token);
-
-        return this.create(scheduleId, repeatDto, userId);
-    }
-
     @Transactional
     public ScheduleRepeatDto create(int scheduleId, ScheduleRepeatDto repeatDto, int userId) {
 

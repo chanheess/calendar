@@ -4,7 +4,6 @@ import com.chpark.calendar.dto.ScheduleDto;
 import com.chpark.calendar.enumClass.ScheduleRepeatScope;
 import com.chpark.calendar.exception.ValidGroup;
 import com.chpark.calendar.security.JwtTokenProvider;
-import com.chpark.calendar.service.ScheduleNotificationService;
 import com.chpark.calendar.service.ScheduleService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -40,10 +39,13 @@ public class ScheduleController {
                                                                  HttpServletRequest request) {
         List<ScheduleDto> schedules;
 
+        String token = jwtTokenProvider.resolveToken(request);
+        int userId = jwtTokenProvider.getUserIdFromToken(token);
+
         if(title == null) {
-            schedules = scheduleService.findByUserId(request);
+            schedules = scheduleService.findByUserId(userId);
         } else {
-            schedules = scheduleService.findSchedulesByTitle(title, request);
+            schedules = scheduleService.findSchedulesByTitle(title, userId);
         }
 
         return new ResponseEntity<>(schedules, HttpStatus.OK);
@@ -57,7 +59,10 @@ public class ScheduleController {
         LocalDateTime startDate = LocalDate.parse(startDateStr).atStartOfDay(); // 00:00:00
         LocalDateTime endDate = LocalDate.parse(endDateStr).atTime(LocalTime.MAX); // 23:59:59.999999999
 
-        List<ScheduleDto> schedules = scheduleService.getSchedulesByDateRange(startDate, endDate, request);
+        String token = jwtTokenProvider.resolveToken(request);
+        int userId = jwtTokenProvider.getUserIdFromToken(token);
+
+        List<ScheduleDto> schedules = scheduleService.getSchedulesByDateRange(startDate, endDate, userId);
 
         return new ResponseEntity<>(schedules, HttpStatus.OK);
     }
@@ -65,7 +70,10 @@ public class ScheduleController {
     @GetMapping("/{id}")
     public ResponseEntity<ScheduleDto> getScheduleById(@PathVariable("id") int id,
                                                        HttpServletRequest request) {
-        Optional<ScheduleDto> scheduleDto = scheduleService.findById(id, request);
+        String token = jwtTokenProvider.resolveToken(request);
+        int userId = jwtTokenProvider.getUserIdFromToken(token);
+
+        Optional<ScheduleDto> scheduleDto = scheduleService.findById(id, userId);
 
         return scheduleDto.map(dto -> new ResponseEntity<>(dto, HttpStatus.OK)).orElseGet(() -> new ResponseEntity<>(null, HttpStatus.OK));
     }
@@ -73,7 +81,10 @@ public class ScheduleController {
     @PostMapping
     public ResponseEntity<ScheduleDto.Response> createSchedule(@Validated(ValidGroup.CreateGroup.class) @RequestBody ScheduleDto.Request schedule,
                                                                HttpServletRequest request) {
-        ScheduleDto.Response result = scheduleService.createByForm(schedule, request);
+        String token = jwtTokenProvider.resolveToken(request);
+        int userId = jwtTokenProvider.getUserIdFromToken(token);
+
+        ScheduleDto.Response result = scheduleService.createByForm(schedule, userId);
 
         return new ResponseEntity<>(result, HttpStatus.CREATED);
     }
@@ -83,7 +94,10 @@ public class ScheduleController {
                                                                @RequestParam("repeat") boolean isRepeatChecked,
                                                                @Validated @RequestBody ScheduleDto.Request scheduleDto,
                                                                HttpServletRequest request) {
-        ScheduleDto.Response response = scheduleService.updateSchedule(id, isRepeatChecked, scheduleDto, request);
+        String token = jwtTokenProvider.resolveToken(request);
+        int userId = jwtTokenProvider.getUserIdFromToken(token);
+
+        ScheduleDto.Response response = scheduleService.updateSchedule(id, isRepeatChecked, scheduleDto, userId);
 
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
@@ -95,15 +109,17 @@ public class ScheduleController {
                                                                      @Validated @RequestBody ScheduleDto.Request scheduleDto,
                                                                      HttpServletRequest request) {
         ScheduleRepeatScope scheduleRepeatScope = ScheduleRepeatScope.fromValue(repeatStringScope);
-
         ScheduleDto.Response response = null;
+
+        String token = jwtTokenProvider.resolveToken(request);
+        int userId = jwtTokenProvider.getUserIdFromToken(token);
 
         switch (scheduleRepeatScope) {
             case CURRENT -> {
-                response = scheduleService.updateRepeatCurrentOnlySchedule(id, scheduleDto, request);
+                response = scheduleService.updateRepeatCurrentOnlySchedule(id, scheduleDto, userId);
             }
             case FUTURE -> {
-                response = scheduleService.updateRepeatSchedule(id, isRepeatChecked, scheduleDto, request);
+                response = scheduleService.updateRepeatSchedule(id, isRepeatChecked, scheduleDto, userId);
             }
         }
 
@@ -112,7 +128,10 @@ public class ScheduleController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteSchedule(@PathVariable("id") int id, HttpServletRequest request) {
-        scheduleService.deleteById(id, request);
+        String token = jwtTokenProvider.resolveToken(request);
+        int userId = jwtTokenProvider.getUserIdFromToken(token);
+
+        scheduleService.deleteById(id, userId);
         return new ResponseEntity<>("Schedule deleted successfully.", HttpStatus.OK);
     }
 
@@ -125,18 +144,17 @@ public class ScheduleController {
         String token = jwtTokenProvider.resolveToken(request);
         int userId = jwtTokenProvider.getUserIdFromToken(token);
 
-
         //삭제할 범위
         switch (scheduleRepeatScope){
             case CURRENT -> {
                 scheduleService.deleteCurrentOnlyRepeatSchedule(id, userId);
                 scheduleService.update(id, new ScheduleDto(), true, userId);
-                scheduleService.deleteById(id, request);
+                scheduleService.deleteById(id, userId);
             }
             case FUTURE -> {
                 scheduleService.deleteFutureRepeatSchedules(id, userId);
                 scheduleService.update(id, new ScheduleDto(), true, userId);
-                scheduleService.deleteById(id, request);
+                scheduleService.deleteById(id, userId);
             }
         }
 

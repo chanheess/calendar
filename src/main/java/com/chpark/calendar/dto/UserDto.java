@@ -17,6 +17,11 @@ public class UserDto {
     @NotBlank
     String password;
 
+    public UserDto(String email, String password) {
+        this.email = email;
+        this.password = password;
+    }
+
     @Getter
     @Setter
     @NoArgsConstructor
@@ -25,8 +30,7 @@ public class UserDto {
         String nickname;
 
         public RegisterRequest(String email, String password, String nickname) {
-            this.email = email;
-            this.password = password;
+            super(email,password);
             this.nickname = nickname;
         }
     }

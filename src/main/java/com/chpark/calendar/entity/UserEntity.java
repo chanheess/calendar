@@ -24,6 +24,10 @@ public class UserEntity {
     @Column(name = "nickname")
     private String nickname;
 
+    public UserEntity(int id, String email) {
+        this.id = id;
+        this.email = email;
+    }
 
     public UserEntity(UserDto.RegisterRequest request, PasswordEncoder passwordEncoder) {
         this.email = request.getEmail();

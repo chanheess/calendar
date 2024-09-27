@@ -27,8 +27,8 @@ public interface ScheduleRepository extends JpaRepository<ScheduleEntity, Intege
     @Query("SELECT COUNT(s) = 1 FROM ScheduleEntity s WHERE s.repeatId = :repeatId")
     boolean isLastRemainingRepeatSchedule(@Param("repeatId") Integer repeatId);
 
-    @Query("SELECT s.repeatId FROM ScheduleEntity s WHERE s.id = :id AND s.userId = :userId")
-    Optional<Integer> findRepeatIdById(@Param("id") Integer id, @Param("userId") Integer userId);
+    @Query("SELECT s.repeatId FROM ScheduleEntity s WHERE s.id = :scheduleId AND s.userId = :userId")
+    Optional<Integer> getRepeatId(@Param("scheduleId") Integer scheduleId, @Param("userId") Integer userId);
 
     List<ScheduleEntity> findByUserId(@Param("userId") Integer userId);
 

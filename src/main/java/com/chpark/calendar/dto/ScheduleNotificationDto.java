@@ -1,7 +1,6 @@
 package com.chpark.calendar.dto;
 
 import com.chpark.calendar.entity.ScheduleNotificationEntity;
-import com.chpark.calendar.exception.ValidGroup;
 import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
