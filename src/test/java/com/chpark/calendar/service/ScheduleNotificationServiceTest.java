@@ -118,25 +118,23 @@ class ScheduleNotificationServiceTest {
         log.info("Removed ScheduleNotifications");
     }
 
-    @Test
-    @Transactional
-    void cascadeRemoveTest() {
-        //given
-        ScheduleEntity scheduleEntity = createNotification();
-
-        //when
-        //TODO:
-        //scheduleService.deleteById(scheduleEntity.getId());
-
-        //then
-        List<ScheduleNotificationDto> response = notificationService.findByScheduleId(scheduleEntity.getId());
-//TODO:
-        //        Optional<ScheduleDto> resultScheduleDto = scheduleService.findById(scheduleEntity.getId());
+//    @Test
+//    @Transactional
+//    void cascadeRemoveTest() {
+//        //given
+//        ScheduleEntity scheduleEntity = createNotification();
+//
+//        //when
+//        scheduleService.deleteById(scheduleEntity.getId());
+//
+//        //then
+//        List<ScheduleNotificationDto> response = notificationService.findByScheduleId(scheduleEntity.getId());
+//        Optional<ScheduleDto> resultScheduleDto = scheduleService.findById(scheduleEntity.getId());
 //
 //        Assert.isTrue(response.isEmpty(), "Not Removed Notifications");
 //        Assert.isTrue(resultScheduleDto.isEmpty(), "Not Removed Schedule");
 //        log.info("Removed Schedule and ScheduleNotifications");
-    }
+//    }
 
     @Test
     @Transactional

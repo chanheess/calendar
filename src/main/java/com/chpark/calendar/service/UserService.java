@@ -15,9 +15,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.lang.module.FindException;
-import java.util.Optional;
-
 @RequiredArgsConstructor
 @Service
 public class UserService {
