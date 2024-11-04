@@ -15,7 +15,7 @@
         <input type="password" name="password" placeholder="Password" required />
         <button class="btn-signin" type="submit">Sign in</button>
     </form>
-    <button class="signup-btn" onclick="location.href='/register'">Sign up</button>
+    <button class="signup-btn" onclick="location.href='/auth/register'">Sign up</button>
     <br><div th:if="${message}" style="color: green;">[[${message}]]</div>
 </div>
 <script>
@@ -28,7 +28,7 @@
             password: formData.get("password")
         });
 
-        fetch("/login/users", {
+        fetch("/auth/login", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"

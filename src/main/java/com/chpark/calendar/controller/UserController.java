@@ -3,11 +3,14 @@ package com.chpark.calendar.controller;
 import com.chpark.calendar.dto.JwtAuthenticationResponseDto;
 import com.chpark.calendar.dto.UserDto;
 import com.chpark.calendar.service.UserService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -17,7 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserController {
     private final UserService userService;
 
-    @PostMapping("/login/users")
+    @PostMapping("/auth/login")
     public ResponseEntity<?> loginUser(@Validated @RequestBody UserDto userRequest, HttpServletResponse response) {
         try {
             String token = userService.loginUser(userRequest);
@@ -36,4 +39,32 @@ public class UserController {
             return ResponseEntity.badRequest().body("{\"message\": \"" + ex.getMessage() + "\"}");
         }
     }
+
+    @PostMapping("/auth/logout")
+    public ResponseEntity<?> logoutUser(HttpServletResponse response) {
+        try {
+            // jwtToken 쿠키 삭제
+            ResponseCookie cookie = ResponseCookie.from("jwtToken", null)
+                    .httpOnly(true)
+                    .secure(false)
+                    .path("/")
+                    .maxAge(0)  // 만료 시간 0으로 설정하여 쿠키 삭제
+                    .build();
+            response.addHeader("Set-Cookie", cookie.toString());
+
+            return ResponseEntity.ok("Logged out successfully");
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.badRequest().body("{\"message\": \"" + ex.getMessage() + "\"}");
+        }
+    }
+
+    @GetMapping("/auth/check")
+    public ResponseEntity<Boolean> checkLogin(HttpServletRequest request) {
+        if(userService.checkLoginUser(request)) {
+            return ResponseEntity.ok().body(true);
+        } else {
+            return ResponseEntity.ok().body(false);
+        }
+    }
+
 }

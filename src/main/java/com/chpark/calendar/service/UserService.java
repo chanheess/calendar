@@ -5,6 +5,7 @@ import com.chpark.calendar.entity.UserEntity;
 import com.chpark.calendar.repository.user.UserRepository;
 import com.chpark.calendar.security.JwtTokenProvider;
 import com.chpark.calendar.utility.ScheduleUtility;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -51,5 +52,12 @@ public class UserService {
         } catch (AuthenticationException e) {
             throw new IllegalArgumentException("Invalid credentials provided.");
         }
+    }
+
+    @Transactional
+    public boolean checkLoginUser(HttpServletRequest request) {
+        String token = jwtTokenProvider.resolveToken(request);
+
+        return token != null && jwtTokenProvider.validateToken(token);
     }
 }

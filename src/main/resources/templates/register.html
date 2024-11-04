@@ -10,7 +10,7 @@
 <body>
 <div class="form-container">
     <h2>Sign up</h2>
-    <form id="register-form" th:action="@{/register/users}" th:object="${userRequest}" method="post">
+    <form id="register-form" th:action="@{/auth/register}" th:object="${userRequest}" method="post">
         <input type="email" th:field="*{email}" placeholder="Email" autocomplete="email" required />
         <input type="password" th:field="*{password}" placeholder="Password" autocomplete="new-password" required>
         <input type="password" id="confirm-password" placeholder="Confirm Password" autocomplete="new-password" required>
@@ -18,7 +18,7 @@
         <small id="password-error" style="color:red; display:none;">Passwords do not match</small>
         <button type="submit" class="signup-btn">Sign Up</button>
     </form>
-    <button onclick="location.href='/login'" class="signin" style="background-color: #ff5733; color: white;">Back to Sign In</button>
+    <button onclick="location.href='/auth/login'" class="signin" style="background-color: #ff5733; color: white;">Back to Sign In</button>
     <div th:if="${errorMessage}" style="color: red;">
         <p th:text="${errorMessage}"></p>
     </div>

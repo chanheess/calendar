@@ -10,11 +10,36 @@
         /* Calendar and popup styling */
         #calendar {
             max-width: 800px;
-            margin: 40px auto;
+            margin: 0px auto;
             padding: 10px;
             border: 1px solid #ddd;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             background-color: #f9f9f9;
+        }
+
+        .header {
+            max-width: 800px;
+            margin: 0px auto;
+            display: flex;
+            justify-content: flex-end;
+            padding: 10px 10px 5px; /* 상단과 하단 여백 조정 */
+            background-color: #f1f1f1;
+            border-bottom: 1px solid #ddd; /* 캘린더와 배경이 자연스럽게 연결되도록 하단 테두리 추가 */
+            box-sizing: border-box;
+        }
+
+        .header button {
+            margin-left: 10px;
+            margin-bottom: 5px;
+            padding: 5px 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        .header button.logout {
+            background-color: #f44336;
         }
 
         .fc-daygrid-day:hover {
@@ -100,11 +125,7 @@
 </head>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const jwtToken = localStorage.getItem('jwtToken');
-        if (!jwtToken) {
-            alert("You are not logged in");
-            window.location.href = "/login";  // 토큰이 없으면 로그인 페이지로 이동
-        }
+        checkLoginStatus();
 
         var calendarEl = document.getElementById('calendar');
         var popup = document.getElementById('popup');
@@ -727,7 +748,62 @@
             popupOverlay.classList.remove('dimmed-background');
         }
 
+        function toggleButtons(isLoggedIn) {
+            const loginButton = document.getElementById('loginButton');
+            const signupButton = document.getElementById('signupButton');
+            const userInfoButton = document.getElementById('userInfo');
+            const logoutButton = document.getElementById('logoutButton');
+
+            if (isLoggedIn) {
+                loginButton.classList.add('hidden');
+                signupButton.classList.add('hidden');
+                userInfoButton.classList.remove('hidden');
+                logoutButton.classList.remove('hidden');
+            } else {
+                loginButton.classList.remove('hidden');
+                signupButton.classList.remove('hidden');
+                userInfoButton.classList.add('hidden');
+                logoutButton.classList.add('hidden');
+            }
+        }
+
+        async function checkLoginStatus() {
+            try {
+                const response = await fetch('/auth/check', {
+                    method: 'GET',
+                    credentials: 'include' // 쿠키를 자동으로 포함
+                });
+
+                isLoggedIn = await response.json();
+                toggleButtons(isLoggedIn);
+
+            } catch (error) {
+                console.error('Error checking login status:', error);
+                toggleButtons(false);
+            }
+        }
+
+        function logout() {
+            fetch('/auth/logout', {
+                method: 'POST',
+                credentials: 'include'
+            })
+            .then(response => {
+                if (response.ok) {
+                    window.location.href = 'index.html';
+                } else {
+                    alert("Logout failed. Please try again.");
+                }
+            })
+            .catch(error => {
+                console.error("Error during logout:", error);
+                alert("An error occurred while logging out.");
+            });
+        }
+
         calendar.render();
+
+        document.getElementById('logoutButton').addEventListener('click', logout);
 
         popupClose.addEventListener('click', function() {
             popup.classList.remove('show');
@@ -818,6 +894,15 @@
     });
 </script>
 <body>
+<!-- 헤더 추가 -->
+<div class="header" id="header">
+    <!-- 로그인 상태에 따라 표시할 버튼 -->
+    <button id="loginButton" onclick="location.href='/login'">Login</button>
+    <button id="signupButton" onclick="location.href='/register'">Sign Up</button>
+    <button id="userInfo" class="hidden">User Info</button>
+    <button id="logoutButton" class="hidden logout">Logout</button>
+</div>
+
 <div id='calendar'></div>
 
 <div id='popup-overlay' class="popup-overlay"></div>

@@ -16,18 +16,18 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class ViewController {
     private final UserService userService;
 
-    @GetMapping("/login")
+    @GetMapping("/auth/login")
     public String login() {
         return "login";
     }
 
-    @GetMapping("/register")
+    @GetMapping("/auth/register")
     public String register(Model model) {
         model.addAttribute("userRequest", new UserDto.RegisterRequest());
         return "register";
     }
 
-    @PostMapping("/register/users")
+    @PostMapping("/auth/register")
     public String createUser(@Validated @ModelAttribute UserDto.RegisterRequest userRequest,
                              RedirectAttributes redirectAttributes, Model model) {
         try {
@@ -39,7 +39,7 @@ public class ViewController {
         }
 
         redirectAttributes.addFlashAttribute("message", "회원가입이 성공적으로 완료되었습니다.");
-        return "redirect:/login";
+        return "redirect:/auth/login";
     }
 }
 

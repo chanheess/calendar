@@ -31,7 +31,7 @@ public class ScheduleService {
     private final ScheduleRepeatService scheduleRepeatService;
     private final ScheduleNotificationService scheduleNotificationService;
 
-
+    @Transactional
     public ScheduleDto create(ScheduleDto scheduleDto, int userId) {
         //빈 제목일 경우 제목 없음으로 처리
         scheduleDto.setTitle(scheduleDto.getTitle().isEmpty() ? "Untitled" : scheduleDto.getTitle());
@@ -56,15 +56,17 @@ public class ScheduleService {
         return new ScheduleDto.Response(resultSchedule, resultNotifications, resultRepeat);
     }
 
-
+    @Transactional
     public List<ScheduleDto> findSchedulesByTitle(String title, int userId) {
         return ScheduleDto.fromScheduleEntityList(scheduleRepository.findByTitleContainingAndUserId(title, userId));
     }
 
+    @Transactional
     public ScheduleDto update(int scheduleId, ScheduleDto scheduleDto, int userId) {
         return this.update(scheduleId, scheduleDto, false, userId);
     }
 
+    @Transactional
     public ScheduleDto update(int scheduleId, ScheduleDto scheduleDto, boolean isRepeat, int userId) {
         ScheduleEntity schedule = scheduleRepository.findByIdAndUserId(scheduleId, userId).orElseThrow(
                 () -> new EntityNotFoundException("Schedule not found with schedule-id: " + scheduleId)
