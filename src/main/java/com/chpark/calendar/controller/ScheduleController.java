@@ -26,7 +26,6 @@ import java.util.Optional;
 public class ScheduleController {
 
     private final ScheduleService scheduleService;
-
     private final JwtTokenProvider jwtTokenProvider;
 
     public ScheduleController(ScheduleService scheduleService, JwtTokenProvider jwtTokenProvider) {

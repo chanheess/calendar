@@ -2,11 +2,11 @@ package com.chpark.calendar.controller;
 
 import com.chpark.calendar.dto.JwtAuthenticationResponseDto;
 import com.chpark.calendar.dto.UserDto;
+import com.chpark.calendar.security.JwtTokenProvider;
 import com.chpark.calendar.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
+    private final JwtTokenProvider jwtTokenProvider;
 
     @PostMapping("/auth/login")
     public ResponseEntity<?> loginUser(@Validated @RequestBody UserDto userRequest, HttpServletResponse response) {
@@ -60,11 +61,23 @@ public class UserController {
 
     @GetMapping("/auth/check")
     public ResponseEntity<Boolean> checkLogin(HttpServletRequest request) {
-        if(userService.checkLoginUser(request)) {
+        String token = jwtTokenProvider.resolveToken(request);
+
+        if(token != null && jwtTokenProvider.validateToken(token)) {
             return ResponseEntity.ok().body(true);
         } else {
             return ResponseEntity.ok().body(false);
         }
+    }
+
+    @GetMapping("/user/nickname")
+    public ResponseEntity<String> getUserNickname(HttpServletRequest request) {
+        String token = jwtTokenProvider.resolveToken(request);
+        int userId = jwtTokenProvider.getUserIdFromToken(token);
+
+        String nickname = userService.findUserNickname(userId);
+
+        return ResponseEntity.ok().body(nickname);
     }
 
 }

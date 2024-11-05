@@ -5,8 +5,9 @@ import com.chpark.calendar.entity.UserEntity;
 import com.chpark.calendar.repository.user.UserRepository;
 import com.chpark.calendar.security.JwtTokenProvider;
 import com.chpark.calendar.utility.ScheduleUtility;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.java.Log;
+import org.aspectj.apache.bcel.generic.LOOKUPSWITCH;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -54,10 +55,14 @@ public class UserService {
         }
     }
 
-    @Transactional
-    public boolean checkLoginUser(HttpServletRequest request) {
-        String token = jwtTokenProvider.resolveToken(request);
-
-        return token != null && jwtTokenProvider.validateToken(token);
+    @Transactional(readOnly = true)
+    public String findUserNickname(int userId) {
+        try {
+            return userRepository.findNicknameById(userId).orElseThrow(
+                    () -> new UsernameNotFoundException("User not found")
+            );
+        } catch (Exception exception) {
+            return exception.getMessage();
+        }
     }
 }

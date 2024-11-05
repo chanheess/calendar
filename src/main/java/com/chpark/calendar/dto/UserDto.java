@@ -34,4 +34,14 @@ public class UserDto {
             this.nickname = nickname;
         }
     }
+
+    @Getter
+    @NoArgsConstructor
+    public static class UserInfoResponse {
+        @Email
+        String email;
+
+        String nickname;
+
+    }
 }

@@ -2,6 +2,8 @@ package com.chpark.calendar.repository.user;
 
 import com.chpark.calendar.entity.UserEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
 
@@ -9,6 +11,9 @@ import java.util.Optional;
 public interface UserRepository extends JpaRepository<UserEntity, Integer> {
 
     Optional<UserEntity> findByEmail(String email);
+
+    @Query("SELECT u.nickname FROM UserEntity u WHERE u.id = :userId")
+    Optional<String> findNicknameById(@Param("userId") int userId);
 
     boolean existsByEmail(String email);
     boolean existsByNickname(String nickname);
