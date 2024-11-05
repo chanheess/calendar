@@ -124,8 +124,8 @@
     </style>
 </head>
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        checkLoginStatus();
+    document.addEventListener('DOMContentLoaded', async function() {
+        await checkLoginStatus();
 
         var calendarEl = document.getElementById('calendar');
         var popup = document.getElementById('popup');
@@ -748,38 +748,21 @@
             popupOverlay.classList.remove('dimmed-background');
         }
 
-        function toggleButtons(isLoggedIn) {
-            const loginButton = document.getElementById('loginButton');
-            const signupButton = document.getElementById('signupButton');
-            const userInfoButton = document.getElementById('userInfo');
-            const logoutButton = document.getElementById('logoutButton');
-
-            if (isLoggedIn) {
-                loginButton.classList.add('hidden');
-                signupButton.classList.add('hidden');
-                userInfoButton.classList.remove('hidden');
-                logoutButton.classList.remove('hidden');
-            } else {
-                loginButton.classList.remove('hidden');
-                signupButton.classList.remove('hidden');
-                userInfoButton.classList.add('hidden');
-                logoutButton.classList.add('hidden');
-            }
-        }
-
         async function checkLoginStatus() {
             try {
                 const response = await fetch('/auth/check', {
                     method: 'GET',
-                    credentials: 'include' // 쿠키를 자동으로 포함
+                    credentials: 'include'
                 });
 
-                isLoggedIn = await response.json();
-                toggleButtons(isLoggedIn);
+                const isLoggedIn = await response.json();
 
+                if (!isLoggedIn) {
+                    alert("로그인이 필요합니다.");
+                    window.location.href = '/auth/login';
+                }
             } catch (error) {
                 console.error('Error checking login status:', error);
-                toggleButtons(false);
             }
         }
 
@@ -790,7 +773,7 @@
             })
             .then(response => {
                 if (response.ok) {
-                    window.location.href = 'index.html';
+                    window.location.href = '/auth/login';
                 } else {
                     alert("Logout failed. Please try again.");
                 }
@@ -896,11 +879,8 @@
 <body>
 <!-- 헤더 추가 -->
 <div class="header" id="header">
-    <!-- 로그인 상태에 따라 표시할 버튼 -->
-    <button id="loginButton" onclick="location.href='/login'">Login</button>
-    <button id="signupButton" onclick="location.href='/register'">Sign Up</button>
-    <button id="userInfo" class="hidden">User Info</button>
-    <button id="logoutButton" class="hidden logout">Logout</button>
+    <button id="userInfo">User Info</button>
+    <button id="logoutButton">Logout</button>
 </div>
 
 <div id='calendar'></div>
