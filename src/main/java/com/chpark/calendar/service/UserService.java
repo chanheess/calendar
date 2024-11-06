@@ -5,9 +5,8 @@ import com.chpark.calendar.entity.UserEntity;
 import com.chpark.calendar.repository.user.UserRepository;
 import com.chpark.calendar.security.JwtTokenProvider;
 import com.chpark.calendar.utility.ScheduleUtility;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.java.Log;
-import org.aspectj.apache.bcel.generic.LOOKUPSWITCH;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -45,6 +44,7 @@ public class UserService {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(requestUser.getEmail(), requestUser.getPassword())
             );
+            //TODO: id 검색만 하면됨
             UserEntity userEntity = userRepository.findByEmail(requestUser.getEmail()).orElseThrow(
                     () -> new UsernameNotFoundException("User not found with email: " + requestUser.getEmail())
             );
@@ -64,5 +64,27 @@ public class UserService {
         } catch (Exception exception) {
             return exception.getMessage();
         }
+    }
+
+    @Transactional(readOnly = true)
+    public UserDto.UserInfo findUserInfo(int userId) {
+        UserEntity userEntity = userRepository.findById(userId).orElseThrow(
+                () -> new EntityNotFoundException("User not found")
+        );
+
+        return new UserDto.UserInfo(userEntity);
+    }
+
+    @Transactional
+    public void updateUserInfo(int userId, UserDto.UserInfo userInfo) {
+        if(userRepository.existsByEmail(userInfo.getEmail())) {
+            throw new IllegalArgumentException("이미 해당 \"이메일\"을 가진 사용자가 존재합니다.");
+        }
+        if(userRepository.existsByNickname(userInfo.getNickname())) {
+            throw new IllegalArgumentException("이미 해당 \"닉네임\"을 가진 사용자가 존재합니다.");
+        }
+
+        UserEntity userEntity = new UserEntity(userInfo);
+        userRepository.updateUserInfo(userId, userEntity);
     }
 }

@@ -4,9 +4,11 @@ import com.chpark.calendar.dto.UserDto;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Getter
+@Setter
 @Entity
 @NoArgsConstructor
 @Table(name="user")
@@ -27,6 +29,11 @@ public class UserEntity {
     public UserEntity(int id, String email) {
         this.id = id;
         this.email = email;
+    }
+
+    public UserEntity(UserDto.UserInfo userInfo) {
+        this.email = userInfo.getEmail();
+        this.nickname = userInfo.getNickname();
     }
 
     public UserEntity(UserDto.RegisterRequest request, PasswordEncoder passwordEncoder) {

@@ -41,5 +41,10 @@ public class ViewController {
         redirectAttributes.addFlashAttribute("message", "회원가입이 성공적으로 완료되었습니다.");
         return "redirect:/auth/login";
     }
+
+    @GetMapping("/user/profile")
+    public String userProfile() {
+        return "userProfile";
+    }
 }
 

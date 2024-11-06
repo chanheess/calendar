@@ -10,10 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -80,4 +77,21 @@ public class UserController {
         return ResponseEntity.ok().body(nickname);
     }
 
+    @GetMapping("/user/info")
+    public ResponseEntity<UserDto.UserInfo> getUserInfo(HttpServletRequest request) {
+        String token = jwtTokenProvider.resolveToken(request);
+        int userId = jwtTokenProvider.getUserIdFromToken(token);
+
+        return ResponseEntity.ok().body(userService.findUserInfo(userId));
+    }
+
+    @PatchMapping("/user/info")
+    public ResponseEntity<String> updateUserInfo(@RequestBody UserDto.UserInfo userInfo, HttpServletRequest request) {
+        String token = jwtTokenProvider.resolveToken(request);
+        int userId = jwtTokenProvider.getUserIdFromToken(token);
+
+        userService.updateUserInfo(userId, userInfo);
+
+        return ResponseEntity.ok().body("Edit successfully");
+    }
 }
