@@ -2,24 +2,26 @@ package com.chpark.calendar.utility;
 
 import com.chpark.calendar.dto.UserDto;
 import com.chpark.calendar.entity.UserEntity;
-import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.mockito.Mockito;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.util.Assert;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.AssertionsForClassTypes.*;
+import static org.mockito.Mockito.when;
 
-@SpringBootTest
-@Slf4j
+
 class ScheduleUtilityTest {
 
-    @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @BeforeEach
+    void setup() {
+        passwordEncoder = Mockito.mock(PasswordEncoder.class);
+    }
 
     @Test
     void calculateRepeatCount() {
@@ -33,42 +35,42 @@ class ScheduleUtilityTest {
 
     @Test
     void validateEmail() {
-        // 성공할 이메일 리스트
-        List<String> validEmails = new ArrayList<>();
-        validEmails.add("test@example.com");
-        validEmails.add("user.name@domain.com");
+        // 테스트할 이메일 리스트 설정
+        List<String> validEmails = Arrays.asList("test@example.com", "user.name@domain.com");
+        List<String> invalidEmails = Arrays.asList("invalid-email", "user@.com");
 
-        // 실패할 이메일 리스트
-        List<String> invalidEmails = new ArrayList<>();
-        invalidEmails.add("invalid-email");
-        invalidEmails.add("user@.com");
-
-        // 성공 케이스 테스트
+        // 성공 케이스 테스트 (예외 발생하지 않음)
         for (String email : validEmails) {
-            assertDoesNotThrow(() -> ScheduleUtility.validateEmail(email), "Should not throw exception for valid email: " + email);
+            assertThatCode(() -> ScheduleUtility.validateEmail(email))
+                    .doesNotThrowAnyException();
         }
 
-        // 실패 케이스 테스트
+        // 실패 케이스 테스트 (예외 발생)
         for (String email : invalidEmails) {
-            assertThrows(IllegalArgumentException.class, () -> ScheduleUtility.validateEmail(email), "Should throw exception for invalid email: " + email);
+            assertThatThrownBy(() -> ScheduleUtility.validateEmail(email))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("Invalid email format");
         }
     }
 
     @Test
     void hashPasswordTest() {
+        // PasswordEncoder의 동작 정의 (Mock)
+        String rawPassword = "password123!@#";
+        String encodedPassword = "encoded_password123";
+        when(passwordEncoder.encode(rawPassword)).thenReturn(encodedPassword);
+        when(passwordEncoder.matches(rawPassword, encodedPassword)).thenReturn(true);
+        when(passwordEncoder.matches("password123!@3", encodedPassword)).thenReturn(false);
+
         UserDto.RegisterRequest userRequest = new UserDto.RegisterRequest(
                 "email@naver.com",
-                "password123!@#",
+                rawPassword,
                 "test_king"
         );
         UserEntity userEntity = new UserEntity(userRequest, passwordEncoder);
 
-        String testPassword = "password123!@#";
-        String testPassword2 = "password123!@3";
-
-        log.info(userEntity.toString());
-        Assert.isTrue(userEntity.checkPassword(testPassword, passwordEncoder), "문제가 있네");
-        Assert.isTrue(!userEntity.checkPassword(testPassword2, passwordEncoder), "문제가 있네");
+        assertThat(userEntity.checkPassword(rawPassword, passwordEncoder)).isTrue();
+        assertThat(userEntity.checkPassword("password123!@3", passwordEncoder)).isFalse();
     }
 
 }
