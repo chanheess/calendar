@@ -90,8 +90,12 @@ public class UserController {
         String token = jwtTokenProvider.resolveToken(request);
         int userId = jwtTokenProvider.getUserIdFromToken(token);
 
-        userService.updateUserInfo(userId, userInfo);
+        try {
+            userService.updateUserInfo(userId, userInfo);
+            return ResponseEntity.ok().body("Edit successfully");
 
-        return ResponseEntity.ok().body("Edit successfully");
+        } catch (IllegalArgumentException exception) {
+            return ResponseEntity.badRequest().body(exception.getMessage());
+        }
     }
 }

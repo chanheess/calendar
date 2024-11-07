@@ -29,6 +29,6 @@ public interface UserRepository extends JpaRepository<UserEntity, Integer> {
             "SET u.email = COALESCE(:#{#userInfo.email}, u.email), " +
             "u.nickname = COALESCE(:#{#userInfo.nickname}, u.nickname) " +
             "WHERE u.id = :userId")
-    void updateUserInfo(@Param("userId") int userId, @Param("userInfo") UserEntity userInfo);
+    int updateUserInfo(@Param("userId") int userId, @Param("userInfo") UserEntity userInfo);
 
 }

@@ -157,7 +157,9 @@
                     alert("Nickname updated successfully!");
                     window.location.href = "/user/profile";
                 } else {
-                    alert("Failed to update nickname.");
+                    return response.text().then(errorMessage => {
+                        alert(errorMessage);
+                    });
                 }
             })
             .catch(error => console.error("Error updating nickname:", error));

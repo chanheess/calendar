@@ -35,7 +35,8 @@ public class UserService {
         }
 
         ScheduleUtility.validateEmail(requestUser.getEmail());
-        userRepository.save(new UserEntity(requestUser, passwordEncoder));
+
+        userRepository.save(UserEntity.createWithEncodedPassword(requestUser, passwordEncoder));
     }
 
     @Transactional
@@ -44,7 +45,6 @@ public class UserService {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(requestUser.getEmail(), requestUser.getPassword())
             );
-            //TODO: id 검색만 하면됨
             UserEntity userEntity = userRepository.findByEmail(requestUser.getEmail()).orElseThrow(
                     () -> new UsernameNotFoundException("User not found with email: " + requestUser.getEmail())
             );
@@ -78,13 +78,16 @@ public class UserService {
     @Transactional
     public void updateUserInfo(int userId, UserDto.UserInfo userInfo) {
         if(userRepository.existsByEmail(userInfo.getEmail())) {
-            throw new IllegalArgumentException("이미 해당 \"이메일\"을 가진 사용자가 존재합니다.");
+            throw new IllegalArgumentException("이미 해당 이메일을 가진 사용자가 존재합니다.");
         }
         if(userRepository.existsByNickname(userInfo.getNickname())) {
-            throw new IllegalArgumentException("이미 해당 \"닉네임\"을 가진 사용자가 존재합니다.");
+            throw new IllegalArgumentException("이미 해당 닉네임을 가진 사용자가 존재합니다.");
         }
 
-        UserEntity userEntity = new UserEntity(userInfo);
+        UserEntity userEntity = UserEntity.builder()
+                .email(userInfo.getEmail())
+                .nickname(userInfo.getNickname())
+                .build();
         userRepository.updateUserInfo(userId, userEntity);
     }
 }

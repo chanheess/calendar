@@ -2,15 +2,14 @@ package com.chpark.calendar.entity;
 
 import com.chpark.calendar.dto.UserDto;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Getter
-@Setter
+@Builder
 @Entity
 @NoArgsConstructor
+@AllArgsConstructor
 @Table(name="user")
 public class UserEntity {
     @Id
@@ -26,20 +25,12 @@ public class UserEntity {
     @Column(name = "nickname")
     private String nickname;
 
-    public UserEntity(int id, String email) {
-        this.id = id;
-        this.email = email;
-    }
-
-    public UserEntity(UserDto.UserInfo userInfo) {
-        this.email = userInfo.getEmail();
-        this.nickname = userInfo.getNickname();
-    }
-
-    public UserEntity(UserDto.RegisterRequest request, PasswordEncoder passwordEncoder) {
-        this.email = request.getEmail();
-        this.password = passwordEncoder.encode(request.getPassword());
-        this.nickname = request.getNickname();
+    public static UserEntity createWithEncodedPassword(UserDto.RegisterRequest request, PasswordEncoder passwordEncoder) {
+        return UserEntity.builder()
+                .email(request.getEmail())
+                .password(passwordEncoder.encode(request.getPassword()))
+                .nickname(request.getNickname())
+                .build();
     }
 
     public boolean checkPassword(String plainPassword, PasswordEncoder passwordEncoder) {
