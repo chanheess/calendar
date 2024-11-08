@@ -3,6 +3,7 @@ package com.chpark.calendar.dto;
 import com.chpark.calendar.entity.UserEntity;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -43,9 +44,14 @@ public class UserDto {
         private String email;
         private String nickname;
 
-        public UserInfo(UserEntity userInfo) {
-            this.email = userInfo.getEmail();
-            this.nickname = userInfo.getNickname();
+        public UserInfo(String email, String nickname) {
+            this.email = email;
+            this.nickname = nickname;
+        }
+
+        public UserInfo(UserEntity userEntity) {
+            this.email = userEntity.getEmail();
+            this.nickname = userEntity.getNickname();
         }
     }
 }

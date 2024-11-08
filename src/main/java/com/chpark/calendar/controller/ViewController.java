@@ -31,7 +31,7 @@ public class ViewController {
     public String createUser(@Validated @ModelAttribute UserDto.RegisterRequest userRequest,
                              RedirectAttributes redirectAttributes, Model model) {
         try {
-            userService.createUser(userRequest);
+            userService.create(userRequest);
         } catch (IllegalArgumentException ex) {
             model.addAttribute("userRequest", userRequest);
             model.addAttribute("errorMessage", ex.getMessage());

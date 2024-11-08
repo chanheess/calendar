@@ -26,7 +26,7 @@ public class UserService {
     private final JwtTokenProvider jwtTokenProvider;
 
     @Transactional
-    public void createUser(UserDto.RegisterRequest requestUser) {
+    public void create(UserDto.RegisterRequest requestUser) {
         if(userRepository.existsByEmail(requestUser.getEmail())) {
             throw new IllegalArgumentException("이미 해당 \"이메일\"을 가진 사용자가 존재합니다.");
         }
@@ -40,11 +40,12 @@ public class UserService {
     }
 
     @Transactional
-    public String loginUser(UserDto requestUser) {
+    public String login(UserDto requestUser) {
         try {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(requestUser.getEmail(), requestUser.getPassword())
             );
+            //사용자 ID를 payload에 추가하기 위한 객체
             UserEntity userEntity = userRepository.findByEmail(requestUser.getEmail()).orElseThrow(
                     () -> new UsernameNotFoundException("User not found with email: " + requestUser.getEmail())
             );
@@ -56,14 +57,9 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public String findUserNickname(int userId) {
-        try {
-            return userRepository.findNicknameById(userId).orElseThrow(
-                    () -> new UsernameNotFoundException("User not found")
-            );
-        } catch (Exception exception) {
-            return exception.getMessage();
-        }
+    public String findNickname(int userId) {
+        return userRepository.findNicknameById(userId)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
     }
 
     @Transactional(readOnly = true)

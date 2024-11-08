@@ -7,8 +7,10 @@ import com.chpark.calendar.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,7 +23,7 @@ public class UserController {
     @PostMapping("/auth/login")
     public ResponseEntity<?> loginUser(@Validated @RequestBody UserDto userRequest, HttpServletResponse response) {
         try {
-            String token = userService.loginUser(userRequest);
+            String token = userService.login(userRequest);
 
             // JWT 토큰을 HttpOnly 쿠키로 저장
             ResponseCookie cookie = ResponseCookie.from("jwtToken", token)
@@ -72,9 +74,12 @@ public class UserController {
         String token = jwtTokenProvider.resolveToken(request);
         int userId = jwtTokenProvider.getUserIdFromToken(token);
 
-        String nickname = userService.findUserNickname(userId);
-
-        return ResponseEntity.ok().body(nickname);
+        try {
+            String nickname = userService.findNickname(userId);
+            return ResponseEntity.ok().body(nickname);
+        } catch (UsernameNotFoundException ex) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
+        }
     }
 
     @GetMapping("/user/info")
