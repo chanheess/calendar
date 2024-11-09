@@ -86,4 +86,18 @@ public class UserService {
                 .build();
         userRepository.updateUserInfo(userId, userEntity);
     }
+
+    @Transactional
+    public void updatePassword(int userId, UserDto.ChangePassword password) {
+        UserEntity userEntity = userRepository.findById(userId).orElseThrow(
+                () -> new EntityNotFoundException("User not found")
+        );
+
+        if(!userEntity.checkPassword(password.getCurrentPassword(), passwordEncoder)){
+            throw new IllegalArgumentException("Incorrect password");
+        }
+
+        userEntity.changePassword(password.getNewPassword(), passwordEncoder);
+    }
+
 }

@@ -36,4 +36,8 @@ public class UserEntity {
     public boolean checkPassword(String plainPassword, PasswordEncoder passwordEncoder) {
         return passwordEncoder.matches(plainPassword, this.password);
     }
+
+    public void changePassword(String plainPassword, PasswordEncoder passwordEncoder) {
+        this.password = passwordEncoder.encode(plainPassword);
+    }
 }
