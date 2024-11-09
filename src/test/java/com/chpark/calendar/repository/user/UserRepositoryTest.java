@@ -83,10 +83,4 @@ class UserRepositoryTest {
         assertThat(userEntity.get().getNickname()).isEqualTo(updateUserInfo.getNickname());
     }
 
-//    @Test
-//    @Transactional
-//    void findPasswordById() {
-//
-//    }
-
 }
