@@ -9,12 +9,15 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -24,7 +27,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class UserServiceUnitTest {
+class UserServiceTest {
 
     @Mock
     private UserRepository userRepository;
@@ -169,7 +172,7 @@ class UserServiceUnitTest {
 
     @Test
     void updateUserInfo() {
-        //given
+        //when
         int userId = 1234;
         UserEntity userEntity = UserEntity.builder()
                 .email("testing1@naver.com")
@@ -189,7 +192,7 @@ class UserServiceUnitTest {
 
     @Test
     void updateUserInfo_sameNickname() {
-        //given
+        //when
         int userId = 1234;
         UserEntity userEntity = UserEntity.builder()
                 .email("testing1@naver.com")
