@@ -13,7 +13,7 @@ import lombok.Setter;
 public class UserDto {
 
     @NotBlank()
-    @Email(message = "Invalid email format")
+    @Email
     private String email;
     @NotBlank()
     private String password;
