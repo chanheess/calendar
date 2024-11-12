@@ -10,8 +10,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.List;
 
 import static org.assertj.core.api.AssertionsForClassTypes.*;
 import static org.mockito.Mockito.when;
@@ -76,26 +74,6 @@ class ScheduleUtilityTest {
         // 반복 간격이 1 미만일 경우 같은 날짜 반환
         assertThat(ScheduleUtility.calculateRepeatPlusDate(date, ScheduleRepeatType.d, 0))
                 .isEqualTo(date);
-    }
-
-    @Test
-    void validateEmail() {
-        // 테스트할 이메일 리스트 설정
-        List<String> validEmails = Arrays.asList("test@example.com", "user.name@domain.com");
-        List<String> invalidEmails = Arrays.asList("invalid-email", "user@.com");
-
-        // 성공 케이스 테스트 (예외 발생하지 않음)
-        for (String email : validEmails) {
-            assertThatCode(() -> ScheduleUtility.validateEmail(email))
-                    .doesNotThrowAnyException();
-        }
-
-        // 실패 케이스 테스트 (예외 발생)
-        for (String email : invalidEmails) {
-            assertThatThrownBy(() -> ScheduleUtility.validateEmail(email))
-                    .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessageContaining("Invalid email format");
-        }
     }
 
     @Test

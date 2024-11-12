@@ -34,8 +34,6 @@ public class UserService {
             throw new IllegalArgumentException("이미 해당 \"닉네임\"을 가진 사용자가 존재합니다.");
         }
 
-        ScheduleUtility.validateEmail(requestUser.getEmail());
-
         userRepository.save(UserEntity.createWithEncodedPassword(requestUser, passwordEncoder));
     }
 
