@@ -57,7 +57,9 @@ public class UserDto {
     @Getter
     @NoArgsConstructor
     public static class ChangePassword {
+        @NotBlank
         private String currentPassword;
+        @NotBlank
         private String newPassword;
 
         public ChangePassword(String currentPassword, String newPassword) {

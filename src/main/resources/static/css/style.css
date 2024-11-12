@@ -1,9 +1,11 @@
+/* 기본 바탕색과 폰트 스타일 */
 body {
     background-color: #f8f9fa;
     font-family: Arial, sans-serif;
 }
 
-.form-container {
+/* 중앙에 정렬된 기본 폼 컨테이너 스타일 */
+.form-container, .popup {
     max-width: 400px;
     margin: 100px auto;
     padding: 30px;
@@ -12,12 +14,16 @@ body {
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
+/* 제목 스타일 */
 h2 {
     text-align: center;
     margin-bottom: 20px;
 }
 
-input[type="email"], input[type="text"], input[type="password"] {
+/* 입력 필드 스타일 - email, text, password 공통 적용 */
+input[type="email"],
+input[type="text"],
+input[type="password"] {
     width: 100%;
     padding: 10px;
     margin-bottom: 15px;
@@ -26,6 +32,7 @@ input[type="email"], input[type="text"], input[type="password"] {
     box-sizing: border-box;
 }
 
+/* 기본 버튼 스타일 */
 button {
     width: 100%;
     padding: 10px;
@@ -35,6 +42,8 @@ button {
     font-size: 16px;
     box-sizing: border-box;
     margin-top: 10px;
+    cursor: pointer;
+    transition: opacity 0.3s ease-in-out;
 }
 
 button[type="submit"] {
@@ -43,11 +52,38 @@ button[type="submit"] {
 
 button.signup-btn {
     background-color: green;
-    opacity: 1;
-    transition: opacity 0.3s ease-in-out;
 }
 
 button:hover {
     opacity: 0.9;
 }
 
+/* Header 스타일 */
+.header {
+    max-width: 800px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: flex-end;
+    padding: 10px 10px 5px;
+    background-color: #f1f1f1;
+    border-bottom: 1px solid #ddd;
+    box-sizing: border-box;
+    align-items: center;
+}
+
+/* Header 안의 버튼 스타일 */
+.header button {
+    margin-left: 10px;
+    padding: 5px 10px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 4px;
+    max-width: 80px;
+    width: auto;
+}
+
+.header button.logout {
+    background-color: #f44336;
+}

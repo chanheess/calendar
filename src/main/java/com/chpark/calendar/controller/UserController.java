@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.stereotype.Repository;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -100,6 +101,19 @@ public class UserController {
             return ResponseEntity.ok().body("Edit successfully");
 
         } catch (IllegalArgumentException exception) {
+            return ResponseEntity.badRequest().body(exception.getMessage());
+        }
+    }
+
+    @PatchMapping("/user/password")
+    public ResponseEntity<String> updatePassword(@Validated @RequestBody UserDto.ChangePassword changePassword, HttpServletRequest request) {
+        String token = jwtTokenProvider.resolveToken(request);
+        int userId = jwtTokenProvider.getUserIdFromToken(token);
+
+        try {
+            userService.updatePassword(userId, changePassword);
+            return ResponseEntity.ok().body("Password updated successfully.");
+        } catch (Exception exception) {
             return ResponseEntity.badRequest().body(exception.getMessage());
         }
     }

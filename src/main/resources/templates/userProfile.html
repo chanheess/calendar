@@ -9,10 +9,14 @@
     <style>
         #email {
             color: #1a73e8;
+            width: 100%;
+            padding: 5px;
+            display: flex;
+            align-items: center;
         }
 
-        #nickname {
-            width: 200px;
+        #nickname, #currentPassword, #newPassword, #confirmPassword {
+            width: 100%;
             padding: 5px;
             display: flex;
             align-items: center;
@@ -25,6 +29,7 @@
         }
 
         .info-row label {
+            width: 100px;
             margin-right: 10px;
             font-weight: bold;
             min-width: 80px;
@@ -38,42 +43,23 @@
             border: none;
             padding: 5px 10px;
             border-radius: 5px;
-            margin-left: 10px;
             margin-bottom: 10px;
-            width: auto;
         }
 
+        .rename-button {
+            width: auto;
+            margin-left: 10px;
+        }
+
+        .change-password-button {
+            width: 100%;
+        }
+
+        .change-password-button,
         .rename-button.active {
             background-color: #4CAF50;
             cursor: pointer;
         }
-
-        .header {
-            max-width: 800px;
-            margin: 0px auto;
-            display: flex;
-            justify-content: flex-end;
-            padding: 10px 10px 5px;
-            background-color: #f1f1f1;
-            border-bottom: 1px solid #ddd;
-            box-sizing: border-box;
-        }
-
-        .nav-button {
-            margin-left: 10px;
-            margin-bottom: 5px;
-            padding: 5px 10px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            cursor: pointer;
-            border-radius: 4px;
-            width: auto;
-        }
-
-        .nav-button.logout {
-            background-color: #f44336;
-        }Z
     </style>
 </head>
 <body>
@@ -94,24 +80,24 @@
             <input type="text" id="nickname">
             <button class="rename-button" type="button">Rename</button>
         </div>
+        <div class="info-row">
+            <label for="currentPassword">current password:</label>
+            <input type="password" id="currentPassword" placeholder="current password">
+        </div>
+        <div class="info-row">
+            <label for="newPassword">new password:</label>
+            <input type="password" id="newPassword" placeholder="new password">
+        </div>
+        <div class="info-row">
+            <label for="confirmPassword">confirm password:</label>
+            <input type="password" id="confirmPassword" placeholder="confirm password">
+        </div>
+        <div class="info-row">
+            <button class="change-password-button" id="change-password-button" type="button">change password</button>
+        </div>
     </form>
 </div>
-
-<!--&lt;!&ndash;        <div class="form-group">&ndash;&gt;-->
-<!--&lt;!&ndash;            <label for="password">새 비밀번호:</label>&ndash;&gt;-->
-<!--&lt;!&ndash;            <input type="password" id="password" name="password" placeholder="변경하지 않으려면 비워두세요">&ndash;&gt;-->
-<!--&lt;!&ndash;        </div>&ndash;&gt;-->
-
-<!--&lt;!&ndash;        <div class="form-group">&ndash;&gt;-->
-<!--&lt;!&ndash;            <label for="confirmPassword">비밀번호 확인:</label>&ndash;&gt;-->
-<!--&lt;!&ndash;            <input type="password" id="confirmPassword" name="confirmPassword" placeholder="변경하지 않으려면 비워두세요">&ndash;&gt;-->
-<!--&lt;!&ndash;        </div>&ndash;&gt;-->
-<!--    </form>-->
-<!--</div>-->
-
 <script>
-
-
     document.addEventListener('DOMContentLoaded', function() {
         getUserInfo();
 
@@ -195,34 +181,47 @@
     });
 
     document.getElementById("logoutButton").addEventListener("click", () => {
-        // 로그아웃 기능 추가
+        fetch('/auth/logout', {
+                method: 'POST',
+                credentials: 'include'
+            })
+            .then(response => {
+                if (response.ok) {
+                    window.location.href = '/auth/login';
+                } else {
+                    alert("Logout failed. Please try again.");
+                }
+            })
+            .catch(error => {
+                console.error("Error during logout:", error);
+                alert("An error occurred while logging out.");
+            });
     });
 
-    document.getElementById("updateUserForm").addEventListener("edit-btn", async function(event) {
-        event.preventDefault();
+    document.getElementById("change-password-button").addEventListener("click", async () => {
 
-        const nickname = document.getElementById("nickname").value;
-        const email = document.getElementById("email").value;
-        const password = document.getElementById("password").value;
+        const currentPassword = document.getElementById("currentPassword").value;
+        const newPassword = document.getElementById("newPassword").value;
         const confirmPassword = document.getElementById("confirmPassword").value;
 
-        if (password !== confirmPassword) {
+        if (newPassword !== confirmPassword) {
             alert("비밀번호가 일치하지 않습니다.");
             return;
         }
 
         try {
-            const response = await fetch("/api/users/update", {
-                method: "PUT",
+            const response = await fetch("/user/password", {
+                method: "PATCH",
                 headers: {
                     "Content-Type": "application/json"
                 },
-                body: JSON.stringify({ nickname, email, password })
+                credentials: 'include',
+                body: JSON.stringify({ currentPassword, newPassword })
             });
 
             if (response.ok) {
                 alert("회원정보가 수정되었습니다.");
-                window.location.href = "/profile"; // 프로필 페이지로 이동
+                window.location.href = "/user/profile";
             } else {
                 const errorData = await response.json();
                 alert("수정 실패: " + (errorData.message || "알 수 없는 오류가 발생했습니다."));
