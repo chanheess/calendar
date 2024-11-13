@@ -75,6 +75,18 @@ public class UserServiceIntegrationTest {
 
     @Test
     @Transactional
+    void updatePassword_SamePassword() {
+        //given
+        UserDto.ChangePassword password = new UserDto.ChangePassword("testpassword123", "testpassword123");
+
+        //when & then
+        assertThatThrownBy(() -> userService.updatePassword(savedUser.getId(), password))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("New password can't be the same as the current password.");
+    }
+
+    @Test
+    @Transactional
     void updatePassword_InvalidUserId() {
         //given
         int nonExistentUserId = Integer.MAX_VALUE;

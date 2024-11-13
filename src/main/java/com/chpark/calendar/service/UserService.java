@@ -97,6 +97,11 @@ public class UserService {
             throw new IllegalArgumentException("Incorrect password");
         }
 
+        if(userEntity.checkPassword(password.getNewPassword(), passwordEncoder)) {
+            throw new IllegalArgumentException("New password can't be the same as the current password.");
+        }
+
+
         userEntity.changePassword(password.getNewPassword(), passwordEncoder);
     }
 
