@@ -24,8 +24,11 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-logging'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 	implementation "org.springframework.boot:spring-boot-starter-security"
+	implementation 'org.springframework.boot:spring-boot-starter-mail'
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
 	implementation 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
 
 	implementation 'commons-validator:commons-validator:1.9.0'
 
@@ -42,4 +45,8 @@ dependencies {
 
 tasks.named('test') {
 	useJUnitPlatform()
+}
+
+tasks.withType(JavaCompile).configureEach {
+	options.annotationProcessorPath = configurations.annotationProcessor
 }
