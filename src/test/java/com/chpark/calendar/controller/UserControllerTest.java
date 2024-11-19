@@ -5,7 +5,6 @@ import com.chpark.calendar.security.JwtAuthenticationFilter;
 import com.chpark.calendar.security.JwtTokenProvider;
 import com.chpark.calendar.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
