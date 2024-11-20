@@ -46,12 +46,12 @@ button {
     transition: opacity 0.3s ease-in-out;
 }
 
-button[type="submit"] {
-    background-color: #007bff;
-}
-
 button.signup-btn {
     background-color: green;
+}
+
+button.signin-btn {
+    background-color: #007bff;
 }
 
 button:hover {

@@ -6,45 +6,195 @@
     <title>Register</title>
     <link rel="stylesheet" href="/css/style.css">
     <link rel="icon" href="data:,">
+    <style>
+        #email, #email-verification, #nickname, #password, #confirmPassword {
+            width: 100%;
+            padding: 5px;
+            display: flex;
+            align-items: center;
+            margin-top: 15px;
+        }
+
+        .info-row {
+            display: flex;
+            align-items: center;
+        }
+
+        .info-row label {
+            width: 100px;
+            margin-right: 10px;
+            font-weight: bold;
+            min-width: 80px;
+            text-align: left;
+        }
+
+        .verification-button {
+            background-color: #d3d3d3;
+            cursor: not-allowed;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            width: auto;
+            margin-left: 10px;
+        }
+
+        .verification-button.active {
+            background-color: #4CAF50;
+            cursor: pointer;
+        }
+
+        .signup-button {
+            background-color: #d3d3d3;
+            cursor: not-allowed;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+        }
+
+        .signup-button.active {
+            background-color: #4CAF50;
+            cursor: pointer;
+        }
+
+        .back-btn {
+            background-color: #ff5733;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body>
 <div class="form-container">
     <h2>Sign up</h2>
     <form id="register-form" th:action="@{/auth/register}" th:object="${userRequest}" method="post">
-        <input type="email" th:field="*{email}" placeholder="Email" autocomplete="email" required />
-        <input type="password" th:field="*{password}" placeholder="Password" autocomplete="new-password" required>
-        <input type="password" id="confirm-password" placeholder="Confirm Password" autocomplete="new-password" required>
-        <input type="text" th:field="*{nickname}" placeholder="Nickname" autocomplete="nickname" required/>
+        <div class="info-row">
+            <label for="email">Email:</label>
+            <input type="email" id="email" th:field="*{email}" placeholder="example@nicesite.com" required>
+            <button class="verification-button" type="button" id="verify-btn" disabled>Verify</button>
+        </div>
+        <div class="info-row">
+            <label for="email-verification">Email code:</label>
+            <input type="text" id="email-verification" th:field="*{emailCode}" placeholder="Enter your verification code" required>
+        </div>
+        <div class="info-row">
+            <label for="password">Password:</label>
+            <input type="password" id="password" th:field="*{password}" placeholder="Enter your password" required>
+        </div>
+        <div class="info-row">
+            <label for="confirmPassword">Confirm Password:</label>
+            <input type="password" id="confirmPassword" placeholder="Confirm your password" required>
+        </div>
         <small id="password-error" style="color:red; display:none;">Passwords do not match</small>
-        <button type="submit" class="signup-btn">Sign Up</button>
+        <div class="info-row">
+            <label for="nickname">Nickname:</label>
+            <input type="text" id="nickname" th:field="*{nickname}" placeholder="Enter your nickname" required>
+        </div>
+        <button class="signup-button" type="submit" id="signup-btn" disabled>Sign Up</button>
+        <button onclick="location.href='/auth/login'" class="back-btn">Back</button>
     </form>
-    <button onclick="location.href='/auth/login'" class="signin" style="background-color: #ff5733; color: white;">Back</button>
-    <div th:if="${errorMessage}" style="color: red;">
+
+    <div th:if="${errorMessage}" style="color: red; margin-bottom: 20px;">
         <p th:text="${errorMessage}"></p>
     </div>
 </div>
 
 <script>
-    const password = document.getElementById('password');
-    const confirmPassword = document.getElementById('confirm-password');
-    const errorMessage = document.getElementById('password-error');
-    const form = document.getElementById('register-form');
+    const emailInput = document.getElementById("email");
+    const verifyButton = document.getElementById("verify-btn");
+    const password = document.getElementById("password");
+    const confirmPassword = document.getElementById("confirmPassword");
+    const errorMessage = document.getElementById("password-error");
+    const submitButton = document.getElementById("signup-btn");
 
-    confirmPassword.addEventListener('input', function() {
-        if (password.value !== confirmPassword.value) {
-            errorMessage.style.display = 'block';
+    const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
+    // 이메일 입력 값이 변경될 때 버튼 활성화/비활성화
+    emailInput.addEventListener("input", function () {
+        if (emailPattern.test(emailInput.value)) {
+            verifyButton.classList.add("active");
+            verifyButton.disabled = false;
         } else {
-            errorMessage.style.display = 'none';
+            verifyButton.classList.remove("active");
+            verifyButton.disabled = true;
         }
     });
 
-    form.addEventListener('submit', function (event) {
-        if (password.value !== confirmPassword.value) {
-            event.preventDefault();
-            errorMessage.style.display = 'block';
-            alert('Passwords do not match.');
-        }
+    // 이메일 인증 버튼 클릭 시 이벤트
+    verifyButton.addEventListener('click', function () {
+        fetch(`/auth/mail/${encodeURIComponent(emailInput.value)}`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            }
+        })
+        .then(response => {
+            if (response.ok) {
+                return response.text();
+            } else {
+                return response.text().then(errorMessage => {
+                    throw new Error(errorMessage);
+                });
+            }
+        })
+        .then(data => {
+            alert("Verification email sent: " + data);
+        })
+        .catch(error => {
+            console.error("Error sending verification email:", error);
+            alert("Error: " + error.message);
+        });
     });
+
+    // 입력값에 따라 Submit 버튼 상태 업데이트
+    function updateSubmitButtonState() {
+        const emailCode = document.getElementById("email-verification").value.trim();
+        const nickname = document.getElementById("nickname").value.trim();
+
+        const isEmailValid = emailPattern.test(emailInput.value);
+        const isPasswordValid = password.value === confirmPassword.value && password.value !== "";
+        const isEmailCodeFilled = emailCode !== "";
+        const isNicknameFilled = nickname !== "";
+
+        // 모든 조건이 충족되었는지 확인
+        if (isEmailValid && isPasswordValid && isEmailCodeFilled && isNicknameFilled) {
+            submitButton.disabled = false; // 버튼 활성화
+            submitButton.classList.add("active");
+        } else {
+            submitButton.disabled = true; // 버튼 비활성화
+            submitButton.classList.remove("active");
+        }
+    }
+
+    // 비밀번호 확인 및 오류 메시지 업데이트
+    function validatePasswordMatch() {
+        if (password.value !== confirmPassword.value && confirmPassword.value !== "") {
+            errorMessage.style.display = 'block'; // 비밀번호 불일치 메시지 표시
+        } else {
+            errorMessage.style.display = 'none'; // 메시지 숨기기
+        }
+    }
+
+    // 비밀번호 관련 이벤트 리스너
+    password.addEventListener('input', () => {
+        validatePasswordMatch();
+        updateSubmitButtonState();
+    });
+
+    confirmPassword.addEventListener('input', () => {
+        validatePasswordMatch();
+        updateSubmitButtonState();
+    });
+
+    // 다른 입력 필드 이벤트 리스너
+    emailInput.addEventListener('input', updateSubmitButtonState);
+    document.getElementById("email-verification").addEventListener('input', updateSubmitButtonState);
+    document.getElementById("nickname").addEventListener('input', updateSubmitButtonState);
 </script>
 </body>
 </html>

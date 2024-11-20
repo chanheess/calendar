@@ -109,7 +109,8 @@ class ScheduleUtilityTest {
         UserDto.RegisterRequest userRequest = new UserDto.RegisterRequest(
                 "email@naver.com",
                 rawPassword,
-                "test_king"
+                "test_king",
+                "1234"
         );
         UserEntity userEntity = UserEntity.createWithEncodedPassword(userRequest, passwordEncoder);
 

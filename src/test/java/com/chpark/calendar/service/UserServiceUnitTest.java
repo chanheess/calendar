@@ -44,7 +44,7 @@ class UserServiceUnitTest {
     @Test
     void create() {
         //given
-        UserDto.RegisterRequest userDto = new UserDto.RegisterRequest("testing1@naver.com", "testpassword123", "testingKing");
+        UserDto.RegisterRequest userDto = new UserDto.RegisterRequest("testing1@naver.com", "testpassword123", "testingKing", "1234");
 
         when(userRepository.existsByEmail(userDto.getEmail())).thenReturn(false);
         when(userRepository.existsByNickname(userDto.getNickname())).thenReturn(false);

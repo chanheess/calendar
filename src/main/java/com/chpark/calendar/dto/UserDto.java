@@ -1,6 +1,7 @@
 package com.chpark.calendar.dto;
 
 import com.chpark.calendar.entity.UserEntity;
+import com.chpark.calendar.exception.ValidGroup;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
@@ -12,10 +13,10 @@ import lombok.Setter;
 @NoArgsConstructor
 public class UserDto {
 
-    @NotBlank()
+    @NotBlank
     @Email
     private String email;
-    @NotBlank()
+    @NotBlank
     private String password;
 
     public UserDto(String email, String password) {
@@ -29,10 +30,13 @@ public class UserDto {
     public static class RegisterRequest extends UserDto{
         @NotBlank
         private String nickname;
+        @NotBlank
+        private String emailCode;
 
-        public RegisterRequest(String email, String password, String nickname) {
+        public RegisterRequest(String email, String password, String nickname, String emailCode) {
             super(email,password);
             this.nickname = nickname;
+            this.emailCode = emailCode;
         }
     }
 
