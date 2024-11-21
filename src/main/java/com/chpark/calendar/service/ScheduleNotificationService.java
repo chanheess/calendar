@@ -2,8 +2,8 @@ package com.chpark.calendar.service;
 
 import com.chpark.calendar.dto.ScheduleNotificationDto;
 import com.chpark.calendar.entity.ScheduleNotificationEntity;
-import com.chpark.calendar.repository.ScheduleNotificationRepository;
-import com.chpark.calendar.repository.ScheduleRepository;
+import com.chpark.calendar.repository.schedule.ScheduleNotificationRepository;
+import com.chpark.calendar.repository.schedule.ScheduleRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -11,10 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service

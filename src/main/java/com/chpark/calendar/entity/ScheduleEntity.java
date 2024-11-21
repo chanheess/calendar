@@ -7,8 +7,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 @Getter
 @Setter
@@ -36,6 +34,9 @@ public class ScheduleEntity {
     @Column(name = "repeat_id")
     private Integer repeatId;
 
+    @Column(name = "user_id")
+    private Integer userId;
+
     @Override
     public String toString() {
         return "ScheduleEntity{" +
@@ -45,6 +46,7 @@ public class ScheduleEntity {
                 ", startAt=" + startAt +
                 ", endAt=" + endAt +
                 ", repeatId=" + repeatId +
+                ", userId=" + userId +
                 '}';
     }
 

@@ -32,6 +32,13 @@ public class ScheduleDto {
 
     private Integer repeatId;
 
+    public ScheduleDto(String title, String description, LocalDateTime startAt, LocalDateTime endAt) {
+        this.title = title;
+        this.description = description;
+        this.startAt = startAt;
+        this.endAt = endAt;
+    }
+
     public ScheduleDto(ScheduleEntity entity) {
         this.id = entity.getId();
         this.title = entity.getTitle();
@@ -64,10 +71,10 @@ public class ScheduleDto {
     public static class Request {
         //비교하기 쉽게 상속하지 않고 오브젝트로
         @NotNull(groups = ValidGroup.CreateGroup.class)
-        private ScheduleDto scheduleDto = new ScheduleDto();
+        private ScheduleDto scheduleDto;
 
         private List<ScheduleNotificationDto> notificationDto = new ArrayList<>();
-        private ScheduleRepeatDto repeatDto = new ScheduleRepeatDto();
+        private ScheduleRepeatDto repeatDto;
     }
 
     @Getter

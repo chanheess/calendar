@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="icon" href="data:,">
+</head>
+<body>
+<div class="form-container">
+    <h2>Sign in</h2>
+    <form id="loginForm">
+        <input type="text" name="email" placeholder="Email" required />
+        <input type="password" name="password" placeholder="Password" required />
+        <button class="signin-btn" type="submit">Sign in</button>
+    </form>
+    <button class="signup-btn" onclick="location.href='/auth/register'">Sign up</button>
+    <br><div th:if="${message}" style="color: green;">[[${message}]]</div>
+</div>
+<script>
+    document.getElementById("loginForm").addEventListener("submit", function(event) {
+        event.preventDefault();
+
+        const formData = new FormData(this);
+        const jsonData = JSON.stringify({
+            email: formData.get("email"),
+            password: formData.get("password")
+        });
+
+        fetch("/auth/login", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: jsonData
+        })
+        .then(response => {
+            if (response.ok) {
+                window.location.href = '/index.html';  // 로그인 성공 시 리다이렉트
+            } else {
+                alert("Login failed");
+            }
+        })
+        .catch(error => console.error("Error:", error));
+    });
+</script>
+</body>
+</html>
+
+
+

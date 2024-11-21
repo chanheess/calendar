@@ -2,7 +2,6 @@ package com.chpark.calendar.dto;
 
 import com.chpark.calendar.entity.ScheduleRepeatEntity;
 import com.chpark.calendar.enumClass.ScheduleRepeatType;
-import com.chpark.calendar.exception.ValidGroup;
 import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotNull;
 import lombok.EqualsAndHashCode;
@@ -21,9 +20,8 @@ public class ScheduleRepeatDto {
     private ScheduleRepeatType repeatType;
 
     @NotNull
-    private Integer repeatInterval;
+    private int repeatInterval;
 
-    @NotNull
     @FutureOrPresent(message = "The notification date must be in the present or future")
     private LocalDateTime endAt;
 

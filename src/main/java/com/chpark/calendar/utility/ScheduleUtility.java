@@ -1,6 +1,7 @@
 package com.chpark.calendar.utility;
 
 import com.chpark.calendar.enumClass.ScheduleRepeatType;
+import org.apache.commons.validator.routines.EmailValidator;
 
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -11,6 +12,7 @@ public class ScheduleUtility {
     private ScheduleUtility() {
         throw new UnsupportedOperationException("Utility class");
     }
+
     public static int calculateRepeatCount(LocalDateTime startDate, LocalDateTime endDate, int interval, ScheduleRepeatType repeatType) {
         int repeatCount = 500;
 
@@ -48,6 +50,13 @@ public class ScheduleUtility {
             case m -> date.plusMonths(repeatInterval);
             case y -> date.plusYears(repeatInterval);
         };
+    }
+
+    public static void validateEmail(String email) {
+        EmailValidator validator = EmailValidator.getInstance();
+        if (!validator.isValid(email)) {
+            throw new IllegalArgumentException("Invalid email format: " + email);
+        }
     }
 
 }
