@@ -62,3 +62,5 @@ replay_pid*
 *.mwb
 *.DS_Store
 *.env
+nginx/ssl/
+nginx/www/
