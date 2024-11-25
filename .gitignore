@@ -57,10 +57,16 @@ out/
 hs_err_pid*
 replay_pid*
 
+# SSL 인증서 및 키 파일 제외
+*.crt
+*.key
+nginx/ssl/
+nginx/www/
+
 
 # Other Files #
 *.mwb
 *.DS_Store
 *.env
-nginx/ssl/
-nginx/www/
+
+
