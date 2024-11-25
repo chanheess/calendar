@@ -63,6 +63,8 @@ public class SecurityConfig {
                         .authenticationEntryPoint((request, response, authException) ->
                                 response.sendRedirect("/auth/login"))
                 )
+                .requiresChannel(channel ->
+                        channel.anyRequest().requiresSecure())
                 .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }

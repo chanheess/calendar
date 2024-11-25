@@ -29,7 +29,7 @@ public class UserController {
             // JWT 토큰을 HttpOnly 쿠키로 저장
             ResponseCookie cookie = ResponseCookie.from("jwtToken", token)
                     .httpOnly(true)
-                    .secure(false)
+                    .secure(true)
                     .path("/")
                     .maxAge(24 * 60 * 60)
                     .build();
@@ -47,7 +47,7 @@ public class UserController {
             // jwtToken 쿠키 삭제
             ResponseCookie cookie = ResponseCookie.from("jwtToken", null)
                     .httpOnly(true)
-                    .secure(false)
+                    .secure(true)
                     .path("/")
                     .maxAge(0)  // 만료 시간 0으로 설정하여 쿠키 삭제
                     .build();
