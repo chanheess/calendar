@@ -8,6 +8,7 @@ import com.chpark.calendar.utility.ScheduleUtility;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -42,31 +43,37 @@ public class UserService {
     @Transactional
     public String login(UserDto requestUser) {
         try {
+            // 인증 시도
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(requestUser.getEmail(), requestUser.getPassword())
             );
-            //사용자 ID를 payload에 추가하기 위한 객체
+
+            // 인증 성공 시 사용자 정보를 가져옴
             UserEntity userEntity = userRepository.findByEmail(requestUser.getEmail()).orElseThrow(
-                    () -> new UsernameNotFoundException("User not found with email: " + requestUser.getEmail())
+                    () -> new EntityNotFoundException("User not found with email: " + requestUser.getEmail())
             );
 
+            // JWT 토큰 생성 후 반환
             return jwtTokenProvider.generateToken(authentication, userEntity.getId());
-        } catch (AuthenticationException e) {
-            throw new IllegalArgumentException("Invalid credentials provided.");
+
+        } catch (UsernameNotFoundException e) {
+            throw new IllegalArgumentException("Invalid email.");
+        } catch (BadCredentialsException e) {
+            throw new IllegalArgumentException("Invalid password.");
         }
     }
 
+
     @Transactional(readOnly = true)
     public String findNickname(int userId) {
-        return userRepository.findNicknameById(userId)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        return userRepository.findNicknameById(userId).orElseThrow(
+                () -> new EntityNotFoundException("User not found"));
     }
 
     @Transactional(readOnly = true)
     public UserDto.UserInfo findUserInfo(int userId) {
         UserEntity userEntity = userRepository.findById(userId).orElseThrow(
-                () -> new EntityNotFoundException("User not found")
-        );
+                () -> new EntityNotFoundException("User not found"));
 
         return new UserDto.UserInfo(userEntity);
     }
@@ -90,8 +97,7 @@ public class UserService {
     @Transactional
     public void updatePassword(int userId, UserDto.ChangePassword password) {
         UserEntity userEntity = userRepository.findById(userId).orElseThrow(
-                () -> new EntityNotFoundException("User not found")
-        );
+                () -> new EntityNotFoundException("User not found"));
 
         if(!userEntity.checkPassword(password.getCurrentPassword(), passwordEncoder)){
             throw new IllegalArgumentException("Incorrect password");
@@ -100,7 +106,6 @@ public class UserService {
         if(userEntity.checkPassword(password.getNewPassword(), passwordEncoder)) {
             throw new IllegalArgumentException("New password can't be the same as the current password.");
         }
-
 
         userEntity.changePassword(password.getNewPassword(), passwordEncoder);
     }

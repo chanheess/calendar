@@ -1,86 +1,49 @@
 package com.chpark.calendar.exception;
 
+import com.chpark.calendar.dto.MessageResponseDto;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.FieldError;
-import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
-import org.springframework.web.bind.MissingServletRequestParameterException;
-import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.time.DateTimeException;
-import java.util.stream.Collectors;
-
-@ControllerAdvice
+@RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    private static final String FORMAT_MESSAGE = "The correct format is: year=2024 or year=2024&month=12 or year=2024&month=12&day=31.";
+    public MessageResponseDto createCustomErrorResponse(Exception ex, int status) {
+        // 예외가 null이거나 메시지가 없는 경우 기본 메시지로 대체
+        String errorMessage = (ex == null || ex.getMessage() == null || ex.getMessage().isEmpty())
+                ? "Unknown error occurred."
+                : ex.getMessage();
 
-    @ExceptionHandler(MissingServletRequestParameterException.class)
-    public ResponseEntity<CustomErrorResponse> handleMissingParams(MissingServletRequestParameterException ex) {
-        String name = ex.getParameterName();
-        String errorMessage = name + " parameter is required." + FORMAT_MESSAGE;
-        CustomErrorResponse customErrorResponse = new CustomErrorResponse(HttpStatus.BAD_REQUEST.value(), errorMessage);
-        return new ResponseEntity<>(customErrorResponse, HttpStatus.BAD_REQUEST);
-    }
-
-    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
-    public ResponseEntity<CustomErrorResponse> handleTypeMismatchException(MethodArgumentTypeMismatchException ex) {
-        String errorMessage = "Invalid input for parameter: " + ex.getName() + " type: " + ex.getRequiredType();
-        CustomErrorResponse customErrorResponse = new CustomErrorResponse(HttpStatus.BAD_REQUEST.value(), errorMessage);
-        return new ResponseEntity<>(customErrorResponse, HttpStatus.BAD_REQUEST);
-    }
-
-    @ExceptionHandler(CustomException.class)
-    public ResponseEntity<CustomErrorResponse> handleCustomException(CustomException ex) {
-        String message = ex.getMessage();
-        CustomErrorResponse customErrorResponse = new CustomErrorResponse(HttpStatus.BAD_REQUEST.value(), message);
-        return new ResponseEntity<>(customErrorResponse, HttpStatus.BAD_REQUEST);
-    }
-
-    @ExceptionHandler(DateTimeException.class)
-    public ResponseEntity<CustomErrorResponse> handleDateTimeException(DateTimeException ex) {
-        String errorMessage = "Invalid date provided. " + FORMAT_MESSAGE;
-        CustomErrorResponse customErrorResponse = new CustomErrorResponse(HttpStatus.BAD_REQUEST.value(), errorMessage);
-        return new ResponseEntity<>(customErrorResponse, HttpStatus.BAD_REQUEST);
+        return new MessageResponseDto(
+                status,        // HTTP 상태 코드
+                errorMessage   // 예외 메시지
+        );
     }
 
     @ExceptionHandler(EntityNotFoundException.class)
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ResponseEntity<CustomErrorResponse> handleEntityNotFoundException(EntityNotFoundException ex) {
-        CustomErrorResponse customErrorResponse = new CustomErrorResponse(HttpStatus.NOT_FOUND.value(), ex.getMessage());
-        return new ResponseEntity<>(customErrorResponse, HttpStatus.NOT_FOUND);
+    public ResponseEntity<MessageResponseDto> handleNotFoundEntityById(EntityNotFoundException ex) {
+        return new ResponseEntity<>(
+                createCustomErrorResponse(ex, HttpStatus.NOT_FOUND.value()),
+                HttpStatus.NOT_FOUND
+        );
     }
 
-    @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<CustomErrorResponse> handleHttpMessageNotReadable(HttpMessageNotReadableException ex) {
-        String errorMessage = "Invalid input format: " + ex.getMessage();
-        CustomErrorResponse customErrorResponse = new CustomErrorResponse(HttpStatus.BAD_REQUEST.value(), errorMessage);
-        return new ResponseEntity<>(customErrorResponse, HttpStatus.BAD_REQUEST);
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<MessageResponseDto> handleIllegalArgument(IllegalArgumentException ex) {
+        return new ResponseEntity<>(
+                createCustomErrorResponse(ex, HttpStatus.BAD_REQUEST.value()),
+                HttpStatus.BAD_REQUEST
+        );
     }
 
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<CustomErrorResponse> handleValidationExceptions(MethodArgumentNotValidException ex) {
-        String errorMessage = ex.getBindingResult().getAllErrors().stream()
-                .map(error -> {
-                    String fieldName = ((FieldError) error).getField();
-                    String message = error.getDefaultMessage();
-                    return fieldName + ": " + message;
-                })
-                .collect(Collectors.joining(", "));
-
-        CustomErrorResponse customErrorResponse = new CustomErrorResponse(HttpStatus.BAD_REQUEST.value(), errorMessage);
-
-        return new ResponseEntity<>(customErrorResponse, HttpStatus.BAD_REQUEST);
-    }
-
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<CustomErrorResponse> handleGenericException(Exception ex) {
-        CustomErrorResponse customErrorResponse = new CustomErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), "An error occurred: " + ex.getMessage());
-        return new ResponseEntity<>(customErrorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<MessageResponseDto> handleIllegalArgument(AuthenticationException ex) {
+        return new ResponseEntity<>(
+                createCustomErrorResponse(ex, HttpStatus.UNAUTHORIZED.value()),
+                HttpStatus.UNAUTHORIZED
+        );
     }
 }

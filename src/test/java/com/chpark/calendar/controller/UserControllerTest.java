@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
@@ -115,8 +116,8 @@ class UserControllerTest {
         mockMvc.perform(patch("/user/password")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(changePasswordDto)))
-                .andExpect(status().isBadRequest())
-                .andExpect(content().string("Incorrect password"))
+                .andExpect(jsonPath("$.status").value(HttpStatus.BAD_REQUEST.value())) // 커스텀 에러 응답
+                .andExpect(jsonPath("$.message").value("Incorrect password"))
                 .andDo(print());
     }
 
