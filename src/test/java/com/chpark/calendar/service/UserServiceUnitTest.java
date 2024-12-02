@@ -11,8 +11,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -94,10 +96,13 @@ class UserServiceUnitTest {
         // given
         UserDto userDto = new UserDto("imnotuser@naver.com", "testpassword123");
 
+        when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
+                .thenThrow(new IllegalArgumentException("Invalid email."));
+
         // when & then
         assertThatThrownBy(() -> userService.login(userDto))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Invalid credentials provided.");
+                .hasMessageContaining("Invalid email.");
     }
 
     @Test
@@ -105,10 +110,13 @@ class UserServiceUnitTest {
         // given
         UserDto userDto = new UserDto("testing1@naver.com", "wrongpassword");
 
+        when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
+                .thenThrow(new IllegalArgumentException("Invalid password."));
+
         // when & then
         assertThatThrownBy(() -> userService.login(userDto))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Invalid credentials provided.");
+                .hasMessageContaining("Invalid password.");
     }
 
     @Test
@@ -132,7 +140,7 @@ class UserServiceUnitTest {
 
         //when & then
         assertThatThrownBy(() -> userService.findNickname(userId))
-                .isInstanceOf(UsernameNotFoundException.class)
+                .isInstanceOf(EntityNotFoundException.class)
                 .hasMessageContaining("User not found");
     }
 

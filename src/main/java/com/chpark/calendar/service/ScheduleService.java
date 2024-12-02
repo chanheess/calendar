@@ -33,6 +33,7 @@ public class ScheduleService {
 
     @Transactional
     public ScheduleDto create(ScheduleDto scheduleDto, int userId) {
+        this.validateScheduleDto(scheduleDto);
         //빈 제목일 경우 제목 없음으로 처리
         scheduleDto.setTitle(scheduleDto.getTitle().isEmpty() ? "Untitled" : scheduleDto.getTitle());
 
@@ -71,6 +72,8 @@ public class ScheduleService {
         ScheduleEntity schedule = scheduleRepository.findByIdAndUserId(scheduleId, userId).orElseThrow(
                 () -> new EntityNotFoundException("Schedule not found with schedule-id: " + scheduleId)
         );
+
+        this.validateScheduleDto(scheduleDto);
 
         if (scheduleDto.getTitle() != null) {
             schedule.setTitle(scheduleDto.getTitle().isEmpty() ? "Untitled" : scheduleDto.getTitle());
@@ -277,6 +280,12 @@ public class ScheduleService {
 
     public List<ScheduleDto> getSchedulesByDateRange(LocalDateTime startDate, LocalDateTime endDate, int userId) {
         return ScheduleDto.fromScheduleEntityList(scheduleRepository.findSchedules(startDate, endDate, userId));
+    }
+
+    public void validateScheduleDto(ScheduleDto scheduleDto) {
+        if(!scheduleDto.getStartAt().isBefore(scheduleDto.getEndAt())) {
+            throw new IllegalArgumentException("Start time must be before end time.");
+        }
     }
 
 }
