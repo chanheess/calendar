@@ -56,10 +56,8 @@ public class UserService {
             // JWT 토큰 생성 후 반환
             return jwtTokenProvider.generateToken(authentication, userEntity.getId());
 
-        } catch (UsernameNotFoundException e) {
-            throw new IllegalArgumentException("Invalid email.");
         } catch (BadCredentialsException e) {
-            throw new IllegalArgumentException("Invalid password.");
+            throw new IllegalArgumentException("Invalid email or password.");
         }
     }
 

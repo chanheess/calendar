@@ -97,12 +97,12 @@ class UserServiceUnitTest {
         UserDto userDto = new UserDto("imnotuser@naver.com", "testpassword123");
 
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
-                .thenThrow(new IllegalArgumentException("Invalid email."));
+                .thenThrow(new IllegalArgumentException("Invalid email or password."));
 
         // when & then
         assertThatThrownBy(() -> userService.login(userDto))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Invalid email.");
+                .hasMessageContaining("Invalid email or password.");
     }
 
     @Test
@@ -111,12 +111,12 @@ class UserServiceUnitTest {
         UserDto userDto = new UserDto("testing1@naver.com", "wrongpassword");
 
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
-                .thenThrow(new IllegalArgumentException("Invalid password."));
+                .thenThrow(new IllegalArgumentException("Invalid email or password."));
 
         // when & then
         assertThatThrownBy(() -> userService.login(userDto))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Invalid password.");
+                .hasMessageContaining("Invalid email or password.");
     }
 
     @Test
