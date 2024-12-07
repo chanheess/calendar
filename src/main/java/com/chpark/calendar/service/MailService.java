@@ -25,11 +25,6 @@ public class MailService {
     //이메일 전송
     @Transactional
     public void sendMail(String email) {
-        String subject = "회원가입 인증 메일입니다.";
-        Random random = new Random();
-        int code = random.nextInt(9000) + 1000;
-        String text = "인증 코드는 " + code + "입니다.";
-
         if(userRepository.existsByEmail(email)) {
             throw new IllegalArgumentException("이미 해당 \"이메일\"을 가진 사용자가 존재합니다.");
         }
@@ -38,6 +33,11 @@ public class MailService {
         if (count > 5) {
             throw new RuntimeException("이메일 인증 요청 5번 초과로 24시간 동안 이메일 인증 요청을 할 수 없습니다.");
         }
+
+        String subject = "회원가입 인증 메일입니다.";
+        Random random = new Random();
+        int code = random.nextInt(9000) + 1000;
+        String text = "인증 코드는 " + code + "입니다.";
 
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(email);
