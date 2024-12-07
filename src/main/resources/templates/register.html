@@ -128,10 +128,7 @@
     // 이메일 인증 버튼 클릭 시 이벤트
     verifyButton.addEventListener('click', function () {
         fetch(`/auth/mail/${encodeURIComponent(emailInput.value)}`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            }
+            method: "POST"
         })
         .then(response => {
             if (response.ok) {
