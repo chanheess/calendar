@@ -1,7 +1,7 @@
 services:
   mysql:
     image: mysql
-    container_name: mysql-calendar
+    container_name: mysql
     ports:
       - "3306:3306"
     environment:
@@ -13,7 +13,7 @@ services:
 
   redis:
     image: redis
-    container_name: redis-calendar
+    container_name: redis
     ports:
       - "6379:6379"
     volumes:
@@ -22,7 +22,7 @@ services:
 
   nginx:
     image: nginx
-    container_name: nginx-calendar
+    container_name: nginx
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf
       - ./selfsigned.crt:/etc/ssl/certs/selfsigned.crt
