@@ -13,7 +13,7 @@ pipeline {
         }
         stage('Push to Docker Hub') {
             steps {
-                withDockerRegistry([credentialsId: 'dockerhub-credentials', url: '']) {
+                withDockerRegistry([credentialsId: 'dockerhub', url: 'https://index.docker.io/v1/']) {
                     sh 'docker push chanheess/chcalendar'
                 }
             }
@@ -26,6 +26,11 @@ pipeline {
                 docker-compose up -d
                 '''
             }
+        }
+    }
+    post {
+        always {
+            echo 'Build finished!'
         }
     }
 }
