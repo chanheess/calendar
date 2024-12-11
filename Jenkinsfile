@@ -1,36 +1,46 @@
 pipeline {
     agent any
     stages {
-        stage('Checkout') {
+        stage('Checkout Code') {
             steps {
-                git 'https://github.com/chanheess/calendar.git'
+                checkout([$class: 'GitSCM', 
+                          branches: [[name: '*/main']],
+                          userRemoteConfigs: [[url: 'https://github.com/chanheess/calendar.git', 
+                                               credentialsId: 'github']]])
             }
         }
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t chanheess/chcalendar .'
+                sh 'docker builx build --platform linux/amd64 -t chanheess/chcalendar .'
             }
         }
-        stage('Push to Docker Hub') {
+        stage('Push Docker Image to DockerHub') {
             steps {
                 withDockerRegistry([credentialsId: 'dockerhub', url: 'https://index.docker.io/v1/']) {
                     sh 'docker push chanheess/chcalendar'
                 }
             }
         }
-        stage('Deploy with Docker Compose') {
+        stage('Deploy to EC2') {
             steps {
-                sh '''
-                docker pull chanheess/chcalendar
-                docker-compose down
-                docker-compose up -d
-                '''
+                sshagent(['ec2']) {
+                    sh '''
+                    ssh -o StrictHostKeyChecking=no ec2-user@ec2-43-202-239-251.ap-northeast-2.compute.amazonaws.com "
+                    docker pull chanheess/chcalendar &&
+                    docker-compose down &&
+                    docker-compose up -d
+                    "
+                    '''
+                }
             }
         }
     }
     post {
         always {
-            echo 'Build finished!'
+            echo 'Build and Deployment Process Complete!'
+        }
+        failure {
+            echo 'Build or Deployment Failed. Check Logs.'
         }
     }
 }
