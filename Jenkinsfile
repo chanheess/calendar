@@ -10,25 +10,25 @@ pipeline {
             }
         }
         stage('Build Docker Image') {
+            environment {
+                DOCKER_CLI_EXPERIMENTAL = 'enabled'
+            }
             steps {
                 sh '''
                 docker buildx create --use
-                docker buildx build --platform linux/amd64 -t chanheess/chcalendar .
+                docker buildx build --platform linux/amd64 -t chanheess/chcalendar . --push
                 '''
             }
         }
-        stage('Push Docker Image to DockerHub') {
-            steps {
-                withDockerRegistry([credentialsId: 'dockerhub', url: 'https://index.docker.io/v1/']) {
-                    sh 'docker push chanheess/chcalendar'
-                }
-            }
-        }
         stage('Deploy to EC2') {
+            environment {
+                EC2_IP = 'ec2-43-202-239-251.ap-northeast-2.compute.amazonaws.com'
+            }
             steps {
                 sshagent(['ec2']) {
                     sh '''
-                    ssh -o StrictHostKeyChecking=no ec2-user@ec2-43-202-239-251.ap-northeast-2.compute.amazonaws.com "
+                    ssh -o StrictHostKeyChecking=no ec2-user@${EC2_IP} "
+                    cd /path/to/docker-compose-directory &&
                     docker pull chanheess/chcalendar &&
                     docker-compose down &&
                     docker-compose up -d
