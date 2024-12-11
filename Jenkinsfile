@@ -23,7 +23,7 @@ pipeline {
             steps {
                 sshagent(['ec2']) {
                     sh '''
-                    ssh -o StrictHostKeyChecking=no ec2-user@chcalendar.site.ap-northeast-2.compute.amazonaws.com "
+                    ssh -o StrictHostKeyChecking=no ${EC2_IP} "
                     docker pull chanheess/chcalendar &&
                     docker-compose down &&
                     docker-compose up -d
