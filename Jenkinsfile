@@ -16,10 +16,7 @@ pipeline {
         }
         stage('Build Docker Image') {
             steps {
-                sh '''
-                docker buildx create --use
-                docker buildx build --platform linux/amd64 -t chanheess/chcalendar . --push
-                '''
+                sh 'docker buildx build --platform linux/amd64 -t chanheess/chcalendar . --push'
             }
         }
         stage('Deploy to EC2') {
