@@ -11,7 +11,10 @@ pipeline {
         }
         stage('Build Docker Image') {
             steps {
-                sh 'docker builx build --platform linux/amd64 -t chanheess/chcalendar .'
+                sh '''
+                docker buildx create --use
+                docker builx build --platform linux/amd64 -t chanheess/chcalendar .
+                '''
             }
         }
         stage('Push Docker Image to DockerHub') {
