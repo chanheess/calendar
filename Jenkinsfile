@@ -9,10 +9,12 @@ pipeline {
                                                credentialsId: 'github']]])
             }
         }
-        stage('Build Docker Image') {
-            environment {
-                DOCKER_CLI_EXPERIMENTAL = 'enabled'
+        stage('Build Application') {
+            steps {
+                sh './gradlew clean build'
             }
+        }
+        stage('Build Docker Image') {
             steps {
                 sh '''
                 docker buildx create --use
@@ -21,14 +23,10 @@ pipeline {
             }
         }
         stage('Deploy to EC2') {
-            environment {
-                EC2_IP = 'ec2-43-202-239-251.ap-northeast-2.compute.amazonaws.com'
-            }
             steps {
                 sshagent(['ec2']) {
                     sh '''
-                    ssh -o StrictHostKeyChecking=no ec2-user@${EC2_IP} "
-                    cd /path/to/docker-compose-directory &&
+                    ssh -o StrictHostKeyChecking=no ec2-user@<EC2_IP> "
                     docker pull chanheess/chcalendar &&
                     docker-compose down &&
                     docker-compose up -d
