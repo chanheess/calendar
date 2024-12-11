@@ -9,6 +9,11 @@ pipeline {
                                                credentialsId: 'github']]])
             }
         }
+        stage('Setup Environment') {
+            steps {
+                sh 'export $(cat .env | xargs)'
+            }
+        }
         stage('Build Application') {
             steps {
                 sh './gradlew clean build'
