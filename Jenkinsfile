@@ -13,7 +13,7 @@ pipeline {
             steps {
                 sh '''
                 docker buildx create --use
-                docker builx build --platform linux/amd64 -t chanheess/chcalendar .
+                docker buildx build --platform linux/amd64 -t chanheess/chcalendar .
                 '''
             }
         }
