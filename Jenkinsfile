@@ -1,5 +1,8 @@
 pipeline {
     agent any
+    environment {
+        EC2_IP = "${env.EC2_IP}" // Jenkins에 설정된 EC2 IP 환경변수
+    }
     stages {
         stage('Checkout Code') {
             steps {
