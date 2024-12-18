@@ -1,11 +1,19 @@
 # Compiled class file
 *.class
-HELP.md
+
+# Gradle 관련
 .gradle
 build/
-!gradle/wrapper/gradle-wrapper.jar
+
+# Gradle Wrapper
+!gradlew
+!gradlew.bat
+!gradle/wrapper/*
+
+# 예외 설정이 잘못된 부분 제거
 !**/src/main/**/build/
 !**/src/test/**/build/
+
 
 # Log file
 *.log

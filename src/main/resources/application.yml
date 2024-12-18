@@ -15,10 +15,10 @@ spring:
         dialect: org.hibernate.dialect.MySQLDialect
 
   mail:
-    host: smtp.gmail.com
-    port: 587                            # Gmail SMTP 포트
-    username: ${SMTP_EMAIL}              # 환경 변수에서 이메일 가져오기
-    password: ${SMTP_EMAIL_PASSWORD}     # 환경 변수에서 비밀번호 가져오기
+    host: ${SMTP_HOST}
+    port: ${SMTP_PORT}
+    username: ${SMTP_USERNAME}
+    password: ${SMTP_PASSWORD}
     protocol: smtp
     properties:
       mail:
