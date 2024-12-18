@@ -11,8 +11,6 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,10 +26,12 @@ public class UserService {
 
     @Transactional
     public void create(UserDto.RegisterRequest requestUser) {
-        if(userRepository.existsByEmail(requestUser.getEmail())) {
+        if (userRepository.existsByEmail(requestUser.getEmail())) {
+
             throw new IllegalArgumentException("이미 해당 \"이메일\"을 가진 사용자가 존재합니다.");
         }
-        if(userRepository.existsByNickname(requestUser.getNickname())) {
+        if (userRepository.existsByNickname(requestUser.getNickname())) {
+
             throw new IllegalArgumentException("이미 해당 \"닉네임\"을 가진 사용자가 존재합니다.");
         }
 
@@ -78,10 +78,12 @@ public class UserService {
 
     @Transactional
     public void updateUserInfo(int userId, UserDto.UserInfo userInfo) {
-        if(userRepository.existsByEmail(userInfo.getEmail())) {
+        if (userRepository.existsByEmail(userInfo.getEmail())) {
+
             throw new IllegalArgumentException("이미 해당 이메일을 가진 사용자가 존재합니다.");
         }
-        if(userRepository.existsByNickname(userInfo.getNickname())) {
+        if (userRepository.existsByNickname(userInfo.getNickname())) {
+
             throw new IllegalArgumentException("이미 해당 닉네임을 가진 사용자가 존재합니다.");
         }
 
@@ -97,11 +99,13 @@ public class UserService {
         UserEntity userEntity = userRepository.findById(userId).orElseThrow(
                 () -> new EntityNotFoundException("User not found"));
 
-        if(!userEntity.checkPassword(password.getCurrentPassword(), passwordEncoder)){
+        if (!userEntity.checkPassword(password.getCurrentPassword(), passwordEncoder)) {
+
             throw new IllegalArgumentException("Incorrect password");
         }
 
-        if(userEntity.checkPassword(password.getNewPassword(), passwordEncoder)) {
+        if (userEntity.checkPassword(password.getNewPassword(), passwordEncoder)) {
+
             throw new IllegalArgumentException("New password can't be the same as the current password.");
         }
 

@@ -5,13 +5,12 @@ import com.chpark.calendar.enumClass.ScheduleRepeatScope;
 import com.chpark.calendar.exception.ValidGroup;
 import com.chpark.calendar.security.JwtTokenProvider;
 import com.chpark.calendar.service.ScheduleService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
-import jakarta.servlet.http.HttpServletRequest;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -41,7 +40,7 @@ public class ScheduleController {
         String token = jwtTokenProvider.resolveToken(request);
         int userId = jwtTokenProvider.getUserIdFromToken(token);
 
-        if(title == null) {
+        if (title == null) {
             schedules = scheduleService.findByUserId(userId);
         } else {
             schedules = scheduleService.findSchedulesByTitle(title, userId);
