@@ -63,13 +63,13 @@ public class UserService {
 
 
     @Transactional(readOnly = true)
-    public String findNickname(int userId) {
+    public String findNickname(long userId) {
         return userRepository.findNicknameById(userId).orElseThrow(
                 () -> new EntityNotFoundException("User not found"));
     }
 
     @Transactional(readOnly = true)
-    public UserDto.UserInfo findUserInfo(int userId) {
+    public UserDto.UserInfo findUserInfo(long userId) {
         UserEntity userEntity = userRepository.findById(userId).orElseThrow(
                 () -> new EntityNotFoundException("User not found"));
 
@@ -77,7 +77,7 @@ public class UserService {
     }
 
     @Transactional
-    public void updateUserInfo(int userId, UserDto.UserInfo userInfo) {
+    public void updateUserInfo(long userId, UserDto.UserInfo userInfo) {
         if (userRepository.existsByEmail(userInfo.getEmail())) {
 
             throw new IllegalArgumentException("이미 해당 이메일을 가진 사용자가 존재합니다.");
@@ -95,7 +95,7 @@ public class UserService {
     }
 
     @Transactional
-    public void updatePassword(int userId, UserDto.ChangePassword password) {
+    public void updatePassword(long userId, UserDto.ChangePassword password) {
         UserEntity userEntity = userRepository.findById(userId).orElseThrow(
                 () -> new EntityNotFoundException("User not found"));
 

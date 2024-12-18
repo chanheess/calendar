@@ -32,7 +32,7 @@ public class ScheduleService {
     private final ScheduleNotificationService scheduleNotificationService;
 
     @Transactional
-    public ScheduleDto create(ScheduleDto scheduleDto, int userId) {
+    public ScheduleDto create(ScheduleDto scheduleDto, long userId) {
         this.validateScheduleDto(scheduleDto);
         //빈 제목일 경우 제목 없음으로 처리
         scheduleDto.setTitle(scheduleDto.getTitle().isEmpty() ? "Untitled" : scheduleDto.getTitle());
@@ -45,7 +45,7 @@ public class ScheduleService {
     }
 
     @Transactional
-    public ScheduleDto.Response createByForm(ScheduleDto.Request scheduleDto, int userId) {
+    public ScheduleDto.Response createByForm(ScheduleDto.Request scheduleDto, long userId) {
         ScheduleDto resultSchedule = this.create(scheduleDto.getScheduleDto(), userId);
         List<ScheduleNotificationDto> resultNotifications = scheduleNotificationService.create(resultSchedule.getId(), scheduleDto.getNotificationDto());
         ScheduleRepeatDto resultRepeat = null;
@@ -58,17 +58,17 @@ public class ScheduleService {
     }
 
     @Transactional
-    public List<ScheduleDto> findSchedulesByTitle(String title, int userId) {
+    public List<ScheduleDto> findSchedulesByTitle(String title, long userId) {
         return ScheduleDto.fromScheduleEntityList(scheduleRepository.findByTitleContainingAndUserId(title, userId));
     }
 
     @Transactional
-    public ScheduleDto update(int scheduleId, ScheduleDto scheduleDto, int userId) {
+    public ScheduleDto update(long scheduleId, ScheduleDto scheduleDto, long userId) {
         return this.update(scheduleId, scheduleDto, false, userId);
     }
 
     @Transactional
-    public ScheduleDto update(int scheduleId, ScheduleDto scheduleDto, boolean isRepeat, int userId) {
+    public ScheduleDto update(long scheduleId, ScheduleDto scheduleDto, boolean isRepeat, long userId) {
         ScheduleEntity schedule = scheduleRepository.findByIdAndUserId(scheduleId, userId).orElseThrow(
                 () -> new EntityNotFoundException("Schedule not found with schedule-id: " + scheduleId)
         );
@@ -96,7 +96,7 @@ public class ScheduleService {
     }
 
     @Transactional
-    public ScheduleDto.Response updateSchedule(int scheduleId, boolean isRepeatChecked, ScheduleDto.Request scheduleDto, int userId) {
+    public ScheduleDto.Response updateSchedule(long scheduleId, boolean isRepeatChecked, ScheduleDto.Request scheduleDto, long userId) {
         if(scheduleRepository.getRepeatId(scheduleId, userId).isPresent()) {
             throw new CustomException("has repeat-id");
         }
@@ -113,8 +113,8 @@ public class ScheduleService {
     }
 
     @Transactional
-    public ScheduleDto.Response updateRepeatSchedule(int scheduleId, boolean isRepeatChecked, ScheduleDto.Request scheduleDto, int userId) {
-        Integer repeatId = scheduleRepository.getRepeatId(scheduleId, userId).orElseThrow(
+    public ScheduleDto.Response updateRepeatSchedule(long scheduleId, boolean isRepeatChecked, ScheduleDto.Request scheduleDto, long userId) {
+        Long repeatId = scheduleRepository.getRepeatId(scheduleId, userId).orElseThrow(
                 () -> new EntityNotFoundException("not found repeat-id")
         );
 
@@ -147,7 +147,7 @@ public class ScheduleService {
     }
 
     @Transactional
-    public ScheduleDto.Response updateRepeatCurrentOnlySchedule(int scheduleId, ScheduleDto.Request scheduleDto, int userId) {
+    public ScheduleDto.Response updateRepeatCurrentOnlySchedule(long scheduleId, ScheduleDto.Request scheduleDto, long userId) {
         if(scheduleRepository.getRepeatId(scheduleId, userId).isEmpty()) {
             throw new EntityNotFoundException("not found repeat-id");
         }
@@ -161,7 +161,7 @@ public class ScheduleService {
     }
 
     @Transactional
-    public ScheduleDto.Response updateRepeatCurrentAndFutureSchedules(int scheduleId, ScheduleDto.Request scheduleDto, int userId) {
+    public ScheduleDto.Response updateRepeatCurrentAndFutureSchedules(long scheduleId, ScheduleDto.Request scheduleDto, long userId) {
         //수정된 일정이 들어오니 수정전 일정으로 비교
         ScheduleEntity standardSchedule = scheduleRepository.findByIdAndUserId(scheduleId, userId).orElseThrow(
                 () -> new EntityNotFoundException("Schedule not found with schedule-id: " + scheduleId)
@@ -205,7 +205,7 @@ public class ScheduleService {
     }
 
     @Transactional
-    public void deleteById(int scheduleId, int userId) {
+    public void deleteById(long scheduleId, long userId) {
         if(scheduleRepository.getRepeatId(scheduleId, userId).isPresent()) {
             throw new CustomException("has repeat-id");
         }
@@ -219,7 +219,7 @@ public class ScheduleService {
     }
 
     @Transactional
-    public void deleteCurrentOnlyRepeatSchedule(int scheduleId, int userId) {
+    public void deleteCurrentOnlyRepeatSchedule(long scheduleId, long userId) {
         //수정된 일정이 들어오니 수정전 일정으로 비교
         ScheduleEntity standardSchedule = scheduleRepository.findByIdAndUserId(scheduleId, userId).orElseThrow(
                 () -> new EntityNotFoundException("Schedule not found with schedule-id: " + scheduleId)
@@ -235,7 +235,7 @@ public class ScheduleService {
 
     //현재 일정 이후의 반복 일정들을 모두 삭제
     @Transactional
-    public void deleteFutureRepeatSchedules(int scheduleId, int userId) {
+    public void deleteFutureRepeatSchedules(long scheduleId, long userId) {
         //수정된 일정이 들어오니 수정전 일정으로 비교
         ScheduleEntity standardSchedule = scheduleRepository.findByIdAndUserId(scheduleId, userId).orElseThrow(
                 () -> new EntityNotFoundException("Schedule not found with schedule-id: " + scheduleId)
@@ -260,7 +260,7 @@ public class ScheduleService {
         }
     }
 
-    public Optional<ScheduleDto> findById(int scheduleId, int userId) {
+    public Optional<ScheduleDto> findById(long scheduleId, long userId) {
         Optional<ScheduleEntity> findEntity = scheduleRepository.findByIdAndUserId(scheduleId, userId);
 
         return findEntity.map(ScheduleDto::new);
@@ -270,15 +270,15 @@ public class ScheduleService {
         return ScheduleDto.fromScheduleEntityList(scheduleRepository.findAll());
     }
 
-    public List<ScheduleDto> findByUserId(int userId) {
+    public List<ScheduleDto> findByUserId(long userId) {
         return ScheduleDto.fromScheduleEntityList(scheduleRepository.findByUserId(userId));
     }
 
-    public boolean existsById(int scheduleId) {
+    public boolean existsById(long scheduleId) {
         return scheduleRepository.existsById(scheduleId);
     }
 
-    public List<ScheduleDto> getSchedulesByDateRange(LocalDateTime startDate, LocalDateTime endDate, int userId) {
+    public List<ScheduleDto> getSchedulesByDateRange(LocalDateTime startDate, LocalDateTime endDate, long userId) {
         return ScheduleDto.fromScheduleEntityList(scheduleRepository.findSchedules(startDate, endDate, userId));
     }
 

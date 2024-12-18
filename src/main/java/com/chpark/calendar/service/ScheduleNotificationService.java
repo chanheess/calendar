@@ -23,7 +23,7 @@ public class ScheduleNotificationService {
 
 
     @Transactional
-    public List<ScheduleNotificationDto> create(int scheduleId, List<ScheduleNotificationDto> notifications) {
+    public List<ScheduleNotificationDto> create(long scheduleId, List<ScheduleNotificationDto> notifications) {
         if(notifications.isEmpty()) {
             return new ArrayList<>();
         }
@@ -43,16 +43,16 @@ public class ScheduleNotificationService {
         }
     }
 
-    public List<ScheduleNotificationDto> findByScheduleId(int id) {
+    public List<ScheduleNotificationDto> findByScheduleId(long id) {
         return ScheduleNotificationDto.fromScheduleNotificationEntityList(scheduleNotificationRepository.findByScheduleId(id));
     }
 
-    public boolean existsByScheduleId(int scheduleId) {
+    public boolean existsByScheduleId(long scheduleId) {
         return scheduleNotificationRepository.existsByScheduleId(scheduleId);
     }
 
     @Transactional
-    public List<ScheduleNotificationDto> update(int scheduleId, List<ScheduleNotificationDto> notifications) {
+    public List<ScheduleNotificationDto> update(long scheduleId, List<ScheduleNotificationDto> notifications) {
 
         List<ScheduleNotificationEntity> resultEntities = scheduleNotificationRepository.findByScheduleId(scheduleId);
         List<ScheduleNotificationDto> updatedNotifications = new ArrayList<>();
@@ -83,7 +83,7 @@ public class ScheduleNotificationService {
     }
 
     @Transactional
-    public void deleteByScheduleId(int scheduleId) {
+    public void deleteByScheduleId(long scheduleId) {
         scheduleNotificationRepository.deleteByScheduleId(scheduleId);
     }
 

@@ -7,12 +7,12 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface ScheduleNotificationRepository extends JpaRepository<ScheduleNotificationEntity, Integer> {
+public interface ScheduleNotificationRepository extends JpaRepository<ScheduleNotificationEntity, Long> {
 
-    List<ScheduleNotificationEntity> findByScheduleId(int id);
+    List<ScheduleNotificationEntity> findByScheduleId(long id);
 
-    void deleteByScheduleId(int scheduleId);
+    void deleteByScheduleId(long scheduleId);
 
-    boolean existsByScheduleId(int scheduleId);
+    boolean existsByScheduleId(long scheduleId);
 
 }

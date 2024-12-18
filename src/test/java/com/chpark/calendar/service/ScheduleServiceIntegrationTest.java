@@ -36,7 +36,7 @@ public class ScheduleServiceIntegrationTest {
     private MockMvc mockMvc;
 
     private String loginCookie;
-    private int userId;
+    private long userId;
 
     @BeforeEach
     void userSignUpAndLogin() throws Exception {

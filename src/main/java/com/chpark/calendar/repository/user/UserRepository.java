@@ -10,12 +10,12 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Optional;
 
 
-public interface UserRepository extends JpaRepository<UserEntity, Integer> {
+public interface UserRepository extends JpaRepository<UserEntity, Long> {
 
     Optional<UserEntity> findByEmail(String email);
 
     @Query("SELECT u.nickname FROM UserEntity u WHERE u.id = :userId")
-    Optional<String> findNicknameById(@Param("userId") int userId);
+    Optional<String> findNicknameById(@Param("userId") long userId);
 
     boolean existsByEmail(String email);
     boolean existsByNickname(String nickname);
@@ -26,6 +26,6 @@ public interface UserRepository extends JpaRepository<UserEntity, Integer> {
             "SET u.email = COALESCE(:#{#userInfo.email}, u.email), " +
             "u.nickname = COALESCE(:#{#userInfo.nickname}, u.nickname) " +
             "WHERE u.id = :userId")
-    int updateUserInfo(@Param("userId") int userId, @Param("userInfo") UserEntity userInfo);
+    int updateUserInfo(@Param("userId") long userId, @Param("userInfo") UserEntity userInfo);
 
 }

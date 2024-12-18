@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 @NoArgsConstructor
 public class ScheduleDto {
 
-    private int id;
+    private long id;
 
     @NotNull(groups = ValidGroup.CreateGroup.class)
     private String title;
@@ -30,7 +30,7 @@ public class ScheduleDto {
     @NotNull(groups = ValidGroup.CreateGroup.class)
     private LocalDateTime endAt;
 
-    private Integer repeatId;
+    private Long repeatId;
 
     public ScheduleDto(String title, String description, LocalDateTime startAt, LocalDateTime endAt) {
         this.title = title;

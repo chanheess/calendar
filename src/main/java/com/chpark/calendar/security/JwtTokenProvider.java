@@ -29,7 +29,7 @@ public class JwtTokenProvider {
     }
 
     // JWT 토큰 생성
-    public String generateToken(Authentication authentication, int userId) {
+    public String generateToken(Authentication authentication, long userId) {
         String username = ((UserDetails) authentication.getPrincipal()).getUsername();
         long EXPIRATION_TIME = 86400000;
         return Jwts.builder()

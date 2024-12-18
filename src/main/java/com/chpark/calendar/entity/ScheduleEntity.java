@@ -17,7 +17,7 @@ public class ScheduleEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private long id;
 
     @Column(name = "title", nullable = false)
     private String title;
@@ -32,23 +32,13 @@ public class ScheduleEntity {
     private LocalDateTime endAt;
 
     @Column(name = "repeat_id")
-    private Integer repeatId;
+    private Long repeatId;
 
     @Column(name = "user_id")
-    private Integer userId;
+    private Long userId;
 
-    @Override
-    public String toString() {
-        return "ScheduleEntity{" +
-                "id=" + id +
-                ", title='" + title + '\'' +
-                ", description='" + description + '\'' +
-                ", startAt=" + startAt +
-                ", endAt=" + endAt +
-                ", repeatId=" + repeatId +
-                ", userId=" + userId +
-                '}';
-    }
+    @Column(name = "group_id")
+    private Long groupId;
 
     public ScheduleEntity(ScheduleDto scheduleDto) {
         setTitle(scheduleDto.getTitle());

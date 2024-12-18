@@ -38,7 +38,7 @@ public class ScheduleController {
         List<ScheduleDto> schedules;
 
         String token = jwtTokenProvider.resolveToken(request);
-        int userId = jwtTokenProvider.getUserIdFromToken(token);
+        long userId = jwtTokenProvider.getUserIdFromToken(token);
 
         if (title == null) {
             schedules = scheduleService.findByUserId(userId);
@@ -58,7 +58,7 @@ public class ScheduleController {
         LocalDateTime endDate = LocalDate.parse(endDateStr).atTime(LocalTime.MAX); // 23:59:59.999999999
 
         String token = jwtTokenProvider.resolveToken(request);
-        int userId = jwtTokenProvider.getUserIdFromToken(token);
+        long userId = jwtTokenProvider.getUserIdFromToken(token);
 
         List<ScheduleDto> schedules = scheduleService.getSchedulesByDateRange(startDate, endDate, userId);
 
@@ -66,10 +66,10 @@ public class ScheduleController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ScheduleDto> getScheduleById(@PathVariable("id") int id,
+    public ResponseEntity<ScheduleDto> getScheduleById(@PathVariable("id") long id,
                                                        HttpServletRequest request) {
         String token = jwtTokenProvider.resolveToken(request);
-        int userId = jwtTokenProvider.getUserIdFromToken(token);
+        long userId = jwtTokenProvider.getUserIdFromToken(token);
 
         Optional<ScheduleDto> scheduleDto = scheduleService.findById(id, userId);
 
@@ -80,7 +80,7 @@ public class ScheduleController {
     public ResponseEntity<ScheduleDto.Response> createSchedule(@Validated(ValidGroup.CreateGroup.class) @RequestBody ScheduleDto.Request schedule,
                                                                HttpServletRequest request) {
         String token = jwtTokenProvider.resolveToken(request);
-        int userId = jwtTokenProvider.getUserIdFromToken(token);
+        long userId = jwtTokenProvider.getUserIdFromToken(token);
 
         ScheduleDto.Response result = scheduleService.createByForm(schedule, userId);
 
@@ -88,12 +88,12 @@ public class ScheduleController {
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<ScheduleDto.Response> updateSchedule(@PathVariable("id") int id,
+    public ResponseEntity<ScheduleDto.Response> updateSchedule(@PathVariable("id") long id,
                                                                @RequestParam("repeat") boolean isRepeatChecked,
                                                                @Validated @RequestBody ScheduleDto.Request scheduleDto,
                                                                HttpServletRequest request) {
         String token = jwtTokenProvider.resolveToken(request);
-        int userId = jwtTokenProvider.getUserIdFromToken(token);
+        long userId = jwtTokenProvider.getUserIdFromToken(token);
 
         ScheduleDto.Response response = scheduleService.updateSchedule(id, isRepeatChecked, scheduleDto, userId);
 
@@ -101,7 +101,7 @@ public class ScheduleController {
     }
 
     @PatchMapping("/{id}/{update-scope}")
-    public ResponseEntity<ScheduleDto.Response> updateRepeatSchedule(@PathVariable("id") int id,
+    public ResponseEntity<ScheduleDto.Response> updateRepeatSchedule(@PathVariable("id") long id,
                                                                      @PathVariable("update-scope") String repeatStringScope,
                                                                      @RequestParam("repeat") boolean isRepeatChecked,
                                                                      @Validated @RequestBody ScheduleDto.Request scheduleDto,
@@ -110,7 +110,7 @@ public class ScheduleController {
         ScheduleDto.Response response = null;
 
         String token = jwtTokenProvider.resolveToken(request);
-        int userId = jwtTokenProvider.getUserIdFromToken(token);
+        long userId = jwtTokenProvider.getUserIdFromToken(token);
 
         switch (scheduleRepeatScope) {
             case CURRENT -> {
@@ -125,22 +125,22 @@ public class ScheduleController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteSchedule(@PathVariable("id") int id, HttpServletRequest request) {
+    public ResponseEntity<String> deleteSchedule(@PathVariable("id") long id, HttpServletRequest request) {
         String token = jwtTokenProvider.resolveToken(request);
-        int userId = jwtTokenProvider.getUserIdFromToken(token);
+        long userId = jwtTokenProvider.getUserIdFromToken(token);
 
         scheduleService.deleteById(id, userId);
         return new ResponseEntity<>("Schedule deleted successfully.", HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}/{delete-scope}")
-    public ResponseEntity<String> deleteRepeatSchedule(@PathVariable("id") int id,
+    public ResponseEntity<String> deleteRepeatSchedule(@PathVariable("id") long id,
                                                        @PathVariable("delete-scope") String repeatStringScope,
                                                        HttpServletRequest request) {
         ScheduleRepeatScope scheduleRepeatScope = ScheduleRepeatScope.fromValue(repeatStringScope);
 
         String token = jwtTokenProvider.resolveToken(request);
-        int userId = jwtTokenProvider.getUserIdFromToken(token);
+        long userId = jwtTokenProvider.getUserIdFromToken(token);
 
         //삭제할 범위
         switch (scheduleRepeatScope){

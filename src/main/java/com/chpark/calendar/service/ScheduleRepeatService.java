@@ -29,7 +29,7 @@ public class ScheduleRepeatService {
     private final JwtTokenProvider jwtTokenProvider;
 
     @Transactional
-    public ScheduleRepeatDto create(int scheduleId, ScheduleRepeatDto repeatDto, int userId) {
+    public ScheduleRepeatDto create(long scheduleId, ScheduleRepeatDto repeatDto, long userId) {
 
         if(repeatDto == null) {
             throw new CustomException("repeat");
@@ -59,7 +59,7 @@ public class ScheduleRepeatService {
         return new ScheduleRepeatDto(createRepeatEntity);
     }
 
-    public boolean isModified(int repeatId, ScheduleRepeatDto scheduleRepeatDto) {
+    public boolean isModified(long repeatId, ScheduleRepeatDto scheduleRepeatDto) {
         ScheduleRepeatEntity repeatEntity = scheduleRepeatRepository.findById(repeatId).orElseThrow(
                 () -> new EntityNotFoundException("ScheduleRepeatEntity not found with id: " + repeatId)
         );
@@ -67,13 +67,13 @@ public class ScheduleRepeatService {
         return !scheduleRepeatDto.equals(new ScheduleRepeatDto(repeatEntity));
     }
 
-    public Optional<ScheduleRepeatDto> findById(int id) {
+    public Optional<ScheduleRepeatDto> findById(long id) {
         Optional<ScheduleRepeatEntity> findEntity = scheduleRepeatRepository.findById(id);
 
         return findEntity.map(ScheduleRepeatDto::new);
     }
 
-    public boolean existsById(int id) {
+    public boolean existsById(long id) {
         return scheduleRepeatRepository.existsById(id);
     }
 

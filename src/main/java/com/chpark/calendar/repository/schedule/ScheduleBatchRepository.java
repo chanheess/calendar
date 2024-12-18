@@ -47,8 +47,8 @@ public class ScheduleBatchRepository {
                     psSchedule.setString(2, schedule.getDescription());
                     psSchedule.setTimestamp(3, Timestamp.valueOf(ScheduleUtility.calculateRepeatPlusDate(schedule.getStartAt(), repeat.getRepeatType(), repeat.getRepeatInterval() * i)));
                     psSchedule.setTimestamp(4, Timestamp.valueOf(ScheduleUtility.calculateRepeatPlusDate(schedule.getEndAt(), repeat.getRepeatType(), repeat.getRepeatInterval() * i)));
-                    psSchedule.setInt(5, repeat.getId());
-                    psSchedule.setInt(6, schedule.getUserId());
+                    psSchedule.setLong(5, repeat.getId());
+                    psSchedule.setLong(6, schedule.getUserId());
                     psSchedule.addBatch();
                 }
                 psSchedule.executeBatch();

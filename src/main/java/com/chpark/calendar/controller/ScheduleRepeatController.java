@@ -25,11 +25,11 @@ public class ScheduleRepeatController {
 
 
     @PostMapping
-    public ResponseEntity<ScheduleRepeatDto> createScheduleRepeat(@RequestParam("scheduleId") int scheduleId,
+    public ResponseEntity<ScheduleRepeatDto> createScheduleRepeat(@RequestParam("scheduleId") long scheduleId,
                                                                   @Validated @RequestBody ScheduleRepeatDto repeatDto,
                                                                   HttpServletRequest request) {
         String token = jwtTokenProvider.resolveToken(request);
-        int userId = jwtTokenProvider.getUserIdFromToken(token);
+        long userId = jwtTokenProvider.getUserIdFromToken(token);
 
         ScheduleRepeatDto createResponse = scheduleRepeatService.create(scheduleId, repeatDto, userId);
 
@@ -37,7 +37,7 @@ public class ScheduleRepeatController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ScheduleRepeatDto> getScheduleRepeat(@PathVariable("id") int id) {
+    public ResponseEntity<ScheduleRepeatDto> getScheduleRepeat(@PathVariable("id") long id) {
         Optional<ScheduleRepeatDto> findResponse = scheduleRepeatService.findById(id);
 
         return findResponse.map(repeatDto -> new ResponseEntity<>(repeatDto, HttpStatus.OK)).orElseGet(() -> new ResponseEntity<>(null, HttpStatus.OK));

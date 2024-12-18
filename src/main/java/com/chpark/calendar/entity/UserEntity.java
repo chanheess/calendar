@@ -2,7 +2,10 @@ package com.chpark.calendar.entity;
 
 import com.chpark.calendar.dto.UserDto;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Getter
@@ -14,7 +17,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 public class UserEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private long id;
 
     @Column(name = "email")
     private String email;

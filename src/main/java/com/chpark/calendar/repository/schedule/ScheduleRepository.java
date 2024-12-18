@@ -11,29 +11,29 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface ScheduleRepository extends JpaRepository<ScheduleEntity, Integer> {
+public interface ScheduleRepository extends JpaRepository<ScheduleEntity, Long> {
 
-    List<ScheduleEntity> findByTitleContainingAndUserId(@Param("title")String title, @Param("userId") Integer userId);
+    List<ScheduleEntity> findByTitleContainingAndUserId(@Param("title")String title, @Param("userId") Long userId);
 
     @Query("SELECT s FROM ScheduleEntity s WHERE s.startAt <= :end AND s.endAt >= :start AND s.userId = :userId")
-    List<ScheduleEntity> findSchedules(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end, @Param("userId") Integer userId);
+    List<ScheduleEntity> findSchedules(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end, @Param("userId") Long userId);
 
     @Query("SELECT s FROM ScheduleEntity s WHERE s.repeatId = :repeatId AND s.startAt > :startAt AND s.userId = :userId")
-    List<ScheduleEntity> findFutureRepeatSchedules(@Param("repeatId") Integer repeatId, @Param("startAt") LocalDateTime startAt, @Param("userId") Integer userId);
+    List<ScheduleEntity> findFutureRepeatSchedules(@Param("repeatId") Long repeatId, @Param("startAt") LocalDateTime startAt, @Param("userId") Long userId);
 
     @Query("SELECT s FROM ScheduleEntity s WHERE s.repeatId = :repeatId AND s.startAt >= :startAt AND s.userId = :userId")
-    List<ScheduleEntity> findCurrentAndFutureRepeatSchedules(@Param("repeatId") Integer repeatId, @Param("startAt") LocalDateTime startAt, @Param("userId") Integer userId);
+    List<ScheduleEntity> findCurrentAndFutureRepeatSchedules(@Param("repeatId") Long repeatId, @Param("startAt") LocalDateTime startAt, @Param("userId") Long userId);
 
     @Query("SELECT COUNT(s) = 1 FROM ScheduleEntity s WHERE s.repeatId = :repeatId")
-    boolean isLastRemainingRepeatSchedule(@Param("repeatId") Integer repeatId);
+    boolean isLastRemainingRepeatSchedule(@Param("repeatId") Long repeatId);
 
     @Query("SELECT s.repeatId FROM ScheduleEntity s WHERE s.id = :scheduleId AND s.userId = :userId")
-    Optional<Integer> getRepeatId(@Param("scheduleId") Integer scheduleId, @Param("userId") Integer userId);
+    Optional<Long> getRepeatId(@Param("scheduleId") Long scheduleId, @Param("userId") Long userId);
 
-    List<ScheduleEntity> findByUserId(@Param("userId") Integer userId);
+    List<ScheduleEntity> findByUserId(@Param("userId") Long userId);
 
-    Optional<ScheduleEntity> findByIdAndUserId(@Param("id") Integer id, @Param("userId") Integer userId);
+    Optional<ScheduleEntity> findByIdAndUserId(@Param("id") Long id, @Param("userId") Long userId);
 
-    void deleteByIdAndUserId(@Param("id") Integer id, @Param("userId") Integer userId);
+    void deleteByIdAndUserId(@Param("id") Long id, @Param("userId") Long userId);
 
 }

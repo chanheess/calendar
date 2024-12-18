@@ -119,7 +119,7 @@ class UserServiceUnitTest {
     @Test
     void findUserNickname() {
         //given
-        int userId = 1234;
+        long userId = 1234;
         when(userRepository.findNicknameById(userId)).thenReturn(Optional.of("TestNickname"));
 
         //when
@@ -132,7 +132,7 @@ class UserServiceUnitTest {
     @Test
     void findUserNickname_userIdNotFound() {
         //given
-        int userId = 1234;
+        long userId = 1234;
         when(userRepository.findNicknameById(userId)).thenReturn(Optional.empty());
 
         //when & then
@@ -144,7 +144,7 @@ class UserServiceUnitTest {
     @Test
     void findUserInfo() {
         //given
-        int userId = 1234;
+        long userId = 1234;
         UserEntity userEntity = UserEntity.builder()
                 .email("testing1@naver.com")
                 .nickname("testingKing")
@@ -162,7 +162,7 @@ class UserServiceUnitTest {
     @Test
     void findUserInfo_userIdNotFound() {
         //given
-        int userId = 1234;
+        long userId = 1234;
 
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
@@ -175,7 +175,7 @@ class UserServiceUnitTest {
     @Test
     void updateUserInfo() {
         //given
-        int userId = 1234;
+        long userId = 1234;
         UserEntity userEntity = UserEntity.builder()
                 .email("testing1@naver.com")
                 .nickname("testingKing")
@@ -195,7 +195,7 @@ class UserServiceUnitTest {
     @Test
     void updateUserInfo_sameNickname() {
         //given
-        int userId = 1234;
+        long userId = 1234;
         UserEntity userEntity = UserEntity.builder()
                 .email("testing1@naver.com")
                 .nickname("testingKing")

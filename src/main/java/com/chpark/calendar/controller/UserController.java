@@ -65,7 +65,7 @@ public class UserController {
     @GetMapping("/user/nickname")
     public ResponseEntity<String> getUserNickname(HttpServletRequest request) {
         String token = jwtTokenProvider.resolveToken(request);
-        int userId = jwtTokenProvider.getUserIdFromToken(token);
+        long userId = jwtTokenProvider.getUserIdFromToken(token);
 
         return ResponseEntity.ok().body(userService.findNickname(userId));
     }
@@ -73,7 +73,7 @@ public class UserController {
     @GetMapping("/user/info")
     public ResponseEntity<UserDto.UserInfo> getUserInfo(HttpServletRequest request) {
         String token = jwtTokenProvider.resolveToken(request);
-        int userId = jwtTokenProvider.getUserIdFromToken(token);
+        long userId = jwtTokenProvider.getUserIdFromToken(token);
 
         return ResponseEntity.ok().body(userService.findUserInfo(userId));
     }
@@ -81,7 +81,7 @@ public class UserController {
     @PatchMapping("/user/info")
     public ResponseEntity<String> updateUserInfo(@RequestBody UserDto.UserInfo userInfo, HttpServletRequest request) {
         String token = jwtTokenProvider.resolveToken(request);
-        int userId = jwtTokenProvider.getUserIdFromToken(token);
+        long userId = jwtTokenProvider.getUserIdFromToken(token);
 
         userService.updateUserInfo(userId, userInfo);
         return ResponseEntity.ok().body("Edit successfully");
@@ -90,7 +90,7 @@ public class UserController {
     @PatchMapping("/user/password")
     public ResponseEntity<String> updatePassword(@Validated @RequestBody UserDto.ChangePassword changePassword, HttpServletRequest request) {
         String token = jwtTokenProvider.resolveToken(request);
-        int userId = jwtTokenProvider.getUserIdFromToken(token);
+        long userId = jwtTokenProvider.getUserIdFromToken(token);
 
         userService.updatePassword(userId, changePassword);
         return ResponseEntity.ok().body("Password updated successfully.");

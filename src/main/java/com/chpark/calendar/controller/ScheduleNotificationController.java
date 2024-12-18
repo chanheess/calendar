@@ -27,7 +27,7 @@ public class ScheduleNotificationController {
     }
 
     @PostMapping
-    public ResponseEntity<List<ScheduleNotificationDto>> createNotification(@RequestParam("schedule-id") int scheduleId,
+    public ResponseEntity<List<ScheduleNotificationDto>> createNotification(@RequestParam("schedule-id") long scheduleId,
                                                                             @Validated @RequestBody List<ScheduleNotificationDto> notifications) {
         List<ScheduleNotificationDto> createdNotifications = scheduleNotificationService.create(scheduleId, notifications);
 
@@ -39,14 +39,14 @@ public class ScheduleNotificationController {
     }
 
     @GetMapping
-    public ResponseEntity<List<ScheduleNotificationDto>> getNotifications(@RequestParam("schedule-id") int scheduleId) {
+    public ResponseEntity<List<ScheduleNotificationDto>> getNotifications(@RequestParam("schedule-id") long scheduleId) {
         List<ScheduleNotificationDto> findResponses = scheduleNotificationService.findByScheduleId(scheduleId);
 
         return ResponseEntity.ok().body(findResponses);
     }
 
     @PutMapping
-    public ResponseEntity<List<ScheduleNotificationDto>> updateNotification(@RequestParam("schedule-id") int scheduleId,
+    public ResponseEntity<List<ScheduleNotificationDto>> updateNotification(@RequestParam("schedule-id") long scheduleId,
                                                                             @Validated @RequestBody List<ScheduleNotificationDto> notificationDto) {
         List<ScheduleNotificationDto> responseDto = scheduleNotificationService.update(scheduleId, notificationDto);
 
@@ -54,7 +54,7 @@ public class ScheduleNotificationController {
     }
 
     @DeleteMapping
-    public ResponseEntity<String> deleteByScheduleId(@RequestParam("schedule-id") int scheduleId) {
+    public ResponseEntity<String> deleteByScheduleId(@RequestParam("schedule-id") long scheduleId) {
         scheduleNotificationService.deleteByScheduleId(scheduleId);
 
         return ResponseEntity.ok().body("Notifications deleted successfully");

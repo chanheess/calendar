@@ -19,25 +19,25 @@ public class ScheduleNotificationEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private long id;
 
     @Column(name = "schedule_id", nullable = false)
-    private int scheduleId;
+    private long scheduleId;
 
     @Column(name = "notification_at", nullable = false)
     private LocalDateTime notificationAt;
 
-    public ScheduleNotificationEntity(int scheduleId, LocalDateTime notificationAt) {
+    public ScheduleNotificationEntity(long scheduleId, LocalDateTime notificationAt) {
         this.scheduleId = scheduleId;
         this.notificationAt = notificationAt;
     }
 
-    public ScheduleNotificationEntity(int scheduleId, ScheduleNotificationDto notificationDto) {
+    public ScheduleNotificationEntity(long scheduleId, ScheduleNotificationDto notificationDto) {
         this.scheduleId = scheduleId;
         this.notificationAt = notificationDto.getNotificationAt();
     }
 
-    public static List<ScheduleNotificationEntity> fromScheduleNotificationDtoList(int scheduleId, List<ScheduleNotificationDto> dtoList) {
+    public static List<ScheduleNotificationEntity> fromScheduleNotificationDtoList(long scheduleId, List<ScheduleNotificationDto> dtoList) {
         return dtoList.stream()
                 .map(dto -> new ScheduleNotificationEntity(scheduleId, dto))
                 .collect(Collectors.toList());
