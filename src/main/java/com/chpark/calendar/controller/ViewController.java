@@ -1,8 +1,7 @@
 package com.chpark.calendar.controller;
 
 import com.chpark.calendar.dto.UserDto;
-import com.chpark.calendar.exception.ValidGroup;
-import com.chpark.calendar.service.MailService;
+import com.chpark.calendar.service.RedisService;
 import com.chpark.calendar.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
@@ -17,7 +16,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @RequiredArgsConstructor
 public class ViewController {
     private final UserService userService;
-    private final MailService mailService;
+    private final RedisService redisService;
 
     @GetMapping("/auth/login")
     public String login() {
@@ -34,7 +33,7 @@ public class ViewController {
     public String createUser(@Validated @ModelAttribute UserDto.RegisterRequest userRequest,
                              RedirectAttributes redirectAttributes, Model model) {
         try {
-            mailService.verificationEmail(userRequest.getEmail(), userRequest.getEmailCode());
+            redisService.verificationEmail(userRequest.getEmail(), userRequest.getEmailCode());
             userService.create(userRequest);
         } catch (IllegalArgumentException ex) {
             model.addAttribute("userRequest", userRequest);
