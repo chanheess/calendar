@@ -1,7 +1,10 @@
 /* 기본 바탕색과 폰트 스타일 */
 body {
-    background-color: #f8f9fa;
     font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    background-color: #f9f9f9;
 }
 
 /* 중앙에 정렬된 기본 폼 컨테이너 스타일 */
@@ -60,12 +63,13 @@ button:hover {
 
 /* Header 스타일 */
 .header {
-    max-width: 800px;
+    max-height: 65px;
+    max-width: auto;
     margin: 0 auto;
     display: flex;
     justify-content: flex-end;
-    padding: 10px 10px 5px;
-    background-color: #f1f1f1;
+    padding: 20px;
+    background-color: #fff;
     border-bottom: 1px solid #ddd;
     box-sizing: border-box;
     align-items: center;
@@ -87,3 +91,214 @@ button:hover {
 .header button.logout {
     background-color: #f44336;
 }
+
+/* 알림 버튼 스타일 */
+.notification {
+    position: relative;
+}
+
+.notification button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    position: relative;
+    font-size: 24px;
+}
+
+.notification .badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background-color: red;
+    color: white;
+    border-radius: 50%;
+    padding: 2px 6px;
+    font-size: 12px;
+}
+
+/* 알림 드롭다운 스타일 */
+.notification .dropdown {
+    position: absolute;
+    top: 40px;
+    right: 0;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.3);
+    width: 350px;
+    display: none;
+    z-index: 100;
+    min-height: 150px;
+}
+
+.notification .dropdown h3 {
+    margin: 0;
+    padding: 10px;
+    background-color: #f1f1f1;
+    border-bottom: 1px solid #ddd;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.notification .dropdown p {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.notification .dropdown ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.notification .dropdown ul li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 10px;
+    border-bottom: 1px solid #ddd;
+}
+
+.button-container {
+    display: flex;
+    justify-content: flex-end;
+    gap: 5px;
+    margin-bottom: 10px;
+}
+
+.notification .dropdown ul li:last-child {
+    border-bottom: none;
+}
+
+.notification .dropdown ul li p {
+    margin: 0;
+    font-size: 14px;
+}
+
+.notification .dropdown ul li span {
+    display: block;
+    font-size: 12px;
+    color: #888;
+}
+
+button.accept-button,
+button.decline-button {
+    padding: 4px 8px;
+    font-size: 12px;
+    border-radius: 3px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease-in-out;
+}
+
+/* 수락 및 거절 버튼 스타일 */
+button.accept-button {
+    background-color: #4CAF50;
+    color: white;
+}
+
+button.decline-button {
+    background-color: #f44336;
+    color: white;
+}
+
+button.accept-button:hover,
+button.decline-button:hover {
+    opacity: 0.8;
+}
+
+/* 추가 규칙 - 새 버튼 스타일 */
+button.rename-btn {
+    background-color: #ccc;
+    color: black;
+    font-size: 12px;
+    padding: 6px 10px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease-in-out;
+}
+
+button.rename-btn:hover {
+    background-color: #bbb;
+}
+
+/* 전체 컨테이너 */
+.calendar-container {
+    display: flex;
+    height: 100vh;
+}
+
+/* 사이드바 스타일 */
+.calendar-sidebar {
+    width: 250px;
+    background-color: #f9f9f9;
+    border-right: 1px solid #ddd;
+    padding: 10px;
+    box-sizing: border-box;
+    overflow-y: auto; /* 스크롤 가능하게 */
+}
+
+/* 섹션 스타일 */
+.calendar-section {
+    margin-bottom: 20px;
+}
+
+.calendar-section h3 {
+    font-size: 16px;
+    margin: 0 0 10px 0;
+    color: #333;
+    cursor: pointer; /* 접기/펼치기용 커서 */
+}
+
+
+.calendar-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.calendar-list.hidden {
+    display: none;
+}
+
+.calendar-list li {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.calendar-list li input[type="checkbox"] {
+    margin-right: 10px;
+}
+
+/* 추가 버튼 스타일 */
+#addCalendarButton {
+    display: block;
+    margin: 10px 0;
+    padding: 5px 10px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+#addCalendarButton:hover {
+    background-color: #0056b3;
+}
+
+/* 캘린더 내용 스타일 */
+.calendar-content {
+    flex-grow: 1;
+    padding: 20px;
+    overflow-y: auto; /* 캘린더 내용도 스크롤 가능 */
+}
+
+.toggle-icon {
+    font-size: 12px;
+    margin-left: 5px;
+    cursor: pointer;
+}
+
+

@@ -4,6 +4,7 @@ import com.chpark.calendar.dto.UserDto;
 import com.chpark.calendar.entity.UserEntity;
 import com.chpark.calendar.repository.user.UserRepository;
 import com.chpark.calendar.security.JwtTokenProvider;
+import com.chpark.calendar.service.user.UserService;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

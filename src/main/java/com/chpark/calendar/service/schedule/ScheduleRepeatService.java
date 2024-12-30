@@ -1,15 +1,14 @@
-package com.chpark.calendar.service;
+package com.chpark.calendar.service.schedule;
 
-import com.chpark.calendar.dto.ScheduleRepeatDto;
-import com.chpark.calendar.entity.ScheduleEntity;
-import com.chpark.calendar.entity.ScheduleRepeatEntity;
+import com.chpark.calendar.dto.schedule.ScheduleRepeatDto;
+import com.chpark.calendar.entity.schedule.ScheduleEntity;
+import com.chpark.calendar.entity.schedule.ScheduleRepeatEntity;
 import com.chpark.calendar.exception.CustomException;
 import com.chpark.calendar.repository.schedule.ScheduleBatchRepository;
 import com.chpark.calendar.repository.schedule.ScheduleRepeatRepository;
 import com.chpark.calendar.repository.schedule.ScheduleRepository;
 import com.chpark.calendar.security.JwtTokenProvider;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

@@ -46,4 +46,12 @@ public class GlobalExceptionHandler {
                 HttpStatus.UNAUTHORIZED
         );
     }
+
+    @ExceptionHandler(GroupAuthorityException.class)
+    public ResponseEntity<MessageResponseDto> handleIllegalArgument(GroupAuthorityException ex) {
+        return new ResponseEntity<>(
+                createCustomErrorResponse(ex, HttpStatus.BAD_REQUEST.value()),
+                HttpStatus.BAD_REQUEST
+        );
+    }
 }

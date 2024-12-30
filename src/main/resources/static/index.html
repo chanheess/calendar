@@ -2,10 +2,11 @@
 <html lang='en'>
 <head>
     <meta charset='utf-8'/>
-    <title>FullCalendar</title>
+    <title>chcalendar</title>
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js'></script>
-    <!-- 브라우저가 favicon.ico를 요청하지 않도록 -->
     <link rel="stylesheet" href="/css/style.css">
+
+    <!-- 브라우저가 favicon.ico를 요청하지 않도록 -->
     <link rel="icon" href="data:,">
     <style>
         /* 캘린더 스타일 */
@@ -176,6 +177,14 @@
         var updateSingleEvent = document.getElementById('update-single-event');
         var updateAllEvents = document.getElementById('update-all-events');
 
+        const notificationButton = document.getElementById("notificationButton");
+        const notificationDropdown = document.getElementById("notificationDropdown");
+        const notificationList = document.getElementById("notificationList");
+        const notificationCount = document.getElementById("notificationCount");
+
+        var myCalendars = {};
+        var groupCalendars = {};
+
         let isEditMode = false;
         var currentScheduleId = null;
         let selectedEvent;
@@ -339,7 +348,7 @@
             popupNewEvent.classList.add('hidden');
             popupEditEvent.classList.remove('hidden');
 
-            const notificationsFetch = fetch(`/notifications?schedule-id=${event.id}`, {
+            const scheduleNotificationsFetch = fetch(`/schedule-notifications?schedule-id=${event.id}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json'
@@ -355,24 +364,24 @@
                 credentials: 'include'
             }).then(response => response.json()) : Promise.resolve(null);
 
-            Promise.all([notificationsFetch, repeatDetailsFetch])
-                .then(([notifications, repeatDetails]) => {
+            Promise.all([scheduleNotificationsFetch, repeatDetailsFetch])
+                .then(([scheduleNotifications, repeatDetails]) => {
                     // Notifications Display
                     popupContent.innerHTML += '<p><strong>Notifications:</strong></p>';
-                    if (notifications.length > 0) {
-                        const notificationList = document.createElement('ul');
-                        notifications.forEach((notification) => {
+                    if (scheduleNotifications.length > 0) {
+                        const scheduleNotificationList = document.createElement('ul');
+                        scheduleNotifications.forEach((notification) => {
                             const notificationTime = convertToNotificationAt(event.startAt, notification.notificationAt);
                             const notificationItem = document.createElement('li');
                             notificationItem.textContent = `${notificationTime.value} ${notificationTime.type}`;
-                            notificationList.appendChild(notificationItem);
+                            scheduleNotificationList.appendChild(notificationItem);
 
                             // 알림 데이터를 initialScheduleData에 저장
                             initialScheduleData.notificationDto.push({ notificationAt: notification.notificationAt });
                         });
-                        popupContent.appendChild(notificationList);
+                        popupContent.appendChild(scheduleNotificationList);
                     } else {
-                        popupContent.innerHTML += '<p>No notifications found.</p>';
+                        popupContent.innerHTML += '<p>No schedule notifications found.</p>';
                     }
 
                     // Repeat Details Display
@@ -398,8 +407,8 @@
                     // 폼 데이터 채우기 (Edit Mode)
                     // Notifications
                     scheduleNotificationList.innerHTML = ''; // 기존 알림 목록 초기화
-                    if (notifications.length > 0) {
-                        notifications.forEach((notification) => {
+                    if (scheduleNotifications.length > 0) {
+                        scheduleNotifications.forEach((notification) => {
                             const notificationTime = convertToNotificationAt(event.startAt, notification.notificationAt);
                             addNotificationRow(notificationTime.value, notificationTime.type);
                         });
@@ -792,6 +801,169 @@
         async function initDefaultSetting() {
             await checkLoginStatus();
             displayUserNickname();
+            fetchNotifications();
+            getCalendarList();
+        }
+
+        async function fetchNotifications() {
+            try {
+                const response = await fetch('/notifications');
+                const notifications = await response.json();
+
+                const notificationList = document.getElementById('notificationList');
+                const noNotificationsMessage = document.getElementById('noNotificationsMessage');
+                const notificationCount = document.getElementById('notificationCount');
+
+                notificationList.innerHTML = ''; // 기존 알림 초기화
+
+                if (notifications.length === 0) {
+                    noNotificationsMessage.classList.add('visible');
+                    noNotificationsMessage.classList.remove('hidden');
+                    notificationCount.style.display = 'none';
+                } else {
+                    noNotificationsMessage.classList.add('hidden');
+                    noNotificationsMessage.classList.remove('visible');
+                    notificationCount.style.display = 'inline-block';
+                    notificationCount.textContent = notifications.length;
+
+                    notifications.forEach(notification => {
+                        const listItem = document.createElement('li');
+                        const message = document.createElement('p');
+                        message.textContent = notification.message;
+                        listItem.appendChild(message);
+
+                        // 수락/거절 버튼이 필요한 경우
+                        if (notification.type === 'INVITE') {
+                            const buttonContainer = document.createElement('div'); // 버튼 컨테이너 생성
+                            buttonContainer.className = 'button-container'; // 스타일 적용
+
+                            const acceptButton = document.createElement('button');
+                            acceptButton.textContent = '수락';
+                            acceptButton.className = 'accept-button';
+                            acceptButton.addEventListener('click', () => handleNotificationAccept(notification, true));
+
+                            const declineButton = document.createElement('button');
+                            declineButton.textContent = '거절';
+                            declineButton.className = 'decline-button';
+                            declineButton.addEventListener('click', () => handleNotificationReject(notification, false));
+
+                            // 버튼을 컨테이너에 추가
+                            buttonContainer.appendChild(acceptButton);
+                            buttonContainer.appendChild(declineButton);
+
+                            // 버튼 컨테이너를 리스트 아이템에 추가
+                            listItem.appendChild(buttonContainer);
+                        }
+
+                        notificationList.appendChild(listItem);
+                    });
+                }
+            } catch (error) {
+                console.error("Error fetching notifications:", error);
+            }
+        }
+
+        async function handleNotificationAccept(notification) {
+            try {
+                const response = await fetch(`/notifications/accept`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(notification),
+                });
+
+                if (response.ok) {
+                    fetchNotifications(); // 알림 목록 갱신
+                    //TODO: 성공했다는 피드백 필요할듯
+                }
+            } catch (error) {
+                console.error(`Error processing notification ${notificationId}:`, error);
+            }
+        }
+
+        async function handleNotificationReject(notification) {
+            try {
+                const response = await fetch(`/notifications/reject`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(notification),
+                });
+
+                if (response.ok) {
+                    fetchNotifications(); // 알림 목록 갱신
+                    //TODO: 거절했다는 피드백 필요할듯
+                }
+            } catch (error) {
+                console.error(`Error processing notification ${notificationId}:`, error);
+            }
+        }
+
+        async function getCalendarList() {
+            try {
+                const response = await fetch(`/calendars`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    const myCalendars = data.calendarInfo || [];
+                    const groupCalendars = data.groupInfo || [];
+
+                    console.log(myCalendars);
+                    console.log(groupCalendars);
+
+                    renderCalendars(myCalendars, 'myCalendarList');
+                    renderCalendars(groupCalendars, 'groupCalendarList', true);
+                }
+            } catch (error) {
+                console.error("Failed to fetch calendar data:", error);
+            }
+        }
+
+        function renderCalendars(calendars, listElementId, isGroup = false) {
+            const calendarListElement = document.getElementById(listElementId);
+            calendarListElement.innerHTML = ''; // 초기화
+
+            calendars.forEach(calendar => {
+                const listItem = document.createElement('li');
+                listItem.innerHTML = `
+                    <label>
+                        <input type="checkbox" checked ${isGroup ? `data-id="${calendar.id}"` : ''} class="calendar-checkbox" />
+                        <span style="color: gray">${calendar.title}</span>
+                    </label>
+                `;
+
+                calendarListElement.appendChild(listItem);
+            });
+
+            // 그룹 캘린더에만 이벤트 리스너 추가
+            if (isGroup) {
+                const checkboxes = document.querySelectorAll(`#${listElementId} .calendar-checkbox`);
+                checkboxes.forEach(checkbox => {
+                    checkbox.addEventListener('change', (event) => {
+                        const calendarId = event.target.dataset.id;
+                        const isChecked = event.target.checked;
+
+                        toggleCalendar(calendarId, isChecked);
+                    });
+                });
+            }
+        }
+
+        function toggleCalendar(calendarId, isChecked) {
+            if (isChecked) {
+                console.log(`Calendar ${calendarId} is ON`);
+                // 캘린더를 활성화하는 로직 추가
+            } else {
+                console.log(`Calendar ${calendarId} is OFF`);
+                // 캘린더를 비활성화하는 로직 추가
+            }
         }
 
         document.getElementById('logoutButton').addEventListener('click', logout);
@@ -882,17 +1054,86 @@
                 }
             }
         });
+
+        notificationButton.addEventListener("click", () => {
+            if (notificationDropdown.style.display === "none" || !notificationDropdown.style.display) {
+                notificationDropdown.style.display = "block";
+            } else {
+                notificationDropdown.style.display = "none";
+            }
+        });
+
+        // 클릭한 곳이 알림창 외부라면 닫기
+        document.addEventListener("click", (event) => {
+            if (!notificationButton.contains(event.target) && !notificationDropdown.contains(event.target)) {
+                notificationDropdown.style.display = "none";
+            }
+        });
+
+        document.querySelectorAll(".toggle-section").forEach(toggle => {
+            toggle.addEventListener("click", () => {
+                const target = document.getElementById(toggle.dataset.target);
+                const toggleIcon = toggle.querySelector(".toggle-icon");
+
+                if (target.classList.contains("hidden")) {
+                    target.classList.remove("hidden");
+                    toggleIcon.textContent = "▼"; // 열림 상태
+                } else {
+                    target.classList.add("hidden");
+                    toggleIcon.textContent = "▲"; // 닫힘 상태
+                }
+            });
+        });
+
     });
 </script>
 <body>
 <!-- 헤더 추가 -->
 <div class="header" id="header">
+<!--    <a class="navbar-brand" href="https://chcalendar.site">chcalendar</a>-->
     <span id="userNickname"></span>
     <button id="userProfileButton">Profile</button>
     <button id="logoutButton" class="logout-button logout">Logout</button>
+    <div class="notification">
+        <button id="notificationButton">
+            <span class="icon">🔔</span>
+            <span class="badge" id="notificationCount" style="display: none;">0</span>
+        </button>
+        <div class="dropdown" id="notificationDropdown">
+            <h3>Notifications</h3>
+            <ul id="notificationList">
+                <!-- 알림 항목이 동적으로 추가됩니다. -->
+            </ul>
+            <p id="noNotificationsMessage" style="color: gray;">알림이 없습니다.</p>
+        </div>
+    </div>
 </div>
 
-<div id='calendar'></div>
+<div class="calendar-container">
+    <div class="calendar-sidebar">
+        <div class="calendar-section">
+            <h3 class="toggle-section" data-target="myCalendarList">
+                내 캘린더 <span class="toggle-icon">▼</span>
+            </h3>
+            <ul id="myCalendarList" class="calendar-list">
+                <!-- 동적으로 추가될 항목 -->
+            </ul>
+        </div>
+        <div class="calendar-section">
+            <h3 class="toggle-section" data-target="groupCalendarList">
+                다른 캘린더 <span class="toggle-icon">▼</span>
+            </h3>
+            <ul id="groupCalendarList" class="calendar-list">
+                <!-- 동적으로 추가될 항목 -->
+            </ul>
+            <button id="addCalendarButton">+</button>
+        </div>
+    </div>
+    <div class="calendar-content">
+        <!-- 캘린더 내용 -->
+        <div id="calendar"></div>
+    </div>
+</div>
 
 <div id='popup-overlay' class="popup-overlay"></div>
 <div id='popup' class="popup">

@@ -1,6 +1,6 @@
-package com.chpark.calendar.entity;
+package com.chpark.calendar.entity.schedule;
 
-import com.chpark.calendar.dto.ScheduleNotificationDto;
+import com.chpark.calendar.dto.schedule.ScheduleNotificationDto;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

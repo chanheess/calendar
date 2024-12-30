@@ -1,6 +1,6 @@
-package com.chpark.calendar.dto;
+package com.chpark.calendar.dto.schedule;
 
-import com.chpark.calendar.entity.ScheduleEntity;
+import com.chpark.calendar.entity.schedule.ScheduleEntity;
 import com.chpark.calendar.exception.ValidGroup;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;

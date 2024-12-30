@@ -2,13 +2,11 @@ package com.chpark.calendar.controller;
 
 import com.chpark.calendar.dto.JwtAuthenticationResponseDto;
 import com.chpark.calendar.dto.UserDto;
-import com.chpark.calendar.dto.MessageResponseDto;
 import com.chpark.calendar.security.JwtTokenProvider;
-import com.chpark.calendar.service.UserService;
+import com.chpark.calendar.service.user.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -95,4 +93,6 @@ public class UserController {
         userService.updatePassword(userId, changePassword);
         return ResponseEntity.ok().body("Password updated successfully.");
     }
+
+
 }

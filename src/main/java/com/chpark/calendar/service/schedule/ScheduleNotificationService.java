@@ -1,7 +1,7 @@
-package com.chpark.calendar.service;
+package com.chpark.calendar.service.schedule;
 
-import com.chpark.calendar.dto.ScheduleNotificationDto;
-import com.chpark.calendar.entity.ScheduleNotificationEntity;
+import com.chpark.calendar.dto.schedule.ScheduleNotificationDto;
+import com.chpark.calendar.entity.schedule.ScheduleNotificationEntity;
 import com.chpark.calendar.repository.schedule.ScheduleNotificationRepository;
 import com.chpark.calendar.repository.schedule.ScheduleRepository;
 import jakarta.persistence.EntityNotFoundException;

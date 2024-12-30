@@ -1,10 +1,10 @@
-package com.chpark.calendar.service;
+package com.chpark.calendar.service.schedule;
 
-import com.chpark.calendar.dto.ScheduleDto;
-import com.chpark.calendar.dto.ScheduleNotificationDto;
-import com.chpark.calendar.dto.ScheduleRepeatDto;
-import com.chpark.calendar.entity.ScheduleEntity;
-import com.chpark.calendar.entity.ScheduleRepeatEntity;
+import com.chpark.calendar.dto.schedule.ScheduleDto;
+import com.chpark.calendar.dto.schedule.ScheduleNotificationDto;
+import com.chpark.calendar.dto.schedule.ScheduleRepeatDto;
+import com.chpark.calendar.entity.schedule.ScheduleEntity;
+import com.chpark.calendar.entity.schedule.ScheduleRepeatEntity;
 import com.chpark.calendar.exception.CustomException;
 import com.chpark.calendar.repository.schedule.ScheduleNotificationRepository;
 import com.chpark.calendar.repository.schedule.ScheduleRepeatRepository;

@@ -1,22 +1,17 @@
-package com.chpark.calendar.controller;
+package com.chpark.calendar.controller.schedule;
 
-import com.chpark.calendar.dto.ScheduleNotificationDto;
-import com.chpark.calendar.exception.ValidGroup;
-import com.chpark.calendar.service.ScheduleNotificationService;
-import com.chpark.calendar.service.ScheduleService;
-import jakarta.validation.Valid;
+import com.chpark.calendar.dto.schedule.ScheduleNotificationDto;
+import com.chpark.calendar.service.schedule.ScheduleNotificationService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.Assert;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
-@RequestMapping("/notifications")
+@RequestMapping("/schedule-notifications")
 @Slf4j
 public class ScheduleNotificationController {
 

@@ -1,10 +1,10 @@
-package com.chpark.calendar.controller;
+package com.chpark.calendar.controller.schedule;
 
-import com.chpark.calendar.dto.ScheduleDto;
+import com.chpark.calendar.dto.schedule.ScheduleDto;
 import com.chpark.calendar.enumClass.ScheduleRepeatScope;
 import com.chpark.calendar.exception.ValidGroup;
 import com.chpark.calendar.security.JwtTokenProvider;
-import com.chpark.calendar.service.ScheduleService;
+import com.chpark.calendar.service.schedule.ScheduleService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;

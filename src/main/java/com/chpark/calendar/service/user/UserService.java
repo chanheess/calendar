@@ -1,9 +1,12 @@
-package com.chpark.calendar.service;
+package com.chpark.calendar.service.user;
 
 import com.chpark.calendar.dto.UserDto;
 import com.chpark.calendar.entity.UserEntity;
+import com.chpark.calendar.enumClass.CalendarCategory;
+import com.chpark.calendar.repository.CalendarInfoRepository;
 import com.chpark.calendar.repository.user.UserRepository;
 import com.chpark.calendar.security.JwtTokenProvider;
+import com.chpark.calendar.service.CalendarService;
 import com.chpark.calendar.utility.ScheduleUtility;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class UserService {
     private final UserRepository userRepository;
+    private final CalendarService calendarService;
     private final PasswordEncoder passwordEncoder;
 
     private final AuthenticationManager authenticationManager;
@@ -37,7 +41,10 @@ public class UserService {
 
         ScheduleUtility.validateEmail(requestUser.getEmail());
 
-        userRepository.save(UserEntity.createWithEncodedPassword(requestUser, passwordEncoder));
+        UserEntity user = userRepository.save(UserEntity.createWithEncodedPassword(requestUser, passwordEncoder));
+
+        //기본 캘린더 생성
+        calendarService.create(user.getId(), "내 캘린더", CalendarCategory.USER);
     }
 
     @Transactional
@@ -60,7 +67,6 @@ public class UserService {
             throw new IllegalArgumentException("Invalid email or password.");
         }
     }
-
 
     @Transactional(readOnly = true)
     public String findNickname(long userId) {

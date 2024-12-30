@@ -1,4 +1,4 @@
-package com.chpark.calendar.service;
+package com.chpark.calendar.service.user;
 
 import com.chpark.calendar.entity.UserEntity;
 import com.chpark.calendar.repository.user.UserRepository;

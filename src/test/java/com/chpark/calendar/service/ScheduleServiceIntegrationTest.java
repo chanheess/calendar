@@ -2,6 +2,7 @@ package com.chpark.calendar.service;
 
 import com.chpark.calendar.repository.schedule.ScheduleRepository;
 import com.chpark.calendar.security.JwtTokenProvider;
+import com.chpark.calendar.service.schedule.ScheduleService;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;

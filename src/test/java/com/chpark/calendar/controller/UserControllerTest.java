@@ -3,7 +3,7 @@ package com.chpark.calendar.controller;
 import com.chpark.calendar.dto.UserDto;
 import com.chpark.calendar.security.JwtAuthenticationFilter;
 import com.chpark.calendar.security.JwtTokenProvider;
-import com.chpark.calendar.service.UserService;
+import com.chpark.calendar.service.user.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import org.junit.jupiter.api.BeforeEach;

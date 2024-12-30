@@ -1,18 +1,15 @@
-package com.chpark.calendar.controller;
+package com.chpark.calendar.controller.schedule;
 
-import com.chpark.calendar.dto.ScheduleRepeatDto;
-import com.chpark.calendar.exception.ValidGroup;
+import com.chpark.calendar.dto.schedule.ScheduleRepeatDto;
 import com.chpark.calendar.security.JwtTokenProvider;
-import com.chpark.calendar.service.ScheduleRepeatService;
+import com.chpark.calendar.service.schedule.ScheduleRepeatService;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.sql.SQLException;
 import java.util.Optional;
 
 @RestController

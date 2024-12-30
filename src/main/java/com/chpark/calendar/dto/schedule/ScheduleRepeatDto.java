@@ -1,6 +1,6 @@
-package com.chpark.calendar.dto;
+package com.chpark.calendar.dto.schedule;
 
-import com.chpark.calendar.entity.ScheduleRepeatEntity;
+import com.chpark.calendar.entity.schedule.ScheduleRepeatEntity;
 import com.chpark.calendar.enumClass.ScheduleRepeatType;
 import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotNull;

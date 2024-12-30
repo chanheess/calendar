@@ -3,6 +3,7 @@ package com.chpark.calendar.service;
 import com.chpark.calendar.dto.UserDto;
 import com.chpark.calendar.entity.UserEntity;
 import com.chpark.calendar.repository.user.UserRepository;
+import com.chpark.calendar.service.user.UserService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;

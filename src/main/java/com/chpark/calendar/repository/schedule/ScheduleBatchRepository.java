@@ -1,8 +1,8 @@
 package com.chpark.calendar.repository.schedule;
 
-import com.chpark.calendar.entity.ScheduleEntity;
-import com.chpark.calendar.entity.ScheduleNotificationEntity;
-import com.chpark.calendar.entity.ScheduleRepeatEntity;
+import com.chpark.calendar.entity.schedule.ScheduleEntity;
+import com.chpark.calendar.entity.schedule.ScheduleNotificationEntity;
+import com.chpark.calendar.entity.schedule.ScheduleRepeatEntity;
 import com.chpark.calendar.utility.ScheduleUtility;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

@@ -1,6 +1,6 @@
 package com.chpark.calendar.repository.schedule;
 
-import com.chpark.calendar.entity.ScheduleRepeatEntity;
+import com.chpark.calendar.entity.schedule.ScheduleRepeatEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

@@ -1,6 +1,6 @@
-package com.chpark.calendar.entity;
+package com.chpark.calendar.entity.schedule;
 
-import com.chpark.calendar.dto.ScheduleRepeatDto;
+import com.chpark.calendar.dto.schedule.ScheduleRepeatDto;
 import com.chpark.calendar.enumClass.ScheduleRepeatType;
 import jakarta.persistence.*;
 import lombok.Getter;
