@@ -11,6 +11,6 @@ import java.util.List;
 @AllArgsConstructor
 public class CalendarListDto {
 
-    List<CalendarInfoDto> groupInfo;
-    List<CalendarInfoDto> calendarInfo;
+    List<CalendarInfoDto.Response> groupInfo;
+    List<CalendarInfoDto.Response> calendarInfo;
 }

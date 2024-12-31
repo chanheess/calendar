@@ -2,6 +2,8 @@ package com.chpark.chcalendar.dto.calendar;
 
 import com.chpark.chcalendar.entity.CalendarInfoEntity;
 import com.chpark.chcalendar.entity.GroupUserEntity;
+import com.chpark.chcalendar.enumClass.CalendarCategory;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -12,40 +14,57 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Getter
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 public class CalendarInfoDto {
 
-    long id;
-    
     @Size(min = 1, max = 20)
-    String title;
+    private String title;
 
-    public CalendarInfoDto(CalendarInfoEntity entity) {
-        this.id = entity.getId();
-        this.title = entity.getTitle();
+    @Getter
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class Request extends CalendarInfoDto {
+
+        @NotNull
+        private CalendarCategory category;
     }
 
-    public CalendarInfoDto(GroupUserEntity entity) {
-        this.id = entity.getId();
-        this.title = entity.getGroupTitle();
-    }
+    @Getter
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class Response extends CalendarInfoDto {
 
-    public static List<CalendarInfoDto> fromCalendarEntityList(List<CalendarInfoEntity> entityList) {
-        if (entityList == null) {
-            return Collections.emptyList();
+        private long id;
+
+        public Response(CalendarInfoEntity entity) {
+            super(entity.getTitle());
+            this.id = entity.getId();
         }
-        return entityList.stream()
-                .map(CalendarInfoDto::new)
-                .collect(Collectors.toList());
+
+        public Response(GroupUserEntity entity) {
+            super(entity.getGroupTitle());
+            this.id = entity.getId();
+        }
+
+        public static List<CalendarInfoDto.Response> fromCalendarEntityList(List<CalendarInfoEntity> entityList) {
+            if (entityList == null) {
+                return Collections.emptyList();
+            }
+            return entityList.stream()
+                    .map(CalendarInfoDto.Response::new)
+                    .collect(Collectors.toList());
+        }
+
+        public static List<CalendarInfoDto.Response> fromGroupUserEntityList(List<GroupUserEntity> entityList) {
+            if (entityList == null) {
+                return Collections.emptyList();
+            }
+            return entityList.stream()
+                    .map(CalendarInfoDto.Response::new)
+                    .collect(Collectors.toList());
+        }
     }
 
-    public static List<CalendarInfoDto> fromGroupUserEntityList(List<GroupUserEntity> entityList) {
-        if (entityList == null) {
-            return Collections.emptyList();
-        }
-        return entityList.stream()
-                .map(CalendarInfoDto::new)
-                .collect(Collectors.toList());
-    }
+
 }

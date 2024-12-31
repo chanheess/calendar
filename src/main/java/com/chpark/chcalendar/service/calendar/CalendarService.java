@@ -6,6 +6,6 @@ import java.util.List;
 
 
 public interface CalendarService {
-    CalendarInfoDto create(long userId, String title);
-    List<CalendarInfoDto> findCalendarList(long userId);
+    CalendarInfoDto.Response create(long userId, String title);
+    List<CalendarInfoDto.Response> findCalendarList(long userId);
 }

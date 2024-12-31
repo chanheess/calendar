@@ -20,7 +20,7 @@ public class GroupCalendarService implements CalendarService {
     private final GroupUserService groupUserService;
 
     @Override
-    public CalendarInfoDto create(long userId, String title) {
+    public CalendarInfoDto.Response create(long userId, String title) {
 
         int maxAdminCount = 10;
 
@@ -39,18 +39,18 @@ public class GroupCalendarService implements CalendarService {
                 GroupAuthority.ADMIN)
         );
 
-        return new CalendarInfoDto(groupEntity);
+        return new CalendarInfoDto.Response(groupEntity);
     }
 
     @Override
-    public List<CalendarInfoDto> findCalendarList(long userId) {
+    public List<CalendarInfoDto.Response> findCalendarList(long userId) {
 
         return groupUserService.findMyGroup(userId);
     }
 
-    public List<CalendarInfoDto> findGroup(String title) {
+    public List<CalendarInfoDto.Response> findGroup(String title) {
         List<CalendarInfoEntity> groupEntity = calendarInfoRepository.findByTitleAndCategory(title, CalendarCategory.GROUP);
 
-        return CalendarInfoDto.fromCalendarEntityList(groupEntity);
+        return CalendarInfoDto.Response.fromCalendarEntityList(groupEntity);
     }
 }

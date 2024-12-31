@@ -6,6 +6,7 @@ import com.chpark.chcalendar.exception.ValidGroup;
 import com.chpark.chcalendar.security.JwtTokenProvider;
 import com.chpark.chcalendar.service.schedule.ScheduleService;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +20,7 @@ import java.util.List;
 import java.util.Optional;
 
 
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/schedules")
 @Slf4j
@@ -26,11 +28,6 @@ public class ScheduleController {
 
     private final ScheduleService scheduleService;
     private final JwtTokenProvider jwtTokenProvider;
-
-    public ScheduleController(ScheduleService scheduleService, JwtTokenProvider jwtTokenProvider) {
-        this.scheduleService = scheduleService;
-        this.jwtTokenProvider = jwtTokenProvider;
-    }
 
     @GetMapping
     public ResponseEntity<List<ScheduleDto>> getSchedulesByTitle(@RequestParam(value = "title", required = false) String title,

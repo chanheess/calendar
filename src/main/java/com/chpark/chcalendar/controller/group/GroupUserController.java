@@ -23,12 +23,12 @@ public class GroupUserController {
     private final JwtTokenProvider jwtTokenProvider;
 
     @GetMapping("/groups")
-    public ResponseEntity<List<CalendarInfoDto>> findMyGroups(HttpServletRequest request) {
+    public ResponseEntity<List<CalendarInfoDto.Response>> findMyGroups(HttpServletRequest request) {
 
         String token = jwtTokenProvider.resolveToken(request);
         long userId = jwtTokenProvider.getUserIdFromToken(token);
 
-        List<CalendarInfoDto> result = groupUserService.findMyGroup(userId);
+        List<CalendarInfoDto.Response> result = groupUserService.findMyGroup(userId);
 
         if(result.isEmpty()) {
             return ResponseEntity.noContent().build();

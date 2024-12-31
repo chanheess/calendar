@@ -38,10 +38,10 @@ public class GroupUserService {
         );
     }
 
-    public List<CalendarInfoDto> findMyGroup(long userId) {
+    public List<CalendarInfoDto.Response> findMyGroup(long userId) {
         List<GroupUserEntity> result = groupUserRepository.findByUserId(userId);
 
-        return CalendarInfoDto.fromGroupUserEntityList(result);
+        return CalendarInfoDto.Response.fromGroupUserEntityList(result);
     }
 
     public GroupUserDto addUser(long userId, long groupId) {

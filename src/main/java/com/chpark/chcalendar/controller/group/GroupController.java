@@ -31,9 +31,9 @@ public class GroupController {
     }
 
     @GetMapping("/groups/{title}")
-    public ResponseEntity<List<CalendarInfoDto>> findGroup(@NotNull @PathVariable("title") String title) {
+    public ResponseEntity<List<CalendarInfoDto.Response>> findGroup(@NotNull @PathVariable("title") String title) {
 
-        List<CalendarInfoDto> result = groupCalendarService.findGroup(title);
+        List<CalendarInfoDto.Response> result = groupCalendarService.findGroup(title);
 
         if(result.isEmpty()) {
             return ResponseEntity.noContent().build();

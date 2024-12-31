@@ -95,6 +95,10 @@
             margin-top: 5px;
         }
 
+        .popup-add-notification {
+            background-color: grey;
+        }
+
         .popup-close {
             background-color: #f44336;
             margin-left: 10px;
@@ -133,11 +137,20 @@
             font-size: 12px;
             line-height: 1;
             border-radius: 50%; /* 원형 버튼 */
+            background-color: grey;
         }
     </style>
 </head>
 <script>
     document.addEventListener('DOMContentLoaded', async function() {
+        async function initDefaultSetting() {
+            await checkLoginStatus();
+            displayUserNickname();
+            fetchNotifications();
+            getCalendarList('USER', 'myCalendarList'); // 개인 캘린더
+            getCalendarList('GROUP', 'groupCalendarList'); // 그룹 캘린더
+        }
+
         initDefaultSetting();
 
         var calendarEl = document.getElementById('calendar');
@@ -181,9 +194,6 @@
         const notificationDropdown = document.getElementById("notificationDropdown");
         const notificationList = document.getElementById("notificationList");
         const notificationCount = document.getElementById("notificationCount");
-
-        var myCalendars = {};
-        var groupCalendars = {};
 
         let isEditMode = false;
         var currentScheduleId = null;
@@ -798,16 +808,12 @@
             window.location.href = '/user/profile';
         }
 
-        async function initDefaultSetting() {
-            await checkLoginStatus();
-            displayUserNickname();
-            fetchNotifications();
-            getCalendarList();
-        }
-
         async function fetchNotifications() {
             try {
-                const response = await fetch('/notifications');
+                const response = await fetch('/notifications',{
+                    method: 'GET',
+                    credentials: 'include',
+                });
                 const notifications = await response.json();
 
                 const notificationList = document.getElementById('notificationList');
@@ -867,6 +873,7 @@
             try {
                 const response = await fetch(`/notifications/accept`, {
                     method: 'POST',
+                    credentials: 'include',
                     headers: {
                         'Content-Type': 'application/json',
                     },
@@ -886,6 +893,7 @@
             try {
                 const response = await fetch(`/notifications/reject`, {
                     method: 'DELETE',
+                    credentials: 'include',
                     headers: {
                         'Content-Type': 'application/json',
                     },
@@ -901,59 +909,61 @@
             }
         }
 
-        async function getCalendarList() {
+        async function getCalendarList(category, listElementId) {
             try {
-                const response = await fetch(`/calendars`, {
+                // 카테고리를 쿼리 파라미터로 전달
+                const response = await fetch(`/calendars?category=${category}`, {
                     method: 'GET',
+                    credentials: 'include',
                     headers: {
                         'Content-Type': 'application/json',
                     }
                 });
 
                 if (response.ok) {
-                    const data = await response.json();
-                    const myCalendars = data.calendarInfo || [];
-                    const groupCalendars = data.groupInfo || [];
+                    const calendars = await response.json();
+                    console.log(`Calendars for category ${category}:`, calendars);
 
-                    console.log(myCalendars);
-                    console.log(groupCalendars);
-
-                    renderCalendars(myCalendars, 'myCalendarList');
-                    renderCalendars(groupCalendars, 'groupCalendarList', true);
+                    // 특정 리스트 요소에 캘린더 렌더링
+                    renderCalendars(calendars, listElementId);
+                } else {
+                    console.error(`Failed to fetch calendars for category ${category}`);
                 }
             } catch (error) {
-                console.error("Failed to fetch calendar data:", error);
+                console.error(`Error fetching calendars for category ${category}:`, error);
             }
         }
 
-        function renderCalendars(calendars, listElementId, isGroup = false) {
+        function renderCalendars(calendars, listElementId) {
             const calendarListElement = document.getElementById(listElementId);
             calendarListElement.innerHTML = ''; // 초기화
 
             calendars.forEach(calendar => {
-                const listItem = document.createElement('li');
-                listItem.innerHTML = `
-                    <label>
-                        <input type="checkbox" checked ${isGroup ? `data-id="${calendar.id}"` : ''} class="calendar-checkbox" />
-                        <span style="color: gray">${calendar.title}</span>
-                    </label>
-                `;
-
-                calendarListElement.appendChild(listItem);
+                addCalendarToList(calendar, listElementId); // 단일 캘린더 추가
             });
+        }
 
-            // 그룹 캘린더에만 이벤트 리스너 추가
-            if (isGroup) {
-                const checkboxes = document.querySelectorAll(`#${listElementId} .calendar-checkbox`);
-                checkboxes.forEach(checkbox => {
-                    checkbox.addEventListener('change', (event) => {
-                        const calendarId = event.target.dataset.id;
-                        const isChecked = event.target.checked;
+        function addCalendarToList(calendar, listElementId) {
+            const calendarListElement = document.getElementById(listElementId);
 
-                        toggleCalendar(calendarId, isChecked);
-                    });
-                });
-            }
+            const listItem = document.createElement('li');
+            listItem.innerHTML = `
+                <label>
+                    <input type="checkbox" checked data-id="${calendar.id}" class="calendar-checkbox" />
+                    <span style="color: gray">${calendar.title}</span>
+                </label>
+            `;
+
+            calendarListElement.appendChild(listItem);
+
+            // 체크박스에 이벤트 리스너 추가
+            const checkbox = listItem.querySelector('.calendar-checkbox');
+            checkbox.addEventListener('change', (event) => {
+                const calendarId = event.target.dataset.id;
+                const isChecked = event.target.checked;
+
+                toggleCalendar(calendarId, isChecked);
+            });
         }
 
         function toggleCalendar(calendarId, isChecked) {
@@ -965,6 +975,8 @@
                 // 캘린더를 비활성화하는 로직 추가
             }
         }
+
+
 
         document.getElementById('logoutButton').addEventListener('click', logout);
         document.getElementById('userProfileButton').addEventListener('click', getUserProfile);
@@ -1085,6 +1097,75 @@
             });
         });
 
+        // 모달 요소
+        const modal = document.getElementById('createCalendarModal');
+        const addCalendarButton = document.getElementById('addCalendarButton');
+        const closeModalButton = document.getElementById('closeModalButton');
+
+        // 모달 열기
+        addCalendarButton.addEventListener('click', () => {
+            modal.style.display = 'flex';
+        });
+
+        // 모달 닫기
+        closeModalButton.addEventListener('click', () => {
+            modal.style.display = 'none';
+        });
+
+        // 배경 클릭 시 닫기
+        window.addEventListener('click', (event) => {
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        });
+
+        // 생성 버튼 클릭 이벤트 (예: API 호출)
+        const createCalendarButton = document.getElementById('createCalendarButton');
+        createCalendarButton.addEventListener('click', () => {
+            const title = document.getElementById('calendarTitle').value;
+            const type = document.getElementById('calendarType').value;
+
+            if (title) {
+                addCalendar(title, type);
+            } else {
+                alert('캘린더 제목을 입력해주세요.');
+            }
+        });
+
+        async function addCalendar(title, type) {
+            try {
+                const response = await fetch('/calendars', {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        category: type,
+                        title: title
+                    })
+                });
+
+                if (response.ok) {
+                    const calendarInfo = await response.json();
+                    alert("캘린더가 추가되었습니다.");
+                    console.log('캘린더 정보:', calendarInfo);
+                    modal.style.display = 'none';
+
+                    const targetListId = type === 'USER' ? 'myCalendarList' : 'groupCalendarList';
+
+                    addCalendarToList(calendarInfo, targetListId);
+                } else {
+                    const errorResponse = await response.json();
+                    alert(`오류 발생: ${errorResponse.message || response.status}`);
+                    console.error('Error Response:', errorResponse);
+                }
+            } catch (error) {
+                console.error('Error: ', error);
+                alert('캘린더 추가 중 오류가 발생했습니다.');
+            }
+        }
+
     });
 </script>
 <body>
@@ -1127,6 +1208,7 @@
                 <!-- 동적으로 추가될 항목 -->
             </ul>
             <button id="addCalendarButton">+</button>
+
         </div>
     </div>
     <div class="calendar-content">
@@ -1134,6 +1216,26 @@
         <div id="calendar"></div>
     </div>
 </div>
+
+<div id="createCalendarModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <span id="closeModalButton" class="close">&times;</span>
+        <h3>캘린더 생성</h3>
+        <div class="form-row">
+            <label for="calendarTitle">제목:</label>
+            <input type="text" id="calendarTitle" placeholder="캘린더 제목" />
+        </div>
+        <div class="form-row">
+            <label for="calendarType">유형:</label>
+            <select id="calendarType">
+                <option value="USER">개인</option>
+                <option value="GROUP">그룹</option>
+            </select>
+        </div>
+        <button id="createCalendarButton">생성</button>
+    </div>
+</div>
+
 
 <div id='popup-overlay' class="popup-overlay"></div>
 <div id='popup' class="popup">
@@ -1172,7 +1274,7 @@
     <label><input type="checkbox" id="schedule-notification-checkbox"> Notifications</label><br><br>
     <div id='schedule-notification-section' class="hidden">
         <div id="schedule-notification-list"></div><br>
-        <button id="schedule-add-notification" type="submit">Add Notification</button><br><br>
+        <button id="schedule-add-notification" class="popup-add-notification" type="submit">Add Notification</button><br><br>
     </div>
 
     <label><input type="checkbox" id='schedule-repeat-checkbox'> Repeat</label><br><br>

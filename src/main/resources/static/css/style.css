@@ -239,19 +239,6 @@ button.rename-btn:hover {
     overflow-y: auto; /* 스크롤 가능하게 */
 }
 
-/* 섹션 스타일 */
-.calendar-section {
-    margin-bottom: 20px;
-}
-
-.calendar-section h3 {
-    font-size: 16px;
-    margin: 0 0 10px 0;
-    color: #333;
-    cursor: pointer; /* 접기/펼치기용 커서 */
-}
-
-
 .calendar-list {
     list-style: none;
     margin: 0;
@@ -299,6 +286,109 @@ button.rename-btn:hover {
     font-size: 12px;
     margin-left: 5px;
     cursor: pointer;
+}
+
+
+/* 섹션 스타일 */
+.calendar-section {
+    margin-bottom: 20px;
+}
+
+/* 캘린더 섹션 헤더 */
+.calendar-section h3 {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 16px;
+    margin: 0;
+    padding: 10px 0;
+    cursor: pointer;
+}
+
+/* 섹션 헤더의 아이콘 */
+.calendar-section .toggle-icon {
+    font-size: 14px;
+    color: #888;
+    transition: transform 0.3s;
+}
+
+/* 섹션이 접혔을 때 아이콘 회전 */
+.calendar-section.collapsed .toggle-icon {
+    transform: rotate(-90deg);
+}
+
+
+
+/* 모달 배경 */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+/* 모달 콘텐츠 */
+.modal-content {
+    background: white;
+    width: 400px;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    position: relative;
+}
+
+/* 닫기 버튼 */
+.close {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 24px;
+    cursor: pointer;
+    color: #888;
+}
+
+.close:hover {
+    color: black;
+}
+
+/* 폼 행 */
+.form-row {
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+/* 입력 필드 */
+#calendarTitle, select {
+    width: 70%;
+    padding: 8px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+/* 생성 버튼 */
+#createCalendarButton {
+    width: 100%;
+    padding: 10px;
+    font-size: 16px;
+    color: white;
+    background-color: #4CAF50;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+#createCalendarButton:hover {
+    background-color: #45a049;
 }
 
 

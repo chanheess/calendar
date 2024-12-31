@@ -2,14 +2,11 @@ package com.chpark.chcalendar.service.calendar;
 
 
 import com.chpark.chcalendar.dto.calendar.CalendarInfoDto;
-import com.chpark.chcalendar.dto.calendar.CalendarListDto;
 import com.chpark.chcalendar.entity.CalendarInfoEntity;
 import com.chpark.chcalendar.enumClass.CalendarCategory;
 import com.chpark.chcalendar.repository.CalendarInfoRepository;
-import com.chpark.chcalendar.service.group.GroupUserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -18,21 +15,26 @@ import java.util.List;
 public class UserCalendarService implements CalendarService {
 
     private final CalendarInfoRepository calendarInfoRepository;
-    private final GroupUserService groupUserService;
 
     @Override
-    public CalendarInfoDto create(long userId, String title) {
+    public CalendarInfoDto.Response create(long userId, String title) {
+
+        int maxCalendarCount = 10;
+
+        if (maxCalendarCount <= calendarInfoRepository.findByAdminIdAndCategory(userId, CalendarCategory.USER).size()) {
+            throw new IllegalArgumentException("You have reached the maximum limit for creating calendar.");
+        }
 
         CalendarInfoEntity result = new CalendarInfoEntity(title, userId, CalendarCategory.USER);
         calendarInfoRepository.save(result);
 
-        return new CalendarInfoDto(result);
+        return new CalendarInfoDto.Response(result);
     }
 
     @Override
-    public List<CalendarInfoDto> findCalendarList(long userId) {
+    public List<CalendarInfoDto.Response> findCalendarList(long userId) {
 
-        return CalendarInfoDto.fromCalendarEntityList(
+        return CalendarInfoDto.Response.fromCalendarEntityList(
                 calendarInfoRepository.findByAdminIdAndCategory(userId, CalendarCategory.USER)
         );
     }
