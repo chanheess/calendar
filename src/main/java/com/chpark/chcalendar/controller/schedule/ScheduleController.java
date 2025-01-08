@@ -17,6 +17,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 
@@ -46,20 +47,36 @@ public class ScheduleController {
         return new ResponseEntity<>(schedules, HttpStatus.OK);
     }
 
+//    @GetMapping("/date")
+//    public ResponseEntity<List<ScheduleDto>> getSchedulesByDateRange(@RequestParam("start") String startDateStr,
+//                                                                     @RequestParam("end") String endDateStr,
+//                                                                     HttpServletRequest request) {
+//        // Parsing the start and end dates to LocalDateTime
+//        LocalDateTime startDate = LocalDate.parse(startDateStr).atStartOfDay(); // 00:00:00
+//        LocalDateTime endDate = LocalDate.parse(endDateStr).atTime(LocalTime.MAX); // 23:59:59.999999999
+//
+//        String token = jwtTokenProvider.resolveToken(request);
+//        long userId = jwtTokenProvider.getUserIdFromToken(token);
+//
+//        List<ScheduleDto> schedules = scheduleService.getSchedulesByDateRange(startDate, endDate, userId);
+//
+//        return new ResponseEntity<>(schedules, HttpStatus.OK);
+//    }
+
     @GetMapping("/date")
-    public ResponseEntity<List<ScheduleDto>> getSchedulesByDateRange(@RequestParam("start") String startDateStr,
-                                                                     @RequestParam("end") String endDateStr,
-                                                                     HttpServletRequest request) {
+    public ResponseEntity<Map<Long, List<ScheduleDto>>> getSchedulesByDateRangeAndCalendarId(@RequestParam("start") String startAt,
+                                                                                             @RequestParam("end") String endAt,
+                                                                                             HttpServletRequest request) {
         // Parsing the start and end dates to LocalDateTime
-        LocalDateTime startDate = LocalDate.parse(startDateStr).atStartOfDay(); // 00:00:00
-        LocalDateTime endDate = LocalDate.parse(endDateStr).atTime(LocalTime.MAX); // 23:59:59.999999999
+        LocalDateTime startDate = LocalDate.parse(startAt).atStartOfDay(); // 00:00:00
+        LocalDateTime endDate = LocalDate.parse(endAt).atTime(LocalTime.MAX); // 23:59:59.999999999
 
         String token = jwtTokenProvider.resolveToken(request);
         long userId = jwtTokenProvider.getUserIdFromToken(token);
 
-        List<ScheduleDto> schedules = scheduleService.getSchedulesByDateRange(startDate, endDate, userId);
+        Map<Long, List<ScheduleDto>> schedules = scheduleService.getScheduleByDateRangeAndCalendarId(startDate, endDate, userId);
 
-        return new ResponseEntity<>(schedules, HttpStatus.OK);
+        return ResponseEntity.ok(schedules);
     }
 
     @GetMapping("/{id}")

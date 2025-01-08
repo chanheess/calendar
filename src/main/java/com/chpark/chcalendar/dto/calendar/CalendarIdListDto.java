@@ -7,10 +7,9 @@ import lombok.NoArgsConstructor;
 import java.util.List;
 
 @Getter
-@NoArgsConstructor
 @AllArgsConstructor
-public class CalendarListDto {
+@NoArgsConstructor
+public class CalendarIdListDto {
 
-    List<CalendarInfoDto.Response> groupInfo;
-    List<CalendarInfoDto.Response> calendarInfo;
+    List<Long> calendarIdList;
 }

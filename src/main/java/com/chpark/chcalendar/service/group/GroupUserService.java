@@ -44,6 +44,10 @@ public class GroupUserService {
         return CalendarInfoDto.Response.fromGroupUserEntityList(result);
     }
 
+    public List<Long> findMyGroupsId(long userId) {
+        return groupUserRepository.findIdByUserId(userId);
+    }
+
     public GroupUserDto addUser(long userId, long groupId) {
 
         CalendarInfoEntity entity = calendarInfoRepository.findByIdAndCategory(groupId, CalendarCategory.GROUP).orElseThrow(

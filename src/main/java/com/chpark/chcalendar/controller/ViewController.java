@@ -51,3 +51,79 @@ public class ViewController {
     }
 }
 
+
+//async function getCalendarList(category, listElementId) {
+//    try {
+//        // 카테고리를 쿼리 파라미터로 전달
+//                const response = await fetch(`/calendars?category=${category}`, {
+//            method: 'GET',
+//                    credentials: 'include',
+//                    headers: {
+//                'Content-Type': 'application/json',
+//            }
+//        });
+//
+//        if (response.ok) {
+//                    const calendars = await response.json();
+//            console.log(`Calendars for category ${category}:`, calendars);
+//
+//            // 특정 리스트 요소에 캘린더 렌더링
+//            renderCalendars(calendars, listElementId);
+//        } else {
+//            console.error(`Failed to fetch calendars for category ${category}`);
+//        }
+//    } catch (error) {
+//        console.error(`Error fetching calendars for category ${category}:`, error);
+//    }
+//}
+//
+//function renderCalendars(calendars, listElementId) {
+//            const calendarListElement = document.getElementById(listElementId);
+//    calendarListElement.innerHTML = ''; // 초기화
+//
+//    calendars.forEach(calendar => {
+//            addCalendarToList(calendar, listElementId); // 단일 캘린더 추가
+//            });
+//}
+//
+//function addCalendarToList(calendar, listElementId) {
+//            const calendarListElement = document.getElementById(listElementId);
+//
+//            const listItem = document.createElement('li');
+//    listItem.innerHTML = `
+//                <label>
+//                    <input type="checkbox" checked data-id="${calendar.id}" class="calendar-checkbox" />
+//                    <span style="color: gray">${calendar.title}</span>
+//                </label>
+//            `;
+//
+//    calendarListElement.appendChild(listItem);
+//
+//    // 중복 방지: 추가 전에 체크 상태 확인
+//    if (!checkedState.has(calendar.id)) {
+//        checkedState.add(calendar.id);
+//    }
+//
+//            const checkbox = listItem.querySelector('.calendar-checkbox');
+//    checkbox.addEventListener('change', (event) => handleCalendarToggle(event, calendar.id));
+//}
+//
+//
+//function handleCalendarToggle(event, calendarId) {
+//    if (event.target.checked) {
+//        checkedState.add(calendarId); // 체크 상태 추가
+//    } else {
+//        checkedState.delete(calendarId); // 체크 상태 제거
+//    }
+//
+//    // `checkedState` 업데이트 후 바로 FullCalendar 이벤트 다시 로드
+//    calendar.refetchEvents();
+//}
+//
+//
+//
+//function getSelectedCalendarIds() {
+//    return Array.from(checkedState); // 선택된 ID 반환
+//}
+
+

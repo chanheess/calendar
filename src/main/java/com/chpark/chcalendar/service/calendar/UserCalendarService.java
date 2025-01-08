@@ -38,4 +38,11 @@ public class UserCalendarService implements CalendarService {
                 calendarInfoRepository.findByAdminIdAndCategory(userId, CalendarCategory.USER)
         );
     }
+
+
+    public List<Long> findCalendarIdList(long userId) {
+        return calendarInfoRepository.findIdByAdminIdAndCategory(userId, CalendarCategory.USER);
+    }
+
+
 }

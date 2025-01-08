@@ -1,5 +1,6 @@
 package com.chpark.chcalendar.service.schedule;
 
+import com.chpark.chcalendar.dto.calendar.CalendarIdListDto;
 import com.chpark.chcalendar.dto.schedule.ScheduleDto;
 import com.chpark.chcalendar.dto.schedule.ScheduleNotificationDto;
 import com.chpark.chcalendar.dto.schedule.ScheduleRepeatDto;
@@ -9,6 +10,8 @@ import com.chpark.chcalendar.exception.CustomException;
 import com.chpark.chcalendar.repository.schedule.ScheduleNotificationRepository;
 import com.chpark.chcalendar.repository.schedule.ScheduleRepeatRepository;
 import com.chpark.chcalendar.repository.schedule.ScheduleRepository;
+import com.chpark.chcalendar.service.calendar.UserCalendarService;
+import com.chpark.chcalendar.service.group.GroupUserService;
 import com.chpark.chcalendar.utility.ScheduleUtility;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -17,8 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @RequiredArgsConstructor
 @Service
@@ -30,6 +32,9 @@ public class ScheduleService {
 
     private final ScheduleRepeatService scheduleRepeatService;
     private final ScheduleNotificationService scheduleNotificationService;
+
+    private final GroupUserService groupUserService;
+    private final UserCalendarService userCalendarService;
 
     @Transactional
     public ScheduleDto create(ScheduleDto scheduleDto, long userId) {
@@ -280,6 +285,60 @@ public class ScheduleService {
 
     public List<ScheduleDto> getSchedulesByDateRange(LocalDateTime startDate, LocalDateTime endDate, long userId) {
         return ScheduleDto.fromScheduleEntityList(scheduleRepository.findSchedules(startDate, endDate, userId));
+    }
+
+    @Transactional
+    public Map<Long, List<ScheduleDto>> getScheduleByDateRangeAndCalendarId(LocalDateTime startDate, LocalDateTime endDate, long userId) {
+
+        Map<Long, List<ScheduleDto>> result = new HashMap<>();
+
+        for (long calendarId : this.getUserCalendars(userId)) {
+            List<ScheduleDto> scheduleDtos = ScheduleDto.fromScheduleEntityList(
+                    scheduleRepository.findSchedulesByCalendarId(startDate, endDate, calendarId)
+            );
+
+            result.put(calendarId, scheduleDtos);
+        }
+
+        return result;
+    }
+
+    @Transactional
+    public Map<Long, List<ScheduleDto>> getScheduleByDateRangeAndCalendarId(LocalDateTime startDate, LocalDateTime endDate, long userId, List<Long> calendarIdList) {
+
+        Map<Long, List<ScheduleDto>> result = new HashMap<>();
+
+        for (long calendarId : this.getAuthorizedCalendars(userId, calendarIdList)) {
+            List<ScheduleDto> scheduleDtos = ScheduleDto.fromScheduleEntityList(
+                    scheduleRepository.findSchedulesByCalendarId(startDate, endDate, calendarId)
+            );
+
+            result.put(calendarId, scheduleDtos);
+        }
+
+        return result;
+    }
+
+    public List<Long> getUserCalendars(long userId) {
+
+        List<Long> resultList = new ArrayList<>();
+
+        resultList.addAll(groupUserService.findMyGroupsId(userId));
+        resultList.addAll(userCalendarService.findCalendarIdList(userId));
+
+        return resultList;
+    }
+
+    public List<Long> getAuthorizedCalendars(long userId, List<Long> calendarIdList) {
+
+        List<Long> resultList = new ArrayList<>(calendarIdList);
+
+        resultList.retainAll(groupUserService.findMyGroupsId(userId));
+        calendarIdList.retainAll(userCalendarService.findCalendarIdList(userId));
+
+        resultList.addAll(calendarIdList);
+
+        return resultList;
     }
 
     public void validateScheduleDto(ScheduleDto scheduleDto) {

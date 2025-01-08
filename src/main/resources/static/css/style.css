@@ -8,7 +8,7 @@ body {
 }
 
 /* 중앙에 정렬된 기본 폼 컨테이너 스타일 */
-.form-container, .popup {
+.form-container {
     max-width: 400px;
     margin: 100px auto;
     padding: 30px;
@@ -389,6 +389,10 @@ button.rename-btn:hover {
 
 #createCalendarButton:hover {
     background-color: #45a049;
+}
+
+.textarea {
+    border-radius: 4px;
 }
 
 
