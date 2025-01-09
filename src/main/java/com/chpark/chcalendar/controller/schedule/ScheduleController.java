@@ -47,22 +47,6 @@ public class ScheduleController {
         return new ResponseEntity<>(schedules, HttpStatus.OK);
     }
 
-//    @GetMapping("/date")
-//    public ResponseEntity<List<ScheduleDto>> getSchedulesByDateRange(@RequestParam("start") String startDateStr,
-//                                                                     @RequestParam("end") String endDateStr,
-//                                                                     HttpServletRequest request) {
-//        // Parsing the start and end dates to LocalDateTime
-//        LocalDateTime startDate = LocalDate.parse(startDateStr).atStartOfDay(); // 00:00:00
-//        LocalDateTime endDate = LocalDate.parse(endDateStr).atTime(LocalTime.MAX); // 23:59:59.999999999
-//
-//        String token = jwtTokenProvider.resolveToken(request);
-//        long userId = jwtTokenProvider.getUserIdFromToken(token);
-//
-//        List<ScheduleDto> schedules = scheduleService.getSchedulesByDateRange(startDate, endDate, userId);
-//
-//        return new ResponseEntity<>(schedules, HttpStatus.OK);
-//    }
-
     @GetMapping("/date")
     public ResponseEntity<Map<Long, List<ScheduleDto>>> getSchedulesByDateRangeAndCalendarId(@RequestParam("start") String startAt,
                                                                                              @RequestParam("end") String endAt,

@@ -225,12 +225,6 @@
             await checkLoginStatus();
             displayUserNickname();
             fetchNotifications();
-
-            if(checkedState === 0) {
-                console.log("checkedState?");
-                getCalendarList('USER', 'myCalendarList'); // 개인 캘린더
-                getCalendarList('GROUP', 'groupCalendarList'); // 그룹 캘린더
-            }
         }
 
         initDefaultSetting();
@@ -254,7 +248,6 @@
         var scheduleDescription = document.getElementById('schedule-description');
         var scheduleStart = document.getElementById('schedule-start');
         var scheduleEnd = document.getElementById('schedule-end');
-        var scheduleCalendarId = document.getElementById('schedule-calendar-id');
 
         var scheduleRepeatInterval = document.getElementById('schedule-repeat-interval');
         var scheduleRepeatType = document.getElementById('schedule-repeat-type');
@@ -280,6 +273,10 @@
 
         // checkedState 변수 선언 및 초기화
         const checkedState = new Set();
+        const calendarCache = {};
+
+        getCalendarList('USER', 'myCalendarList'); // 개인 캘린더 불러오기
+        getCalendarList('GROUP', 'groupCalendarList'); // 그룹 캘린더 불러오기
 
         let isEditMode = false;
         var currentScheduleId = null;
@@ -300,13 +297,6 @@
                 right: 'dayGridMonth,timeGridWeek,timeGridDay'
             },
             events: function(fetchInfo, successCallback, failureCallback) {
-                const selectedCalendarIds = getSelectedCalendarIds();
-
-                if (selectedCalendarIds.length === 0) {
-                    getCalendarList('USER', 'myCalendarList'); // 개인 캘린더
-                    getCalendarList('GROUP', 'groupCalendarList'); // 그룹 캘린더
-                }
-
                 const params = new URLSearchParams({
                     start: fetchInfo.start.toISOString().split('T')[0],
                     end: fetchInfo.end.toISOString().split('T')[0],
@@ -322,7 +312,8 @@
                 .then(response => response.ok ? response.json() : Promise.reject("Failed to fetch data"))
                 .then(data => {
                     let events = [];
-                    selectedCalendarIds.forEach(calendarId => {
+
+                    getSelectedCalendarIds().forEach(calendarId => {
                         if (data[calendarId]) {
                             events = events.concat(data[calendarId].map(event => ({
                                 id: event.id,
@@ -330,11 +321,12 @@
                                 start: event.startAt,
                                 end: event.endAt,
                                 description: event.description,
-                                repeat: event.repeatId
+                                repeatId: event.repeatId,
+                                userId: event.userId,
+                                calendarId: event.calendarId
                             })));
                         }
                     });
-
                     successCallback(events);
                 })
                 .catch(error => {
@@ -397,7 +389,6 @@
                     popupContent.innerHTML = '<p>Error loading events.</p>';
                 });
             }
-
         });
 
         calendar.render();
@@ -406,25 +397,28 @@
             return Array.from(checkedState); // 선택된 캘린더 ID만 반환
         }
 
-        async function getCalendarList(category, listElementId) {
-            try {
-                const response = await fetch(`/calendars?category=${category}`, {
-                    method: 'GET',
-                    credentials: 'include',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    }
-                });
-
+        function getCalendarList(category, listElementId) {
+            fetch(`/calendars?category=${category}`, {
+                method: 'GET',
+                credentials: 'include',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => {
                 if (response.ok) {
-                    const calendars = await response.json();
-                    renderCalendars(calendars, listElementId);
+                    return response.json();
                 } else {
                     console.error(`Failed to fetch calendars for category ${category}`);
+                    return Promise.reject('Failed to fetch calendars');
                 }
-            } catch (error) {
+            })
+            .then(calendars => {
+                renderCalendars(calendars, listElementId);
+            })
+            .catch(error => {
                 console.error(`Error fetching calendars for category ${category}:`, error);
-            }
+            });
         }
 
         function renderCalendars(calendars, listElementId) {
@@ -449,12 +443,21 @@
 
             calendarListElement.appendChild(listItem);
 
+            addCalendarToCache(calendar);
+
+            const checkbox = listItem.querySelector('.calendar-checkbox');
+            checkbox.addEventListener('change', (event) => handleCalendarToggle(event, calendar.id));
+        }
+
+        function addCalendarToCache(calendar) {
+
             if (!checkedState.has(calendar.id)) {
                 checkedState.add(calendar.id);
             }
 
-            const checkbox = listItem.querySelector('.calendar-checkbox');
-            checkbox.addEventListener('change', (event) => handleCalendarToggle(event, calendar.id));
+            if (!calendarCache[calendar.id]) {
+                calendarCache[calendar.id] = calendar.title; // ID를 키로 저장
+            }
         }
 
         function handleCalendarToggle(event, calendarId) {
@@ -470,16 +473,40 @@
 
         function openCreateScheduleForm() {
             isEditMode = false;
+            currentScheduleId = null;
             scheduleFormHeader.textContent = 'Create New Schedule';
             scheduleFormSave.textContent = 'Create';
             scheduleFormPopup.classList.remove('hidden');
             scheduleFormPopup.classList.add('show');
 
-            // 폼 초기화
+            scheduleFormSave.onclick = createSchedule;
+
+            // 생성 모드일 때 삭제 버튼 숨기기
+            document.getElementById('schedule-form-delete').classList.add('hidden');
+
+            // 현재 시간 가져오기
+            const now = new Date();
+            const currentHours = now.getHours();
+            const currentMinutes = now.getMinutes();
+
+            // 클릭한 날짜 가져오기
+            const clickedDate = new Date(document.getElementById('schedule-form-popup').getAttribute('data-selected-date'));
+
+            const selectedDate = new Date(clickedDate.getFullYear(), clickedDate.getMonth(), clickedDate.getDate(), currentHours, currentMinutes);
+            const selectFormatted = formatDateTime(selectedDate);
+
+            // 1시간 후 시간 가져오기
+            const oneHourLater = new Date(selectedDate.getTime() + 60 * 60 * 1000);
+            const oneHourLaterFormatted = formatDateTime(oneHourLater);
+
+            // 폼의 모든 필드를 초기화
             scheduleTitle.value = '';
             scheduleDescription.value = '';
-            scheduleStart.value = '';
-            scheduleEnd.value = '';
+            scheduleStart.value = selectFormatted;
+            scheduleEnd.value = oneHourLaterFormatted;
+
+            initializeDefaultNotification();
+            initializeDefaultRepeat();
             populateCalendarSelect(); // 캘린더 목록 로드
         }
 
@@ -561,11 +588,16 @@
             scheduleFormPopup.classList.remove('hidden');
             scheduleFormPopup.classList.add('show');
 
+            // 수정 모드일 때 삭제 버튼 보이기
+            document.getElementById('schedule-form-delete').classList.remove('hidden');
+
             // 기존 데이터 로드
             scheduleTitle.value = selectedEvent.title;
             scheduleDescription.value = selectedEvent.description;
             scheduleStart.value = selectedEvent.startAt.substring(0, 16);
             scheduleEnd.value = selectedEvent.endAt.substring(0, 16);
+
+            scheduleFormSave.onclick = saveHandler;
 
             populateCalendarSelect(); // 캘린더 목록 로드
         }
@@ -593,8 +625,6 @@
         }
 
         function updateEvent(apiUrl) {
-            console.log("Data Url: ", apiUrl);
-
             var currentData = getScheduleData();
             const updatedData = {};
 
@@ -655,7 +685,7 @@
                     description: scheduleDescription.value,
                     startAt: scheduleStart.value,
                     endAt: scheduleEnd.value,
-                    calendarId: selectedCalendarId // 캘린더 ID 추가
+                    calendarId: selectedCalendarId
                 },
                 notificationDto: [],
                 repeatDto: null
@@ -1207,23 +1237,28 @@
             }
         }
 
+        // 특정 캘린더 ID로 캐시에서 캘린더를 가져오는 함수
+        function getCalendarFromCache(calendarId) {
+            return calendarCache[calendarId] || null; // 해당 ID가 없으면 null 반환
+        }
+
+        // 캘린더 셀렉트 박스 채우는 함수
         function populateCalendarSelect() {
             const calendarSelect = document.getElementById('schedule-calendar-select');
             calendarSelect.innerHTML = ''; // 기존 옵션 초기화
 
-            const selectedCalendarIds = getSelectedCalendarIds(); // 선택된 캘린더 ID 가져오기
+            getSelectedCalendarIds().forEach(calendarId => {
+                const calendar = getCalendarFromCache(calendarId); // 캐시에서 캘린더 가져오기
 
-            selectedCalendarIds.forEach(calendarId => {
-            //todo: 목록을 불러올수있게
-                const calendar = exampleCalendars.find(cal => cal.id === calendarId);
                 if (calendar) {
                     const option = document.createElement('option');
-                    option.value = calendar.id;
-                    option.textContent = calendar.title;
+                    option.value = calendarId; // 키 자체가 id이므로 그대로 사용
+                    option.textContent = calendar; // title은 값에 포함됨
                     calendarSelect.appendChild(option);
                 }
             });
         }
+
 
     });
 </script>
@@ -1330,7 +1365,7 @@
             <label>Start Time<br><input type="datetime-local" id="schedule-start"></label>
             <label>End Time<br><input type="datetime-local" id="schedule-end"></label>
             <label>Calendar<br>
-                <select id="calendar-select">
+                <select id="schedule-calendar-select">
                     <!-- 동적으로 캘린더 목록이 추가될 부분 -->
                 </select>
             </label><br><br>

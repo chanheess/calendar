@@ -41,10 +41,13 @@ public class ScheduleEntity {
     private Long calendarId;
 
     public ScheduleEntity(ScheduleDto scheduleDto) {
-        setTitle(scheduleDto.getTitle());
-        setDescription(scheduleDto.getDescription());
-        setStartAt(scheduleDto.getStartAt());
-        setEndAt(scheduleDto.getEndAt());
+
+        this.title = scheduleDto.getTitle();
+        this.description = scheduleDto.getDescription();
+        this.startAt = scheduleDto.getStartAt();
+        this.endAt = scheduleDto.getEndAt();
+        this.userId = scheduleDto.getUserId();
+        this.calendarId = scheduleDto.getCalendarId();
     }
 
 }

@@ -1,6 +1,5 @@
 package com.chpark.chcalendar.service.schedule;
 
-import com.chpark.chcalendar.dto.calendar.CalendarIdListDto;
 import com.chpark.chcalendar.dto.schedule.ScheduleDto;
 import com.chpark.chcalendar.dto.schedule.ScheduleNotificationDto;
 import com.chpark.chcalendar.dto.schedule.ScheduleRepeatDto;
@@ -41,9 +40,9 @@ public class ScheduleService {
         this.validateScheduleDto(scheduleDto);
         //빈 제목일 경우 제목 없음으로 처리
         scheduleDto.setTitle(scheduleDto.getTitle().isEmpty() ? "Untitled" : scheduleDto.getTitle());
+        scheduleDto.setUserId(userId);
 
         ScheduleEntity savedEntity = new ScheduleEntity(scheduleDto);
-        savedEntity.setUserId(userId);
         savedEntity = scheduleRepository.save(savedEntity);
 
         return new ScheduleDto(savedEntity);

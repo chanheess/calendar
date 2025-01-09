@@ -2,7 +2,6 @@ package com.chpark.chcalendar.dto.schedule;
 
 import com.chpark.chcalendar.entity.schedule.ScheduleEntity;
 import com.chpark.chcalendar.exception.ValidGroup;
-import jakarta.persistence.Column;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -33,13 +32,17 @@ public class ScheduleDto {
 
     private Long repeatId;
 
+    private Long userId;
+
+    @NotNull(groups = ValidGroup.CreateGroup.class)
     private Long calendarId;
 
-    public ScheduleDto(String title, String description, LocalDateTime startAt, LocalDateTime endAt) {
+    public ScheduleDto(String title, String description, LocalDateTime startAt, LocalDateTime endAt, Long calendarId) {
         this.title = title;
         this.description = description;
         this.startAt = startAt;
         this.endAt = endAt;
+        this.calendarId = calendarId;
     }
 
     public ScheduleDto(ScheduleEntity entity) {
@@ -49,6 +52,8 @@ public class ScheduleDto {
         this.startAt = entity.getStartAt();
         this.endAt = entity.getEndAt();
         this.repeatId = entity.getRepeatId();
+        this.userId = entity.getUserId();
+        this.calendarId = entity.getCalendarId();
     }
 
     public static List<ScheduleDto> fromScheduleEntityList(List<ScheduleEntity> entityList) {
