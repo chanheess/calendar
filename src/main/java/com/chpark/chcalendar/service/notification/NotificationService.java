@@ -3,15 +3,11 @@ package com.chpark.chcalendar.service.notification;
 import com.chpark.chcalendar.dto.NotificationDto;
 import com.chpark.chcalendar.entity.GroupUserEntity;
 import com.chpark.chcalendar.entity.NotificationEntity;
-import com.chpark.chcalendar.enumClass.GroupAuthority;
 import com.chpark.chcalendar.enumClass.NotificationCategory;
 import com.chpark.chcalendar.enumClass.NotificationType;
-import com.chpark.chcalendar.exception.GroupAuthorityException;
-import com.chpark.chcalendar.repository.GroupUserRepository;
 import com.chpark.chcalendar.repository.NotificationRepository;
-import com.chpark.chcalendar.repository.user.UserRepository;
 import com.chpark.chcalendar.service.group.GroupUserService;
-import jakarta.persistence.EntityNotFoundException;
+import com.chpark.chcalendar.service.user.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -25,11 +21,10 @@ import java.util.Set;
 @Service
 public class NotificationService {
 
-    private final UserRepository userRepository;
-    private final GroupUserRepository groupUserRepository;
     private final NotificationRepository notificationRepository;
 
     private final GroupUserService groupUserService;
+    private final UserService userService;
 
     private final RedisTemplate<String, Object> redisTemplate;
 
@@ -57,12 +52,10 @@ public class NotificationService {
 
     public void sendGroupInviteNotification(long userId, long groupId, String nickname) {
 
-        long inviteUserId = userRepository.findIdByNickname(nickname).orElseThrow(
-                () -> new EntityNotFoundException("User does not exist.")
-        );
+        long inviteUserId = userService.findUserId(nickname);
 
-        GroupUserEntity userInfo = this.checkInvitationAuthority(groupId, userId);
-        this.checkGroupUserExists(groupId, inviteUserId);
+        GroupUserEntity userInfo = groupUserService.checkGroupUserAuthority(userId, groupId);
+        groupUserService.checkGroupUserExists(groupId, inviteUserId);
 
         String message = userInfo.getGroupTitle() + "캘린더에서 " + nickname + "님을 초대합니다.";
         NotificationEntity entity = new NotificationEntity(
@@ -75,25 +68,6 @@ public class NotificationService {
                 2592000L);
 
         notificationRepository.save(entity);
-    }
-
-    public GroupUserEntity checkInvitationAuthority(long groupId, long userId) {
-
-        GroupUserEntity userInfo = groupUserRepository.findByGroupIdAndUserId(groupId, userId).orElseThrow(
-                () -> new GroupAuthorityException("권한이 없습니다.")
-        );
-
-        if (userInfo.getRole().compareTo(GroupAuthority.USER) >= 0) {
-            throw new GroupAuthorityException("권한이 없습니다.");
-        }
-
-        return userInfo;
-    }
-
-    public void checkGroupUserExists(long groupId, long userId) {
-        if(groupUserRepository.findByGroupIdAndUserId(groupId, userId).isPresent()) {
-            throw new IllegalArgumentException("The user is already registered.");
-        }
     }
 
     public void deleteNotification(long userId, NotificationDto notificationDto) {
@@ -113,7 +87,8 @@ public class NotificationService {
                     case INFO -> {
                     }
                     case INVITE -> {
-                        groupUserService.addUser(userId, notificationDto.getCategoryId());
+                        String nickname = userService.findNickname(userId);
+                        groupUserService.addUser(userId, nickname, notificationDto.getCategoryId());
                         this.deleteNotification(userId, notificationDto);
                     }
                 }

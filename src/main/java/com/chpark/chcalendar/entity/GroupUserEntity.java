@@ -1,5 +1,6 @@
 package com.chpark.chcalendar.entity;
 
+import com.chpark.chcalendar.dto.group.GroupUserDto;
 import com.chpark.chcalendar.enumClass.GroupAuthority;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -21,6 +22,9 @@ public class GroupUserEntity {
     @Column(name = "group_id", nullable = false)
     private Long groupId;
 
+    @Column(name = "user_nickname", nullable = false)
+    private String userNickname;
+
     @Column(name = "user_id", nullable = false)
     private Long userId;
 
@@ -28,10 +32,23 @@ public class GroupUserEntity {
     @Column(name = "role", nullable = false)
     private GroupAuthority role;
 
-    public GroupUserEntity(String groupTitle, Long groupId, Long userId, GroupAuthority role) {
+    public void setUserNickname(String userNickname) {
+        this.userNickname = userNickname;
+    }
+
+    public GroupUserEntity(String groupTitle, Long groupId, String userNickname, Long userId, GroupAuthority role) {
         this.groupTitle = groupTitle;
         this.groupId = groupId;
+        this.userNickname = userNickname;
         this.userId = userId;
         this.role = role;
+    }
+
+    public GroupUserEntity(GroupUserDto groupUserDto) {
+        this.groupTitle = groupUserDto.getGroupTitle();
+        this.groupId = groupUserDto.getGroupId();
+        this.userNickname = groupUserDto.getUserNickname();
+        this.userId = groupUserDto.getUserId();
+        this.role = groupUserDto.getRole();
     }
 }

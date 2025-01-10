@@ -44,7 +44,7 @@ public class CalendarInfoDto {
 
         public Response(GroupUserEntity entity) {
             super(entity.getGroupTitle());
-            this.id = entity.getId();
+            this.id = entity.getGroupId();
         }
 
         public static List<CalendarInfoDto.Response> fromCalendarEntityList(List<CalendarInfoEntity> entityList) {

@@ -1,10 +1,12 @@
 package com.chpark.chcalendar.service.user;
 
 import com.chpark.chcalendar.dto.UserDto;
+import com.chpark.chcalendar.entity.GroupUserEntity;
 import com.chpark.chcalendar.entity.UserEntity;
 import com.chpark.chcalendar.repository.user.UserRepository;
 import com.chpark.chcalendar.security.JwtTokenProvider;
 import com.chpark.chcalendar.service.calendar.UserCalendarService;
+import com.chpark.chcalendar.service.group.GroupUserService;
 import com.chpark.chcalendar.utility.ScheduleUtility;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +24,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final UserCalendarService userCalendarService;
     private final PasswordEncoder passwordEncoder;
+    private final GroupUserService groupUserService;
 
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider jwtTokenProvider;
@@ -66,13 +69,17 @@ public class UserService {
         }
     }
 
-    @Transactional(readOnly = true)
     public String findNickname(long userId) {
         return userRepository.findNicknameById(userId).orElseThrow(
                 () -> new EntityNotFoundException("User not found"));
     }
 
-    @Transactional(readOnly = true)
+    public long findUserId(String nickname) {
+        return userRepository.findIdByNickname(nickname).orElseThrow(
+                () -> new EntityNotFoundException("User does not exist.")
+        );
+    }
+
     public UserDto.UserInfo findUserInfo(long userId) {
         UserEntity userEntity = userRepository.findById(userId).orElseThrow(
                 () -> new EntityNotFoundException("User not found"));
@@ -96,6 +103,9 @@ public class UserService {
                 .nickname(userInfo.getNickname())
                 .build();
         userRepository.updateUserInfo(userId, userEntity);
+
+        //닉네임 수정시 동기화
+        groupUserService.updateGroupUserNickname(userId, userEntity.getNickname());
     }
 
     @Transactional

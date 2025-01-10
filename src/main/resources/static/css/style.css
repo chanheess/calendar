@@ -7,16 +7,6 @@ body {
     background-color: #f9f9f9;
 }
 
-/* 중앙에 정렬된 기본 폼 컨테이너 스타일 */
-.form-container {
-    max-width: 400px;
-    margin: 100px auto;
-    padding: 30px;
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-}
-
 /* 제목 스타일 */
 h2 {
     text-align: center;
@@ -357,13 +347,7 @@ button.rename-btn:hover {
     color: black;
 }
 
-/* 폼 행 */
-.form-row {
-    margin-bottom: 15px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
+
 
 /* 입력 필드 */
 #calendarTitle, select {
@@ -395,4 +379,94 @@ button.rename-btn:hover {
     border-radius: 4px;
 }
 
+
+
+.calendar-item {
+    display: flex;
+    align-items: center; /* 수평 정중앙 정렬 */
+    justify-content: space-between; /* 텍스트와 아이콘을 양 끝으로 배치 */
+    padding: 5px 0;
+    position: relative;
+}
+
+.calendar-label {
+    display: flex;
+    align-items: center;
+    gap: 5px; /* 체크박스와 제목 간격 */
+}
+
+.calendar-title {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    max-width: 120px; /* 제목 길이 제한 */
+    color: gray;
+}
+
+.group-manage-button {
+    background: none;
+    border: none;
+    font-size: 25px; /* 아이콘 크기 */
+    color: gray;
+    cursor: pointer;
+    opacity: 0; /* 기본적으로 숨김 */
+    transition: opacity 0.3s ease;
+    padding: 0px;
+    margin: 0px;
+    margin-right: 10px;
+    text-align: right;
+}
+
+.calendar-item:hover .group-manage-button {
+    opacity: 1; /* 마우스 오버 시 나타남 */
+}
+
+/* 폼 스타일 */
+.form-container {
+    max-width: 400px;
+    margin: 100px auto;
+    padding: 30px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.form-row {
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 10px;
+}
+
+.form-section {
+    margin-bottom: 20px;
+}
+
+.form-label {
+    flex: 1; /* 레이블은 적당히 길게 */
+    text-align: left; /* 텍스트 오른쪽 정렬 */
+    margin-right: 5px; /* 입력 필드와 간격 */
+}
+
+.form-input {
+    flex: 2; /* 입력 필드는 더 넓게 */
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.form-button {
+    flex: 0.5; /* 버튼은 레이블과 비슷한 넓이 */
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.form-button:hover {
+    background-color: #0056b3; /* 버튼에 마우스를 올렸을 때 색상 변경 */
+}
 

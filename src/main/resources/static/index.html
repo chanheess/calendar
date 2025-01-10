@@ -217,6 +217,63 @@
             box-sizing: border-box;
         }
 
+
+        .modal {
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            padding: 20px;
+            border: 1px solid #888;
+            border-radius: 8px;
+            width: 400px;
+            position: relative;
+        }
+
+        .close {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            color: #aaa;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .user-list-container {
+            height: 150px;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            padding: 10px;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+        }
+
+        .user-item {
+            margin-bottom: 5px;
+            padding: 5px;
+            border-bottom: 1px solid #ddd;
+        }
+
+
     </style>
 </head>
 <script>
@@ -414,32 +471,48 @@
                 }
             })
             .then(calendars => {
-                renderCalendars(calendars, listElementId);
+                renderCalendars(category, calendars, listElementId);
             })
             .catch(error => {
                 console.error(`Error fetching calendars for category ${category}:`, error);
             });
         }
 
-        function renderCalendars(calendars, listElementId) {
+        function renderCalendars(category, calendars, listElementId) {
             const calendarListElement = document.getElementById(listElementId);
             calendarListElement.innerHTML = ''; // 초기화
 
             calendars.forEach(calendar => {
-                addCalendarToList(calendar, listElementId);
+                addCalendarToList(category, calendar, listElementId);
             });
         }
 
-        function addCalendarToList(calendar, listElementId) {
+        function addCalendarToList(category, calendar, listElementId) {
             const calendarListElement = document.getElementById(listElementId);
 
             const listItem = document.createElement('li');
+            listItem.classList.add('calendar-item');
+
             listItem.innerHTML = `
-                <label>
+                <label class="calendar-label">
                     <input type="checkbox" checked data-id="${calendar.id}" class="calendar-checkbox" />
-                    <span style="color: gray">${calendar.title}</span>
+                    <span class="calendar-title" title="${calendar.title}">${calendar.title}</span>
                 </label>
             `;
+
+            if (category === 'GROUP') {
+                const settingsButton = document.createElement('button');
+                settingsButton.classList.add('group-manage-button');
+                settingsButton.innerHTML = '&#9881;'; // 유니코드 톱니바퀴 아이콘
+                settingsButton.title = '그룹 관리'; // 툴팁 설정
+
+                // 버튼 이벤트 추가
+                settingsButton.addEventListener('click', () => {
+                    openManageCalendarModal(calendar.title, calendar.id); // 그룹 관리 팝업 열기
+                });
+
+                listItem.appendChild(settingsButton);
+            }
 
             calendarListElement.appendChild(listItem);
 
@@ -448,6 +521,7 @@
             const checkbox = listItem.querySelector('.calendar-checkbox');
             checkbox.addEventListener('change', (event) => handleCalendarToggle(event, calendar.id));
         }
+
 
         function addCalendarToCache(calendar) {
 
@@ -1225,7 +1299,7 @@
 
                     const targetListId = type === 'USER' ? 'myCalendarList' : 'groupCalendarList';
 
-                    addCalendarToList(calendarInfo, targetListId);
+                    addCalendarToList(type, calendarInfo, targetListId);
                 } else {
                     const errorResponse = await response.json();
                     alert(`오류 발생: ${errorResponse.message || response.status}`);
@@ -1258,6 +1332,72 @@
                 }
             });
         }
+
+        // 팝업 열고 닫기
+        const manageCalendarModal = document.getElementById('manageCalendarModal');
+        const closeManageCalendarModal = document.getElementById('closeManageCalendarModal');
+
+        function openManageCalendarModal(calendarTitle, calendarId) {
+            document.getElementById('calendarManageTitle').textContent = `${calendarTitle} 관리`;
+            manageCalendarModal.style.display = 'flex';
+            manageCalendarModal.dataset.calendarId = calendarId;
+
+            // 유저 리스트 로드
+            loadUserList(calendarId);
+        }
+
+        closeManageCalendarModal.addEventListener('click', () => {
+            manageCalendarModal.style.display = 'none';
+        });
+
+        // 캘린더 초대 기능
+        document.getElementById('inviteUserButton').addEventListener('click', () => {
+            const userName = document.getElementById('inviteUserName').value.trim();
+            const calendarId = manageCalendarModal.dataset.calendarId; // 관리 창에 설정된 calendarId 사용
+
+            if (userName) {
+                inviteUserToCalendar(calendarId, userName);
+            } else {
+                alert('사용자 이름을 입력해주세요.');
+            }
+        });
+
+        function inviteUserToCalendar(groupId, userName) {
+            fetch(`/notifications/groups/${groupId}/invite?nickname=${encodeURIComponent(userName)}`, {
+                method: 'POST',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' }
+            })
+            .then(response => {
+                if (response.ok) {
+                    alert(`${userName} 초대 성공`);
+                } else {
+                    alert(`${userName} 초대 실패`);
+                }
+            })
+            .catch(error => console.error('Error inviting user:', error));
+        }
+
+        // 유저 리스트 불러오기
+        function loadUserList(calendarId) {
+            fetch(`/groups/${calendarId}/users`, {
+                method: 'GET',
+                headers: { 'Content-Type': 'application/json' }
+            })
+            .then(response => response.json())
+            .then(users => {
+                const userListContainer = document.getElementById('userListContainer');
+                userListContainer.innerHTML = ''; // 기존 리스트 초기화
+                users.forEach(user => {
+                    const userItem = document.createElement('div');
+                    userItem.className = 'user-item';
+                    userItem.textContent = user.userNickname;
+                    userListContainer.appendChild(userItem);
+                });
+            })
+            .catch(error => console.error('Error fetching user list:', error));
+        }
+
 
 
     });
@@ -1330,6 +1470,28 @@
     </div>
 </div>
 
+<!--그룹 관리 팝업-->
+<div id="manageCalendarModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <span id="closeManageCalendarModal" class="close">&times;</span>
+        <h3 id="calendarManageTitle" class="popup-header">그룹 관리</h3>
+
+        <div class="form-section">
+            <h4>캘린더 초대</h4>
+            <div class="form-row">
+                <input type="text" id="inviteUserName" class="form-input" placeholder="사용자 이름 입력" />
+                <button id="inviteUserButton" class="form-button">초대</button>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h4>캘린더 유저</h4>
+            <div id="userListContainer" class="user-list-container">
+                <!-- 유저 리스트가 동적으로 추가됩니다. -->
+            </div>
+        </div>
+    </div>
+</div>
 
 <div id='popup-overlay' class="popup-overlay"></div>
 <div id='popup' class="popup">

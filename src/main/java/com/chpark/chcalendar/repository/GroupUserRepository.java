@@ -14,10 +14,10 @@ public interface GroupUserRepository extends JpaRepository<GroupUserEntity, Long
 
     List<GroupUserEntity> findByUserId(long userId);
 
-    @Query("SELECT g.id FROM GroupUserEntity g WHERE g.userId = :userId")
-    List<Long> findIdByUserId(@Param("userId") Long userId);
+    @Query("SELECT g.groupId FROM GroupUserEntity g WHERE g.userId = :userId")
+    List<Long> findGroupIdByUserId(@Param("userId") Long userId);
 
-
-    Optional<GroupUserEntity> findByGroupIdAndUserId(long groupId, long userId);
-
+    Optional<GroupUserEntity> findByUserIdAndGroupId(long userId, long groupId);
+    
+    List<GroupUserEntity> findByGroupId(long groupId);
 }

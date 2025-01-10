@@ -2,6 +2,7 @@ package com.chpark.chcalendar.controller.group;
 
 import com.chpark.chcalendar.dto.calendar.CalendarInfoDto;
 import com.chpark.chcalendar.dto.group.GroupUserDto;
+import com.chpark.chcalendar.dto.group.GroupUserDto;
 import com.chpark.chcalendar.security.JwtTokenProvider;
 import com.chpark.chcalendar.service.group.GroupUserService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -37,14 +38,14 @@ public class GroupUserController {
         return ResponseEntity.ok(result);
     }
 
-    @PostMapping("/groups/{group-id}/users")
-    public ResponseEntity<GroupUserDto> addUser(@NotNull @PathVariable("group-id") Long groupId,
-                                                HttpServletRequest request) {
+    @GetMapping("/groups/{group-id}/users")
+    public ResponseEntity<List<GroupUserDto>> getUsers(@NotNull @PathVariable("group-id") Long groupId,
+                                                           HttpServletRequest request) {
 
         String token = jwtTokenProvider.resolveToken(request);
         long userId = jwtTokenProvider.getUserIdFromToken(token);
 
-        GroupUserDto result = groupUserService.addUser(userId, groupId);
+        List<GroupUserDto> result = groupUserService.findGroupUserList(userId, groupId);
 
         return ResponseEntity.ok(result);
     }

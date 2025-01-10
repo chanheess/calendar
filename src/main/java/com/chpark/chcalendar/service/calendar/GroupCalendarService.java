@@ -7,6 +7,7 @@ import com.chpark.chcalendar.enumClass.CalendarCategory;
 import com.chpark.chcalendar.enumClass.GroupAuthority;
 import com.chpark.chcalendar.repository.CalendarInfoRepository;
 import com.chpark.chcalendar.service.group.GroupUserService;
+import com.chpark.chcalendar.service.user.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -18,6 +19,7 @@ public class GroupCalendarService implements CalendarService {
 
     private final CalendarInfoRepository calendarInfoRepository;
     private final GroupUserService groupUserService;
+    private final UserService userService;
 
     @Override
     public CalendarInfoDto.Response create(long userId, String title) {
@@ -32,9 +34,12 @@ public class GroupCalendarService implements CalendarService {
 
         calendarInfoRepository.save(groupEntity);
 
+        String nickname = userService.findNickname(userId);
+
         groupUserService.create(new GroupUserDto(
                 groupEntity.getTitle(),
                 groupEntity.getId(),
+                nickname,
                 groupEntity.getAdminId(),
                 GroupAuthority.ADMIN)
         );
