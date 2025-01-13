@@ -122,18 +122,21 @@ public class ScheduleController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteSchedule(@PathVariable("id") long id, HttpServletRequest request) {
+    @DeleteMapping("/{id}/calendars/{calendar-id}")
+    public ResponseEntity<String> deleteSchedule(@PathVariable("id") long id,
+                                                 @PathVariable("calendar-id") long calendarId,
+                                                 HttpServletRequest request) {
         String token = jwtTokenProvider.resolveToken(request);
         long userId = jwtTokenProvider.getUserIdFromToken(token);
 
-        scheduleService.deleteById(id, userId);
+        scheduleService.deleteById(id, calendarId, userId);
         return new ResponseEntity<>("Schedule deleted successfully.", HttpStatus.OK);
     }
 
-    @DeleteMapping("/{id}/{delete-scope}")
+    @DeleteMapping("/{id}/{delete-scope}/calendars/{calendar-id}")
     public ResponseEntity<String> deleteRepeatSchedule(@PathVariable("id") long id,
                                                        @PathVariable("delete-scope") String repeatStringScope,
+                                                       @PathVariable("calendar-id") long calendarId,
                                                        HttpServletRequest request) {
         ScheduleRepeatScope scheduleRepeatScope = ScheduleRepeatScope.fromValue(repeatStringScope);
 
@@ -145,12 +148,12 @@ public class ScheduleController {
             case CURRENT -> {
                 scheduleService.deleteCurrentOnlyRepeatSchedule(id, userId);
                 scheduleService.update(id, new ScheduleDto(), true, userId);
-                scheduleService.deleteById(id, userId);
+                scheduleService.deleteById(id, calendarId, userId);
             }
             case FUTURE -> {
                 scheduleService.deleteFutureRepeatSchedules(id, userId);
                 scheduleService.update(id, new ScheduleDto(), true, userId);
-                scheduleService.deleteById(id, userId);
+                scheduleService.deleteById(id, calendarId, userId);
             }
         }
 

@@ -1,6 +1,7 @@
 package com.chpark.chcalendar.exception;
 
 import com.chpark.chcalendar.dto.MessageResponseDto;
+import com.chpark.chcalendar.exception.authority.GroupAuthorityException;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

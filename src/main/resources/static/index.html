@@ -436,7 +436,7 @@
                             event.preventDefault(); // 링크 기본 동작 방지
                             const calendarId = this.getAttribute('data-calendar-id');
                             const eventIndex = this.getAttribute('data-event-index');
-                            const selectedEvent = data[calendarId][eventIndex];
+                            selectedEvent = data[calendarId][eventIndex];
                             showEventDetails(selectedEvent);
                         });
                     });
@@ -581,7 +581,7 @@
 
             initializeDefaultNotification();
             initializeDefaultRepeat();
-            populateCalendarSelect(); // 캘린더 목록 로드
+            populateCalendarSelectBox(); // 캘린더 목록 로드
         }
 
         function showEventDetails(event) {
@@ -591,13 +591,15 @@
                 <p><strong>Title:</strong> ${event.title}</p>
                 <p><strong>Start:</strong> ${new Date(event.startAt).toLocaleString()}</p>
                 <p><strong>End:</strong> ${new Date(event.endAt).toLocaleString()}</p>
-                <p><strong>Description:</strong> ${event.description}</p>`;
+                <p><strong>Description:</strong> ${event.description}</p>
+                <p><strong>Calendar:</strong> ${getCalendarFromCache(event.calendarId)}</p>`;
 
             // Edit 팝업에 원본 데이터 채우기
             scheduleTitle.value = event.title;
             scheduleDescription.value = event.description;
             scheduleStart.value = event.startAt.substring(0, 16); // datetime-local 형식에 맞추기 위해
             scheduleEnd.value = event.endAt.substring(0, 16); // datetime-local 형식에 맞추기 위해
+            document.getElementById('schedule-calendar-select').value = event.calendarId;
 
             initialScheduleData.scheduleDto = event;
 
@@ -662,24 +664,20 @@
             scheduleFormPopup.classList.remove('hidden');
             scheduleFormPopup.classList.add('show');
 
+            scheduleFormSave.onclick = saveHandler;
+
             // 수정 모드일 때 삭제 버튼 보이기
             document.getElementById('schedule-form-delete').classList.remove('hidden');
 
-            // 기존 데이터 로드
-            scheduleTitle.value = selectedEvent.title;
-            scheduleDescription.value = selectedEvent.description;
-            scheduleStart.value = selectedEvent.startAt.substring(0, 16);
-            scheduleEnd.value = selectedEvent.endAt.substring(0, 16);
-
-            scheduleFormSave.onclick = saveHandler;
-
-            populateCalendarSelect(); // 캘린더 목록 로드
+            editCalendarSelectBox(); // 캘린더 목록 로드
         }
 
         function saveHandler() {
             // isSaving 변수를 확인하여 중복 요청 방지
             if (isSaving) return;
             isSaving = true;
+
+            console.log("saveHandler");
 
             if (selectedEvent.repeatId) {
                 showChoicePopup("save");
@@ -821,6 +819,8 @@
 
         function deleteEvent(apiUrl) {
             if (!currentScheduleId) return; // 수정 중인 일정이 없으면 삭제하지 않음
+
+            console.log(apiUrl);
 
             fetch(apiUrl, {
                 method: 'DELETE',
@@ -1149,12 +1149,16 @@
             popup.classList.remove('show');
             scheduleFormPopup.classList.add('show');
             openEditScheduleForm();
+
+            console.log("popupEditEvent");
         });
 
         popupNewEvent.addEventListener('click', function() {
             popup.classList.remove('show');
             scheduleFormPopup.classList.add('show');
             openCreateScheduleForm();
+
+            console.log("popupNewEvent");
         });
 
         scheduleFormClose.addEventListener('click', function() {
@@ -1186,7 +1190,7 @@
         updateSingleEvent.addEventListener('click', function() {
             closePopup();
             if (this.dataset.mode === "delete") {
-                deleteEvent('/schedules/' + selectedEvent.id + '/current-only');
+                deleteEvent('/schedules/' + selectedEvent.id + '/current-only' + '/calendars/' + selectedEvent.calendarId);
             } else if (this.dataset.mode === "save") {
                 updateEvent('/schedules/' + selectedEvent.id + '/current-only?repeat=' + scheduleRepeatCheckbox.checked);
             }
@@ -1194,7 +1198,7 @@
         updateAllEvents.addEventListener('click', function() {
             closePopup();
             if (this.dataset.mode === "delete") {
-                deleteEvent('/schedules/' + selectedEvent.id + '/current-and-future');
+                deleteEvent('/schedules/' + selectedEvent.id + '/current-and-future' + '/calendars/' + selectedEvent.calendarId);
             } else if (this.dataset.mode === "save") {
                 updateEvent('/schedules/' + selectedEvent.id + '/current-and-future?repeat=' + scheduleRepeatCheckbox.checked);
             }
@@ -1207,7 +1211,7 @@
             } else {
                 if (confirm('Are you sure you want to delete this event?')) {
                     closePopup();
-                    deleteEvent('/schedules/' + selectedEvent.id); // 삭제 이벤트 처리 함수 호출
+                    deleteEvent('/schedules/' + selectedEvent.id + '/calendars/' + selectedEvent.calendarId); // 삭제 이벤트 처리 함수 호출
                 }
             }
         });
@@ -1317,7 +1321,7 @@
         }
 
         // 캘린더 셀렉트 박스 채우는 함수
-        function populateCalendarSelect() {
+        function populateCalendarSelectBox() {
             const calendarSelect = document.getElementById('schedule-calendar-select');
             calendarSelect.innerHTML = ''; // 기존 옵션 초기화
 
@@ -1331,6 +1335,20 @@
                     calendarSelect.appendChild(option);
                 }
             });
+        }
+
+        function editCalendarSelectBox() {
+            const calendarSelect = document.getElementById('schedule-calendar-select');
+            calendarSelect.innerHTML = ''; // 기존 옵션 초기화
+
+            const calendar = getCalendarFromCache(initialScheduleData.scheduleDto.calendarId); // 캐시에서 캘린더 가져오기
+
+            if (calendar) {
+                const option = document.createElement('option');
+                option.value = initialScheduleData.scheduleDto.calendarId;
+                option.textContent = calendar;
+                calendarSelect.appendChild(option);
+            }
         }
 
         // 팝업 열고 닫기

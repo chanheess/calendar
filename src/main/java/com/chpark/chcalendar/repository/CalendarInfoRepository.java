@@ -22,4 +22,5 @@ public interface CalendarInfoRepository extends JpaRepository<CalendarInfoEntity
     List<Long> findIdByAdminIdAndCategory(@Param("adminId") Long adminId, @Param("category") CalendarCategory category);
 
     Optional<CalendarInfoEntity> findByIdAndCategory(Long id, CalendarCategory category);
+    Optional<CalendarInfoEntity> findByIdAndAdminId(Long id, Long adminId);
 }

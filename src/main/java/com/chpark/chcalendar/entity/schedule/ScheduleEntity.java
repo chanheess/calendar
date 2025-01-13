@@ -35,10 +35,10 @@ public class ScheduleEntity {
     private Long repeatId;
 
     @Column(name = "user_id")
-    private Long userId;
+    private long userId;
 
     @Column(name = "calendar_id")
-    private Long calendarId;
+    private long calendarId;
 
     public ScheduleEntity(ScheduleDto scheduleDto) {
 

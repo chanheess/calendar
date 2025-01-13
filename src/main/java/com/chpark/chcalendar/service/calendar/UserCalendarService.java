@@ -5,6 +5,7 @@ import com.chpark.chcalendar.dto.calendar.CalendarInfoDto;
 import com.chpark.chcalendar.entity.CalendarInfoEntity;
 import com.chpark.chcalendar.enumClass.CalendarCategory;
 import com.chpark.chcalendar.repository.CalendarInfoRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -39,9 +40,14 @@ public class UserCalendarService implements CalendarService {
         );
     }
 
-
     public List<Long> findCalendarIdList(long userId) {
         return calendarInfoRepository.findIdByAdminIdAndCategory(userId, CalendarCategory.USER);
+    }
+
+    public void checkCalendarAdminUser(long calendarId, long userId) {
+        calendarInfoRepository.findByIdAndAdminId(calendarId, userId).orElseThrow(
+                () -> new EntityNotFoundException("권한이 없습니다.")
+        );
     }
 
 

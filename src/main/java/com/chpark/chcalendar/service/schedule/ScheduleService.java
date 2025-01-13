@@ -12,6 +12,7 @@ import com.chpark.chcalendar.repository.schedule.ScheduleRepository;
 import com.chpark.chcalendar.service.calendar.UserCalendarService;
 import com.chpark.chcalendar.service.group.GroupUserService;
 import com.chpark.chcalendar.utility.ScheduleUtility;
+import com.chpark.chcalendar.utility.CalendarUtility;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -20,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.*;
+
 
 @RequiredArgsConstructor
 @Service
@@ -38,6 +40,8 @@ public class ScheduleService {
     @Transactional
     public ScheduleDto create(ScheduleDto scheduleDto, long userId) {
         this.validateScheduleDto(scheduleDto);
+        CalendarUtility.checkCalendarAuthority(userId, scheduleDto.getCalendarId(), groupUserService, userCalendarService);
+
         //빈 제목일 경우 제목 없음으로 처리
         scheduleDto.setTitle(scheduleDto.getTitle().isEmpty() ? "Untitled" : scheduleDto.getTitle());
         scheduleDto.setUserId(userId);
@@ -73,11 +77,11 @@ public class ScheduleService {
 
     @Transactional
     public ScheduleDto update(long scheduleId, ScheduleDto scheduleDto, boolean isRepeat, long userId) {
-        ScheduleEntity schedule = scheduleRepository.findByIdAndUserId(scheduleId, userId).orElseThrow(
-                () -> new EntityNotFoundException("Schedule not found with schedule-id: " + scheduleId)
+        ScheduleEntity schedule = scheduleRepository.findById(scheduleId).orElseThrow(
+                () -> new EntityNotFoundException("Schedule not found")
         );
 
-        this.validateScheduleDto(scheduleDto);
+        CalendarUtility.checkCalendarAuthority(userId, schedule.getCalendarId(), groupUserService, userCalendarService);
 
         if (scheduleDto.getTitle() != null) {
             schedule.setTitle(scheduleDto.getTitle().isEmpty() ? "Untitled" : scheduleDto.getTitle());
@@ -86,9 +90,11 @@ public class ScheduleService {
             schedule.setDescription(scheduleDto.getDescription());
         }
         if (scheduleDto.getStartAt() != null) {
+            this.validateScheduleDto(scheduleDto);
             schedule.setStartAt(scheduleDto.getStartAt());
         }
         if (scheduleDto.getEndAt() != null) {
+            this.validateScheduleDto(scheduleDto);
             schedule.setEndAt(scheduleDto.getEndAt());
         }
         //반복 수정시에 repeatId를 null로 비워준다.
@@ -209,10 +215,12 @@ public class ScheduleService {
     }
 
     @Transactional
-    public void deleteById(long scheduleId, long userId) {
+    public void deleteById(long scheduleId, long calendarId, long userId) {
         if(scheduleRepository.getRepeatId(scheduleId, userId).isPresent()) {
             throw new CustomException("has repeat-id");
         }
+
+        CalendarUtility.checkCalendarAuthority(userId, calendarId, groupUserService, userCalendarService);
 
         try {
             scheduleNotificationRepository.deleteByScheduleId(scheduleId);
@@ -291,7 +299,7 @@ public class ScheduleService {
 
         Map<Long, List<ScheduleDto>> result = new HashMap<>();
 
-        for (long calendarId : this.getUserCalendars(userId)) {
+        for (long calendarId : CalendarUtility.getUserCalendars(userId, groupUserService, userCalendarService)) {
             List<ScheduleDto> scheduleDtos = ScheduleDto.fromScheduleEntityList(
                     scheduleRepository.findSchedulesByCalendarId(startDate, endDate, calendarId)
             );
@@ -307,7 +315,7 @@ public class ScheduleService {
 
         Map<Long, List<ScheduleDto>> result = new HashMap<>();
 
-        for (long calendarId : this.getAuthorizedCalendars(userId, calendarIdList)) {
+        for (long calendarId : CalendarUtility.getAuthorizedCalendars(userId, calendarIdList, groupUserService, userCalendarService)) {
             List<ScheduleDto> scheduleDtos = ScheduleDto.fromScheduleEntityList(
                     scheduleRepository.findSchedulesByCalendarId(startDate, endDate, calendarId)
             );
@@ -316,28 +324,6 @@ public class ScheduleService {
         }
 
         return result;
-    }
-
-    public List<Long> getUserCalendars(long userId) {
-
-        List<Long> resultList = new ArrayList<>();
-
-        resultList.addAll(groupUserService.findMyGroupsId(userId));
-        resultList.addAll(userCalendarService.findCalendarIdList(userId));
-
-        return resultList;
-    }
-
-    public List<Long> getAuthorizedCalendars(long userId, List<Long> calendarIdList) {
-
-        List<Long> resultList = new ArrayList<>(calendarIdList);
-
-        resultList.retainAll(groupUserService.findMyGroupsId(userId));
-        calendarIdList.retainAll(userCalendarService.findCalendarIdList(userId));
-
-        resultList.addAll(calendarIdList);
-
-        return resultList;
     }
 
     public void validateScheduleDto(ScheduleDto scheduleDto) {

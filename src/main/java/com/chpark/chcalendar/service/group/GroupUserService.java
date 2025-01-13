@@ -6,7 +6,7 @@ import com.chpark.chcalendar.entity.CalendarInfoEntity;
 import com.chpark.chcalendar.entity.GroupUserEntity;
 import com.chpark.chcalendar.enumClass.CalendarCategory;
 import com.chpark.chcalendar.enumClass.GroupAuthority;
-import com.chpark.chcalendar.exception.GroupAuthorityException;
+import com.chpark.chcalendar.exception.authority.GroupAuthorityException;
 import com.chpark.chcalendar.repository.CalendarInfoRepository;
 import com.chpark.chcalendar.repository.GroupUserRepository;
 import lombok.RequiredArgsConstructor;
