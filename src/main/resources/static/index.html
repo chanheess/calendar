@@ -677,8 +677,6 @@
             if (isSaving) return;
             isSaving = true;
 
-            console.log("saveHandler");
-
             if (selectedEvent.repeatId) {
                 showChoicePopup("save");
             } else {
@@ -819,8 +817,6 @@
 
         function deleteEvent(apiUrl) {
             if (!currentScheduleId) return; // 수정 중인 일정이 없으면 삭제하지 않음
-
-            console.log(apiUrl);
 
             fetch(apiUrl, {
                 method: 'DELETE',
@@ -1149,21 +1145,21 @@
             popup.classList.remove('show');
             scheduleFormPopup.classList.add('show');
             openEditScheduleForm();
-
-            console.log("popupEditEvent");
         });
 
         popupNewEvent.addEventListener('click', function() {
             popup.classList.remove('show');
             scheduleFormPopup.classList.add('show');
             openCreateScheduleForm();
-
-            console.log("popupNewEvent");
         });
 
         scheduleFormClose.addEventListener('click', function() {
             scheduleFormPopup.classList.remove('show');
             popupOverlay.classList.remove('show');
+
+            // 버튼 원래대로 변경
+            popupEditEvent.classList.add('hidden');
+            popupNewEvent.classList.remove('hidden');
         });
 
         // Show/hide repeat options based on checkbox state
@@ -1298,7 +1294,6 @@
                 if (response.ok) {
                     const calendarInfo = await response.json();
                     alert("캘린더가 추가되었습니다.");
-                    console.log('캘린더 정보:', calendarInfo);
                     modal.style.display = 'none';
 
                     const targetListId = type === 'USER' ? 'myCalendarList' : 'groupCalendarList';
