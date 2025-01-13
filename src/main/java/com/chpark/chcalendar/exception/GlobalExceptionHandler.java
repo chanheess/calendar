@@ -41,7 +41,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(AuthenticationException.class)
-    public ResponseEntity<MessageResponseDto> handleIllegalArgument(AuthenticationException ex) {
+    public ResponseEntity<MessageResponseDto> handleAuthentication(AuthenticationException ex) {
         return new ResponseEntity<>(
                 createCustomErrorResponse(ex, HttpStatus.UNAUTHORIZED.value()),
                 HttpStatus.UNAUTHORIZED
@@ -49,7 +49,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(GroupAuthorityException.class)
-    public ResponseEntity<MessageResponseDto> handleIllegalArgument(GroupAuthorityException ex) {
+    public ResponseEntity<MessageResponseDto> handleGroupAuthority(GroupAuthorityException ex) {
         return new ResponseEntity<>(
                 createCustomErrorResponse(ex, HttpStatus.BAD_REQUEST.value()),
                 HttpStatus.BAD_REQUEST

@@ -1,137 +1,118 @@
 package com.chpark.chcalendar.service;
 
+import com.chpark.chcalendar.dto.schedule.ScheduleNotificationDto;
+import com.chpark.chcalendar.entity.schedule.ScheduleEntity;
 import com.chpark.chcalendar.repository.schedule.ScheduleRepository;
 import com.chpark.chcalendar.service.schedule.ScheduleNotificationService;
-import com.chpark.chcalendar.service.schedule.ScheduleService;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @SpringBootTest
 @EnableTransactionManagement
 @Slf4j
 class ScheduleNotificationServiceTest {
+    @Autowired
+    private ScheduleRepository scheduleRepository;
 
     @Autowired
-    ScheduleService scheduleService;
+    private ScheduleNotificationService notificationService;
 
-    @Autowired
-    ScheduleRepository scheduleRepository;
+    private ScheduleEntity schedule;
+    private List<ScheduleNotificationDto> notificationDtoList;
 
-    @Autowired
-    ScheduleNotificationService notificationService;
+    @BeforeEach
+    void setup() {
+        schedule = new ScheduleEntity();
+        schedule.setId(1);
+        schedule.setTitle("Test Schedule");
+        schedule.setUserId(Long.MAX_VALUE);
+        schedule.setStartAt(LocalDateTime.now());
+        schedule.setEndAt(LocalDateTime.now().plusDays(1));
+        schedule.setRepeatId(null);
+        schedule.setCalendarId(Long.MAX_VALUE);
 
-    //일정 생성 메서드
-//    public ScheduleEntity createNotification() {
-//        //given
-//        ScheduleDto scheduleDto = new ScheduleDto();
-//        scheduleDto.setTitle("hello world");
-//        scheduleDto.setDescription("just test");
-//        scheduleDto.setStartAt(LocalDateTime.now());
-//        scheduleDto.setEndAt(LocalDateTime.now().plusDays(3));
-//
-//        ScheduleEntity scheduleEntity = new ScheduleEntity(scheduleDto);
-//        scheduleEntity = scheduleRepository.save(scheduleEntity);
-//
-//        List<ScheduleNotificationEntity> requestEntities = new ArrayList<>();
-//        requestEntities.add(new ScheduleNotificationEntity(scheduleEntity.getId(), LocalDateTime.now().minusHours(1)));
-//        requestEntities.add(new ScheduleNotificationEntity(scheduleEntity.getId(), LocalDateTime.now().minusHours(2)));
-//        List<ScheduleNotificationDto> requestNotifications = ScheduleNotificationDto.fromScheduleNotificationEntityList(requestEntities);
-//
-//        //일정이 있을 때만 알림 생성 가능
-//        if(scheduleService.existsById(scheduleEntity.getId())) {
-//            //when
-//            List<ScheduleNotificationDto> createResponse = notificationService.create(scheduleEntity.getId(), requestNotifications);
-//
-//            //then
-//            assertNotNull(createResponse, "Notification has not been created.");
-//            log.info("Created notification: {}", createResponse);
-//
-//            return scheduleEntity;
-//        }
-//
-//        throw new IllegalArgumentException("id that does not exist.");
-//    }
-//
-//    @Test
-//    @Transactional
-//    void create() {
-//        createNotification();
-//    }
-//
-//    @Test
-//    @Transactional
-//    void findByScheduleId() {
-//        //given
-//        ScheduleEntity scheduleEntity = createNotification();
-//
-//        List<ScheduleNotificationDto> findResponse = new ArrayList<>();
-//
-//        //when
-//        findResponse = notificationService.findByScheduleId(scheduleEntity.getId());
-//
-//        //then
-//        Assert.notEmpty(findResponse, "Not found notifications");
-//    }
-//
-//    @Test
-//    @Transactional
-//    void update() {
-//        //given
-//        ScheduleEntity scheduleEntity = createNotification();
-//
-//        //when
-//        List<ScheduleNotificationDto> updateRequest = new ArrayList<>();
-//        updateRequest.add(new ScheduleNotificationDto(LocalDateTime.now().plusDays(30)));
-//        List<ScheduleNotificationDto> updateResponse = notificationService.update(scheduleEntity.getId(), updateRequest);
-//
-//        //then
-//        Assert.isTrue(updateResponse != null,"Not Updated ScheduleNotification");
-//        log.info("Updated notification: {}", updateResponse);
-//    }
-//
-//    @Test
-//    @Transactional
-//    void deleteNotifications() {
-//        //given
-//        ScheduleEntity scheduleEntity = createNotification();
-//
-//        //when
-//        notificationService.deleteByScheduleId(scheduleEntity.getId());
-//
-//        //then
-//        List<ScheduleNotificationDto> response = notificationService.findByScheduleId(scheduleEntity.getId());
-//        Assert.isTrue(response.isEmpty(), "Not Removed Notification");
-//        log.info("Removed ScheduleNotifications");
-//    }
-//
-////    @Test
-////    @Transactional
-////    void cascadeRemoveTest() {
-////        //given
-////        ScheduleEntity scheduleEntity = createNotification();
-////
-////        //when
-////        scheduleService.deleteById(scheduleEntity.getId());
-////
-////        //then
-////        List<ScheduleNotificationDto> response = notificationService.findByScheduleId(scheduleEntity.getId());
-////        Optional<ScheduleDto> resultScheduleDto = scheduleService.findById(scheduleEntity.getId());
-////
-////        Assert.isTrue(response.isEmpty(), "Not Removed Notifications");
-////        Assert.isTrue(resultScheduleDto.isEmpty(), "Not Removed Schedule");
-////        log.info("Removed Schedule and ScheduleNotifications");
-////    }
-//
-//    @Test
-//    @Transactional
-//    void existsTest() {
-//        //given
-//        ScheduleEntity scheduleEntity = createNotification();
-//
-//        Assert.isTrue(notificationService.existsByScheduleId(scheduleEntity.getId()), "Not Found Notifications");
-//    }
+        schedule = scheduleRepository.save(schedule);
+
+        ScheduleNotificationDto notificationDto = new ScheduleNotificationDto();
+        notificationDto.setNotificationAt(LocalDateTime.now().plusHours(1));
+
+        notificationDtoList = new ArrayList<>();
+        notificationDtoList.add(notificationDto);
+        notificationDto.setNotificationAt(LocalDateTime.now().plusHours(1));
+
+    }
+
+    @Test
+    void create() {
+        notificationService.create(schedule.getId(), notificationDtoList);
+
+        List<ScheduleNotificationDto> notifications = notificationService.findByScheduleId(schedule.getId());
+
+        assertThat(notifications).isNotEmpty();
+    }
+
+    @Test
+    void create_notificationsNull() {
+        notificationService.create(Long.MAX_VALUE, null);
+
+        List<ScheduleNotificationDto> notifications = notificationService.findByScheduleId(schedule.getId());
+
+        assertThat(notifications).isEmpty();
+    }
+
+    @Test
+    void create_notificationsIsEmpty() {
+        notificationService.create(Long.MAX_VALUE, new ArrayList<>());
+
+        List<ScheduleNotificationDto> notifications = notificationService.findByScheduleId(schedule.getId());
+
+        assertThat(notifications).isEmpty();
+    }
+
+    @Test
+    void create_EntityNotFoundException() {
+        List<ScheduleNotificationDto> notifications = notificationService.findByScheduleId(schedule.getId());
+
+        //when & then
+        assertThatThrownBy(() -> notificationService.create(Long.MAX_VALUE, notificationDtoList))
+                .isInstanceOf(EntityNotFoundException.class)
+                .hasMessageContaining("Schedule not found with id: " + Long.MAX_VALUE);
+    }
+
+    @Test
+    void update() {
+        //given
+        notificationService.create(schedule.getId(), notificationDtoList);
+
+        ScheduleNotificationDto notificationDto = new ScheduleNotificationDto();
+        notificationDto.setNotificationAt(LocalDateTime.now().plusHours(2));
+
+        notificationDtoList.add(notificationDto);
+
+        //소지한 개수, 추가할 개수에 대한 update 테스트
+        notificationService.update(schedule.getId(), notificationDtoList);
+        List<ScheduleNotificationDto> notifications = notificationService.findByScheduleId(schedule.getId());
+        assertThat(notifications).hasSize(2);
+
+        //소지한 개수 > 추가 개수일 때의 알림 삭제 테스트
+        notificationDtoList = new ArrayList<>();
+        notificationService.update(schedule.getId(), notificationDtoList);
+        notifications = notificationService.findByScheduleId(schedule.getId());
+        assertThat(notifications).isEmpty();
+
+
+    }
+
 }

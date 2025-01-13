@@ -1,9 +1,12 @@
 package com.chpark.chcalendar.service;
 
 import com.chpark.chcalendar.dto.UserDto;
+import com.chpark.chcalendar.dto.calendar.CalendarInfoDto;
 import com.chpark.chcalendar.entity.UserEntity;
 import com.chpark.chcalendar.repository.user.UserRepository;
 import com.chpark.chcalendar.security.JwtTokenProvider;
+import com.chpark.chcalendar.service.calendar.UserCalendarService;
+import com.chpark.chcalendar.service.group.GroupUserService;
 import com.chpark.chcalendar.service.user.UserService;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.Test;
@@ -28,6 +31,12 @@ class UserServiceUnitTest {
 
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private UserCalendarService userCalendarService;
+
+    @Mock
+    private GroupUserService groupUserService;
 
     @InjectMocks
     private UserService userService;
@@ -57,6 +66,7 @@ class UserServiceUnitTest {
                 .build();
 
         when(userRepository.save(any(UserEntity.class))).thenReturn(savedUser);
+        when(userCalendarService.create(0L, "내 캘린더")).thenReturn(new CalendarInfoDto.Response());
 
         //when
         userService.create(userDto);
@@ -185,12 +195,13 @@ class UserServiceUnitTest {
 
         when(userRepository.existsByEmail(userInfo.getEmail())).thenReturn(false);
         when(userRepository.existsByNickname(userInfo.getNickname())).thenReturn(false);
+        doNothing().when(groupUserService).updateGroupUserNickname(userId, userEntity.getNickname());
 
         //when
         userService.updateUserInfo(userId, userInfo);
 
         //then
-        verify(userRepository).updateUserInfo(eq(1234), any(UserEntity.class));
+        verify(userRepository).updateUserInfo(eq(1234L), any(UserEntity.class));
     }
 
     @Test

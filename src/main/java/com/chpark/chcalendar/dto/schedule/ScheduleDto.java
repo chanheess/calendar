@@ -32,10 +32,11 @@ public class ScheduleDto {
 
     private Long repeatId;
 
-    private Long userId;
+    @NotNull
+    private long userId;
 
     @NotNull(groups = ValidGroup.CreateGroup.class)
-    private Long calendarId;
+    private long calendarId;
 
     public ScheduleDto(String title, String description, LocalDateTime startAt, LocalDateTime endAt, Long calendarId) {
         this.title = title;

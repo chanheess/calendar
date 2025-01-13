@@ -20,8 +20,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -67,30 +66,6 @@ class UserControllerTest {
     }
 
     @Test
-    void loginUser() {
-    }
-
-    @Test
-    void logoutUser() {
-    }
-
-    @Test
-    void checkLogin() {
-    }
-
-    @Test
-    void getUserNickname() {
-    }
-
-    @Test
-    void getUserInfo() {
-    }
-
-    @Test
-    void updateUserInfo() {
-    }
-
-    @Test
     @WithMockUser(username = "testUser")
     void updatePassword() throws Exception {
         // given
@@ -111,13 +86,13 @@ class UserControllerTest {
         UserDto.ChangePassword changePasswordDto = new UserDto.ChangePassword("wrongPassword", "newPassword");
 
         doThrow(new IllegalArgumentException("Incorrect password"))
-                .when(userService).updatePassword(anyInt(), any(UserDto.ChangePassword.class));
+                .when(userService).updatePassword(anyLong(), any(UserDto.ChangePassword.class));
 
         // when & then
         mockMvc.perform(patch("/user/password")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(changePasswordDto)))
-                .andExpect(jsonPath("$.status").value(HttpStatus.BAD_REQUEST.value())) // 커스텀 에러 응답
+                .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("Incorrect password"))
                 .andDo(print());
     }

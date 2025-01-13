@@ -24,7 +24,7 @@ public class ScheduleNotificationService {
 
     @Transactional
     public List<ScheduleNotificationDto> create(long scheduleId, List<ScheduleNotificationDto> notifications) {
-        if(notifications.isEmpty()) {
+        if(notifications == null || notifications.isEmpty()) {
             return new ArrayList<>();
         }
 
