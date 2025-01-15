@@ -25,7 +25,7 @@ public class ScheduleBatchRepository {
 
     @Transactional
     public void saveRepeatAll(ScheduleEntity schedule, ScheduleRepeatEntity repeat) {
-        String scheduleSql = "INSERT INTO schedule (title, description, start_at, end_at, repeat_id, user_id) VALUES (?, ?, ?, ?, ?, ?)";
+        String scheduleSql = "INSERT INTO schedule (title, description, start_at, end_at, repeat_id, user_id, calendar_id) VALUES (?, ?, ?, ?, ?, ?, ?)";
         String notificationSql = "INSERT INTO schedule_notification (schedule_id, notification_at) VALUES (?, ?)";
 
         Connection connection = null;
@@ -49,6 +49,7 @@ public class ScheduleBatchRepository {
                     psSchedule.setTimestamp(4, Timestamp.valueOf(ScheduleUtility.calculateRepeatPlusDate(schedule.getEndAt(), repeat.getRepeatType(), repeat.getRepeatInterval() * i)));
                     psSchedule.setLong(5, repeat.getId());
                     psSchedule.setLong(6, schedule.getUserId());
+                    psSchedule.setLong(7, schedule.getCalendarId());
                     psSchedule.addBatch();
                 }
                 psSchedule.executeBatch();

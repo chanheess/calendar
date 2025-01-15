@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -20,7 +21,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @SpringBootTest
-@EnableTransactionManagement
 @Slf4j
 class ScheduleNotificationServiceTest {
     @Autowired
@@ -33,6 +33,7 @@ class ScheduleNotificationServiceTest {
     private List<ScheduleNotificationDto> notificationDtoList;
 
     @BeforeEach
+    @Transactional
     void setup() {
         schedule = new ScheduleEntity();
         schedule.setId(1);
@@ -55,6 +56,7 @@ class ScheduleNotificationServiceTest {
     }
 
     @Test
+    @Transactional
     void create() {
         notificationService.create(schedule.getId(), notificationDtoList);
 
@@ -64,6 +66,7 @@ class ScheduleNotificationServiceTest {
     }
 
     @Test
+    @Transactional
     void create_notificationsNull() {
         notificationService.create(Long.MAX_VALUE, null);
 
@@ -73,6 +76,7 @@ class ScheduleNotificationServiceTest {
     }
 
     @Test
+    @Transactional
     void create_notificationsIsEmpty() {
         notificationService.create(Long.MAX_VALUE, new ArrayList<>());
 
@@ -82,6 +86,7 @@ class ScheduleNotificationServiceTest {
     }
 
     @Test
+    @Transactional
     void create_EntityNotFoundException() {
         List<ScheduleNotificationDto> notifications = notificationService.findByScheduleId(schedule.getId());
 
@@ -92,6 +97,7 @@ class ScheduleNotificationServiceTest {
     }
 
     @Test
+    @Transactional
     void update() {
         //given
         notificationService.create(schedule.getId(), notificationDtoList);
