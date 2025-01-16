@@ -1,17 +1,10 @@
 /* 기본 바탕색과 폰트 스타일 */
 body {
-    background-color: #f8f9fa;
     font-family: Arial, sans-serif;
-}
-
-/* 중앙에 정렬된 기본 폼 컨테이너 스타일 */
-.form-container, .popup {
-    max-width: 400px;
-    margin: 100px auto;
-    padding: 30px;
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    background-color: #f9f9f9;
 }
 
 /* 제목 스타일 */
@@ -60,12 +53,13 @@ button:hover {
 
 /* Header 스타일 */
 .header {
-    max-width: 800px;
+    max-height: 65px;
+    max-width: auto;
     margin: 0 auto;
     display: flex;
     justify-content: flex-end;
-    padding: 10px 10px 5px;
-    background-color: #f1f1f1;
+    padding: 20px;
+    background-color: #fff;
     border-bottom: 1px solid #ddd;
     box-sizing: border-box;
     align-items: center;
@@ -87,3 +81,392 @@ button:hover {
 .header button.logout {
     background-color: #f44336;
 }
+
+/* 알림 버튼 스타일 */
+.notification {
+    position: relative;
+}
+
+.notification button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    position: relative;
+    font-size: 24px;
+}
+
+.notification .badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background-color: red;
+    color: white;
+    border-radius: 50%;
+    padding: 2px 6px;
+    font-size: 12px;
+}
+
+/* 알림 드롭다운 스타일 */
+.notification .dropdown {
+    position: absolute;
+    top: 40px;
+    right: 0;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.3);
+    width: 350px;
+    display: none;
+    z-index: 100;
+    min-height: 150px;
+}
+
+.notification .dropdown h3 {
+    margin: 0;
+    padding: 10px;
+    background-color: #f1f1f1;
+    border-bottom: 1px solid #ddd;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.notification .dropdown p {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.notification .dropdown ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.notification .dropdown ul li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 10px;
+    border-bottom: 1px solid #ddd;
+}
+
+.button-container {
+    display: flex;
+    justify-content: flex-end;
+    gap: 5px;
+    margin-bottom: 10px;
+}
+
+.notification .dropdown ul li:last-child {
+    border-bottom: none;
+}
+
+.notification .dropdown ul li p {
+    margin: 0;
+    font-size: 14px;
+}
+
+.notification .dropdown ul li span {
+    display: block;
+    font-size: 12px;
+    color: #888;
+}
+
+button.accept-button,
+button.decline-button {
+    padding: 4px 8px;
+    font-size: 12px;
+    border-radius: 3px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease-in-out;
+}
+
+/* 수락 및 거절 버튼 스타일 */
+button.accept-button {
+    background-color: #4CAF50;
+    color: white;
+}
+
+button.decline-button {
+    background-color: #f44336;
+    color: white;
+}
+
+button.accept-button:hover,
+button.decline-button:hover {
+    opacity: 0.8;
+}
+
+/* 추가 규칙 - 새 버튼 스타일 */
+button.rename-btn {
+    background-color: #ccc;
+    color: black;
+    font-size: 12px;
+    padding: 6px 10px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease-in-out;
+}
+
+button.rename-btn:hover {
+    background-color: #bbb;
+}
+
+/* 전체 컨테이너 */
+.calendar-container {
+    display: flex;
+    height: 100vh;
+}
+
+/* 사이드바 스타일 */
+.calendar-sidebar {
+    width: 250px;
+    background-color: #f9f9f9;
+    border-right: 1px solid #ddd;
+    padding: 10px;
+    box-sizing: border-box;
+    overflow-y: auto; /* 스크롤 가능하게 */
+}
+
+.calendar-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.calendar-list.hidden {
+    display: none;
+}
+
+.calendar-list li {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.calendar-list li input[type="checkbox"] {
+    margin-right: 10px;
+}
+
+/* 추가 버튼 스타일 */
+#addCalendarButton {
+    display: block;
+    margin: 10px 0;
+    padding: 5px 10px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+#addCalendarButton:hover {
+    background-color: #0056b3;
+}
+
+/* 캘린더 내용 스타일 */
+.calendar-content {
+    flex-grow: 1;
+    padding: 20px;
+    overflow-y: auto; /* 캘린더 내용도 스크롤 가능 */
+}
+
+.toggle-icon {
+    font-size: 12px;
+    margin-left: 5px;
+    cursor: pointer;
+}
+
+
+/* 섹션 스타일 */
+.calendar-section {
+    margin-bottom: 20px;
+}
+
+/* 캘린더 섹션 헤더 */
+.calendar-section h3 {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 16px;
+    margin: 0;
+    padding: 10px 0;
+    cursor: pointer;
+}
+
+/* 섹션 헤더의 아이콘 */
+.calendar-section .toggle-icon {
+    font-size: 14px;
+    color: #888;
+    transition: transform 0.3s;
+}
+
+/* 섹션이 접혔을 때 아이콘 회전 */
+.calendar-section.collapsed .toggle-icon {
+    transform: rotate(-90deg);
+}
+
+
+
+/* 모달 배경 */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+/* 모달 콘텐츠 */
+.modal-content {
+    background: white;
+    width: 400px;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    position: relative;
+}
+
+/* 닫기 버튼 */
+.close {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 24px;
+    cursor: pointer;
+    color: #888;
+}
+
+.close:hover {
+    color: black;
+}
+
+
+
+/* 입력 필드 */
+#calendarTitle, select {
+    width: 70%;
+    padding: 8px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+/* 생성 버튼 */
+#createCalendarButton {
+    width: 100%;
+    padding: 10px;
+    font-size: 16px;
+    color: white;
+    background-color: #4CAF50;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+#createCalendarButton:hover {
+    background-color: #45a049;
+}
+
+.textarea {
+    border-radius: 4px;
+}
+
+
+
+.calendar-item {
+    display: flex;
+    align-items: center; /* 수평 정중앙 정렬 */
+    justify-content: space-between; /* 텍스트와 아이콘을 양 끝으로 배치 */
+    padding: 5px 0;
+    position: relative;
+}
+
+.calendar-label {
+    display: flex;
+    align-items: center;
+    gap: 5px; /* 체크박스와 제목 간격 */
+}
+
+.calendar-title {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    max-width: 120px; /* 제목 길이 제한 */
+    color: gray;
+}
+
+.group-manage-button {
+    background: none;
+    border: none;
+    font-size: 25px; /* 아이콘 크기 */
+    color: gray;
+    cursor: pointer;
+    opacity: 0; /* 기본적으로 숨김 */
+    transition: opacity 0.3s ease;
+    padding: 0px;
+    margin: 0px;
+    margin-right: 10px;
+    text-align: right;
+}
+
+.calendar-item:hover .group-manage-button {
+    opacity: 1; /* 마우스 오버 시 나타남 */
+}
+
+/* 폼 스타일 */
+.form-container {
+    max-width: 400px;
+    margin: 100px auto;
+    padding: 30px;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.form-row {
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 10px;
+}
+
+.form-section {
+    margin-bottom: 20px;
+}
+
+.form-label {
+    flex: 1; /* 레이블은 적당히 길게 */
+    text-align: left; /* 텍스트 오른쪽 정렬 */
+    margin-right: 5px; /* 입력 필드와 간격 */
+}
+
+.form-input {
+    flex: 2; /* 입력 필드는 더 넓게 */
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.form-button {
+    flex: 0.5; /* 버튼은 레이블과 비슷한 넓이 */
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.form-button:hover {
+    background-color: #0056b3; /* 버튼에 마우스를 올렸을 때 색상 변경 */
+}
+
