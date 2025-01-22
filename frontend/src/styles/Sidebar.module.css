@@ -1,0 +1,103 @@
+.sidebar {
+  width: 250px;
+  background: #f9f9f9;
+  border-right: 1px solid #ddd;
+  padding: 20px;
+  overflow-y: auto;
+  height: calc(100vh - 60px); /* 헤더 높이를 뺀 나머지 화면 */
+  box-sizing: border-box;
+  position: fixed;
+  left: -250px; /* 기본적으로 숨김 */
+  transition: left 0.3s ease-in-out;
+  z-index: 1000;
+}
+
+.sidebar.open {
+  left: 0;
+}
+
+.dimmedOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  display: none;
+}
+
+.dimmedOverlay.show {
+  display: block;
+}
+
+.calendarSection {
+  margin-bottom: 20px;
+}
+
+.toggleSection {
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.toggleIcon {
+  font-size: 12px;
+  color: #888;
+}
+
+.calendarList {
+  list-style: none;
+  padding: 0;
+  margin: 10px 0 0 0;
+}
+
+.calendarItem {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.calendarItem label {
+  margin-left: 10px;
+}
+
+.emptyMessage {
+  font-size: 14px;
+  color: #888;
+}
+
+.addCalendarButton {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  font-size: 16px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  text-align: center;
+}
+
+.addCalendarButton:hover {
+  background-color: #0056b3;
+}
+
+/* 데스크탑 환경 */
+@media (min-width: 768px) {
+  .dimmedOverlay {
+    display: none;
+  }
+  .sidebar {
+    left: 0;
+    position: relative;
+    top: 0;
+    height: auto;
+    z-index: 1;
+  }
+}

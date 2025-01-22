@@ -4,6 +4,12 @@ import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 
+import axios from "axios";
+axios.defaults.baseURL = "https://localhost"; // 백엔드 URL 설정
+axios.defaults.headers.common["Content-Type"] = "application/json";
+axios.defaults.withCredentials = true; // 쿠키 포함
+
+
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>

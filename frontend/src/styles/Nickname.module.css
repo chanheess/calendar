@@ -1,0 +1,27 @@
+.nickname {
+  font-size: 1rem;
+  font-weight: bold;
+  color: black;
+  white-space: nowrap;
+}
+
+.nickname.primary {
+  color: #4caf50;
+}
+
+.nickname.error {
+  color: #f44336;
+}
+
+.nickname.loading {
+  color: #888;
+  font-style: italic;
+}
+
+.nickname.medium {
+  font-size: 1rem;
+}
+
+.nickname.large {
+  font-size: 1.5rem;
+}

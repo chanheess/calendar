@@ -5,9 +5,42 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow: hidden; /* 스크롤바 제거 */
+
 }
 
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
+}
+
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px;
+  background-color: #f8f9fa;
+}
+
+.calendar-container {
+  display: flex;
+}
+
+.calendar-sidebar {
+  width: 250px;
+  background-color: #e9ecef;
+}
+
+.calendar-content {
+  flex: 1;
+  padding: 20px;
+}
+
+.calendar-list {
+  list-style: none;
+  padding: 0;
+}
+
+.hidden {
+  display: none;
 }
