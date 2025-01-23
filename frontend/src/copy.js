@@ -764,23 +764,7 @@
             popupOverlay.classList.remove('dimmed-background');
         }
 
-        function logout() {
-            fetch('/auth/logout', {
-                method: 'POST',
-                credentials: 'include'
-            })
-            .then(response => {
-                if (response.ok) {
-                    window.location.href = '/auth/login';
-                } else {
-                    alert("Logout failed. Please try again.");
-                }
-            })
-            .catch(error => {
-                console.error("Error during logout:", error);
-                alert("An error occurred while logging out.");
-            });
-        }
+
 
         async function displayUserNickname() {
             try {
@@ -903,8 +887,6 @@
             }
         }
 
-
-        document.getElementById('logoutButton').addEventListener('click', logout);
         document.getElementById('userProfileButton').addEventListener('click', getUserProfile);
 
         popupClose.addEventListener('click', function() {
@@ -1206,7 +1188,6 @@
 <!--    <a class="navbar-brand" href="https://chcalendar.site">chcalendar</a>-->
     <span id="userNickname"></span>
     <button id="userProfileButton">Profile</button>
-    <button id="logoutButton" class="logout-button logout">Logout</button>
     <div class="notification">
         <button id="notificationButton">
             <span class="icon">🔔</span>

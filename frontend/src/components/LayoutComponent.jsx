@@ -22,7 +22,6 @@ const LayoutComponent = ({ userId }) => {
       <HeaderComponent
         onSidebarToggle={toggleSidebar}
         onProfileClick={() => alert("프로필 클릭")}
-        onLogout={() => alert("로그아웃")}
       />
       <div className={styles.content}>
         <SidebarComponent

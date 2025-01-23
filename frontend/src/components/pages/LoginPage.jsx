@@ -24,11 +24,7 @@ const LoginPage = () => {
         }
       );
 
-      if (response.status === 200) {
-        navigate("/"); // 로그인 성공 시 리다이렉트
-      } else {
-        throw new Error("Unexpected response status");
-      }
+      navigate("/"); // 로그인 성공 시 리다이렉트
     } catch (error) {
       if (error.response && error.response.data) {
         // 서버에서 반환한 에러 메시지

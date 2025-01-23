@@ -1,15 +1,36 @@
 import React, { useState } from "react";
 import Nickname from "./Nickname";
+import axios from "axios";
 import styles from "../styles/Header.module.css";
 import Button from "./Button";
 
-const HeaderComponent = ({ onProfileClick, onLogout, onSidebarToggle }) => {
+const HeaderComponent = ({ onProfileClick, onSidebarToggle }) => {
   const [notifications, setNotifications] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
 
   const toggleDropdown = () => {
     console.log("Dropdown toggled:", !showDropdown);
     setShowDropdown((prevState) => !prevState);
+  };
+
+  const handleLogout = () => {
+    axios.post(`/auth/logout`, null, {
+        withCredentials: true,
+      })
+      .then((response) => {
+        if (response.status === 200) {
+          window.location.href = '/auth/login';
+        } else {
+          alert("Unexpected response from the server");
+        }
+      })
+      .catch((error) => {
+        if (error.response) {
+          alert("Error: " + error.response.data.message || error.response.data);
+        } else {
+          alert("Error: " + error.message);
+        }
+      });
   };
 
 
@@ -32,7 +53,7 @@ const HeaderComponent = ({ onProfileClick, onLogout, onSidebarToggle }) => {
         <Button variant="green" size="small" onClick={onProfileClick}>
           Profile
         </Button>
-        <Button variant="logout" size="small" onClick={onLogout}>
+        <Button variant="logout" size="small" onClick={handleLogout}>
           Logout
         </Button>
         <div className={styles.notificationWrapper}>

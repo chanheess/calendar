@@ -63,10 +63,8 @@ const RegisterPage = () => {
             },
         });
 
-        if (response.status === 200) {
-            alert("Registration successful!");
-            window.location.href = "/auth/login";
-        }
+        alert("Registration successful!");
+        window.location.href = "/auth/login";
     } catch (error) {
       if (error.response) {
         alert("Error: " + error.response.data.message);
