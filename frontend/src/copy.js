@@ -782,10 +782,6 @@
             }
         }
 
-        function getUserProfile() {
-            window.location.href = '/user/profile';
-        }
-
         async function fetchNotifications() {
             try {
                 const response = await fetch('/notifications',{

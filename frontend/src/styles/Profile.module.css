@@ -1,0 +1,64 @@
+.formContainer {
+  max-width: 400px;
+  margin: 50px auto;
+  padding: 20px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: #fff;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.formContainer h2 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.infoRow {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.formContainer button {
+  flex: 0.5; /* 버튼은 레이블과 비슷한 넓이 */
+  background-color: #007bff;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.formContainer label {
+    text-align: left; /* 텍스트 오른쪽 정렬 */
+    margin-right: 5px; /* 입력 필드와 간격 */
+    width: 95px;
+}
+
+.formContainer input {
+    flex: 2; /* 입력 필드는 더 넓게 */
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 7px;
+}
+
+.formContainer span {
+    flex: 2; /* 입력 필드는 더 넓게 */
+}
+
+.email {
+  color: #1a73e8;
+  font-weight: bold;
+}
+
+.passwordError {
+  color: red;
+  margin-top: -10px;
+  margin-bottom: 15px;
+}

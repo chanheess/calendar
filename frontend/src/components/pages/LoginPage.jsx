@@ -57,6 +57,7 @@ const LoginPage = () => {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
+          autoComplete="on"
           className={styles.input}
         />
         <Button variant="green" size="medium" type="submit">

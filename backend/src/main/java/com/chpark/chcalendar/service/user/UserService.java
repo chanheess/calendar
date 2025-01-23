@@ -90,11 +90,9 @@ public class UserService {
     @Transactional
     public void updateUserInfo(long userId, UserDto.UserInfo userInfo) {
         if (userRepository.existsByEmail(userInfo.getEmail())) {
-
             throw new IllegalArgumentException("이미 해당 이메일을 가진 사용자가 존재합니다.");
         }
         if (userRepository.existsByNickname(userInfo.getNickname())) {
-
             throw new IllegalArgumentException("이미 해당 닉네임을 가진 사용자가 존재합니다.");
         }
 

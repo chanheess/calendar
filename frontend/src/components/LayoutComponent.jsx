@@ -20,8 +20,8 @@ const LayoutComponent = ({ userId }) => {
   return (
     <div className={styles.layout}>
       <HeaderComponent
+        mode="main"
         onSidebarToggle={toggleSidebar}
-        onProfileClick={() => alert("프로필 클릭")}
       />
       <div className={styles.content}>
         <SidebarComponent
