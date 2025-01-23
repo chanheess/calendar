@@ -29,22 +29,6 @@ public class ViewController {
         return "register";
     }
 
-    @PostMapping("/auth/register")
-    public String createUser(@Validated @ModelAttribute UserDto.RegisterRequest userRequest,
-                             RedirectAttributes redirectAttributes, Model model) {
-        try {
-            redisService.verificationEmail(userRequest.getEmail(), userRequest.getEmailCode());
-            userService.create(userRequest);
-        } catch (IllegalArgumentException ex) {
-            model.addAttribute("userRequest", userRequest);
-            model.addAttribute("errorMessage", ex.getMessage());
-            return "register";
-        }
-
-        redirectAttributes.addFlashAttribute("message", "회원가입이 성공적으로 완료되었습니다.");
-        return "redirect:/auth/login";
-    }
-
     @GetMapping("/user/profile")
     public String userProfile() {
         return "userProfile";

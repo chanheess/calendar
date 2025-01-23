@@ -3,19 +3,23 @@ package com.chpark.chcalendar.controller;
 import com.chpark.chcalendar.dto.JwtAuthenticationResponseDto;
 import com.chpark.chcalendar.dto.UserDto;
 import com.chpark.chcalendar.security.JwtTokenProvider;
+import com.chpark.chcalendar.service.RedisService;
 import com.chpark.chcalendar.service.user.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.ui.Model;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @RestController
 @RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
+    private final RedisService redisService;
     private final JwtTokenProvider jwtTokenProvider;
 
     @PostMapping("/auth/login")
@@ -93,6 +97,15 @@ public class UserController {
         userService.updatePassword(userId, changePassword);
         return ResponseEntity.ok().body("Password updated successfully.");
     }
+
+    @PostMapping("/auth/register")
+    public ResponseEntity<String> createUser(@Validated @RequestBody UserDto.RegisterRequest userRequest) {
+        redisService.verificationEmail(userRequest.getEmail(), userRequest.getEmailCode());
+        userService.create(userRequest);
+
+        return ResponseEntity.ok("회원가입이 성공적으로 완료되었습니다.");
+    }
+
 
 
 }
