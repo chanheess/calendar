@@ -6,14 +6,13 @@ import styles from "../styles/Layout.module.css";
 
 const LayoutComponent = ({ userId }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [selectedCalendarIds, setSelectedCalendarIds] = useState([]);
+  const [selectedCalendarList, setSelectedCalendars] = useState([]);
 
   const toggleSidebar = () => setIsSidebarOpen((prev) => !prev);
   const closeSidebar = () => setIsSidebarOpen(false);
 
   const handleCalendarChange = useCallback((selectedCalendars) => {
-    const selectedIds = Object.keys(selectedCalendars);
-    setSelectedCalendarIds(selectedIds); // 선택된 목록 업데이트
+    setSelectedCalendars(selectedCalendars); // 선택된 목록 업데이트
   }, []);
 
 
@@ -34,7 +33,7 @@ const LayoutComponent = ({ userId }) => {
         <main
           className={`${styles.mainContent} ${isSidebarOpen ? styles.sidebarOpen : ""}`}
         >
-          <CalendarComponent selectedCalendarIds={selectedCalendarIds} />
+          <CalendarComponent selectedCalendarList={selectedCalendarList} />
         </main>
       </div>
     </div>

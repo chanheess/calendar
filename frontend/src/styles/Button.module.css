@@ -12,6 +12,9 @@
 }
 
 /* 버튼 크기 */
+.button.none {
+}
+
 .button.small {
   padding: 5px 10px;
   font-size: 14px;
@@ -104,6 +107,14 @@
 .button.active {
     background-color: #4CAF50;
     cursor: pointer;
+}
+
+.button.close {
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: black;
+  cursor: pointer;
 }
 
 button:hover {

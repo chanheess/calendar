@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 @Setter
 @NoArgsConstructor
 public class ScheduleNotificationDto {
+
     @NotNull
     @FutureOrPresent(message = "The notification date must be in the present or future")
     private LocalDateTime notificationAt;

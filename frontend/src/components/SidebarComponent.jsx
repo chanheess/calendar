@@ -38,6 +38,8 @@ const SidebarComponent = ({ isOpen, onClose, onAddCalendar, onCalendarChange }) 
       return acc;
     }, {});
 
+    console.log(updatedSelectedCalendars);
+
     setSelectedCalendars(updatedSelectedCalendars); // 선택된 캘린더 상태 업데이트
     onCalendarChange(updatedSelectedCalendars); // 부모 컴포넌트로 전달
   };

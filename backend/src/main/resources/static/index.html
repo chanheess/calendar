@@ -607,7 +607,7 @@
             popupNewEvent.classList.add('hidden');
             popupEditEvent.classList.remove('hidden');
 
-            const scheduleNotificationsFetch = fetch(`/schedule-notifications?schedule-id=${event.id}`, {
+            const scheduleNotificationsFetch = fetch(`/schedules/${event.id}/notifications`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json'

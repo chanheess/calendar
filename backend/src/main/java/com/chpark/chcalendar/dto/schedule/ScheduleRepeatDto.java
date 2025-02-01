@@ -16,18 +16,19 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @EqualsAndHashCode
 public class ScheduleRepeatDto {
-    @NotNull
-    private ScheduleRepeatType repeatType;
 
     @NotNull
     private int repeatInterval;
 
-    @FutureOrPresent(message = "The notification date must be in the present or future")
+    @NotNull
+    private ScheduleRepeatType repeatType;
+
+    @FutureOrPresent(message = "The repeat date must be in the present or future")
     private LocalDateTime endAt;
 
     public ScheduleRepeatDto(ScheduleRepeatEntity repeatEntity) {
-        this.repeatType = repeatEntity.getRepeatType();
         this.repeatInterval = repeatEntity.getRepeatInterval();
+        this.repeatType = repeatEntity.getRepeatType();
         this.endAt = repeatEntity.getEndAt();
     }
 }

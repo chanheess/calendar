@@ -28,23 +28,23 @@ class ScheduleUtilityTest {
         LocalDateTime endDate = LocalDateTime.of(2023, 1, 31, 0, 0);
 
         // 일간 반복
-        assertThat(ScheduleUtility.calculateRepeatCount(startDate, endDate, 1, ScheduleRepeatType.d))
+        assertThat(ScheduleUtility.calculateRepeatCount(startDate, endDate, 1, ScheduleRepeatType.DAY))
                 .isEqualTo(30);
 
         // 주간 반복
-        assertThat(ScheduleUtility.calculateRepeatCount(startDate, endDate, 1, ScheduleRepeatType.w))
+        assertThat(ScheduleUtility.calculateRepeatCount(startDate, endDate, 1, ScheduleRepeatType.WEEK))
                 .isEqualTo(4);
 
         // 월간 반복
-        assertThat(ScheduleUtility.calculateRepeatCount(startDate, endDate, 1, ScheduleRepeatType.m))
+        assertThat(ScheduleUtility.calculateRepeatCount(startDate, endDate, 1, ScheduleRepeatType.MONTH))
                 .isEqualTo(0); // (31일 사이에 한 번이니까 반복은 없으므로 0)
 
         // 연간 반복
-        assertThat(ScheduleUtility.calculateRepeatCount(startDate, endDate, 1, ScheduleRepeatType.y))
+        assertThat(ScheduleUtility.calculateRepeatCount(startDate, endDate, 1, ScheduleRepeatType.YEAR))
                 .isEqualTo(0); // (같은 해 내 반복이 없으므로 0)
 
         // 종료일이 없을 때
-        assertThat(ScheduleUtility.calculateRepeatCount(startDate, null, 1, ScheduleRepeatType.d))
+        assertThat(ScheduleUtility.calculateRepeatCount(startDate, null, 1, ScheduleRepeatType.DAY))
                 .isEqualTo(500);
     }
 
@@ -53,28 +53,28 @@ class ScheduleUtilityTest {
         LocalDateTime date = LocalDateTime.of(2023, 1, 1, 0, 0);
 
         // 일간 반복 추가 (interval = 10, repeatType = DAYS)
-        assertThat(ScheduleUtility.calculateRepeatPlusDate(date, ScheduleRepeatType.d, 10))
+        assertThat(ScheduleUtility.calculateRepeatPlusDate(date, ScheduleRepeatType.DAY, 10))
                 .isEqualTo(date.plusDays(10));
 
         // 주간 반복 추가 (interval = 2, repeatType = WEEKS)
-        assertThat(ScheduleUtility.calculateRepeatPlusDate(date, ScheduleRepeatType.w, 2))
+        assertThat(ScheduleUtility.calculateRepeatPlusDate(date, ScheduleRepeatType.WEEK, 2))
                 .isEqualTo(date.plusWeeks(2));
 
         // 월간 반복 추가 (interval = 3, repeatType = MONTHS)
-        assertThat(ScheduleUtility.calculateRepeatPlusDate(date, ScheduleRepeatType.m, 3))
+        assertThat(ScheduleUtility.calculateRepeatPlusDate(date, ScheduleRepeatType.MONTH, 3))
                 .isEqualTo(date.plusMonths(3));
 
         // 연간 반복 추가 (interval = 1, repeatType = YEARS)
-        assertThat(ScheduleUtility.calculateRepeatPlusDate(date, ScheduleRepeatType.y, 1))
+        assertThat(ScheduleUtility.calculateRepeatPlusDate(date, ScheduleRepeatType.YEAR, 1))
                 .isEqualTo(date.plusYears(1));
 
         // null date 예외 발생 확인
-        assertThatThrownBy(() -> ScheduleUtility.calculateRepeatPlusDate(null, ScheduleRepeatType.d, 1))
+        assertThatThrownBy(() -> ScheduleUtility.calculateRepeatPlusDate(null, ScheduleRepeatType.DAY, 1))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("The date parameters must not be null");
 
         // 반복 간격이 1 미만일 경우 같은 날짜 반환
-        assertThat(ScheduleUtility.calculateRepeatPlusDate(date, ScheduleRepeatType.d, 0))
+        assertThat(ScheduleUtility.calculateRepeatPlusDate(date, ScheduleRepeatType.DAY, 0))
                 .isEqualTo(date);
     }
 

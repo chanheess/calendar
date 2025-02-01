@@ -43,7 +43,4 @@ public class CalendarController {
 
         return ResponseEntity.ok(calendar.create(userId, calendarInfoDto.getTitle()));
     }
-
-//    @GetMapping("/calendars/schedule")
-//    public ResponseEntity<>
 }

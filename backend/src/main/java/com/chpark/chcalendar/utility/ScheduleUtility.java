@@ -21,10 +21,10 @@ public class ScheduleUtility {
         }
 
         return switch (repeatType) {
-            case d -> (int) ChronoUnit.DAYS.between(startDate, endDate) / interval;
-            case w -> (int) ChronoUnit.WEEKS.between(startDate, endDate) / interval;
-            case m -> (int) ChronoUnit.MONTHS.between(startDate, endDate) / interval;
-            case y -> (int) ChronoUnit.YEARS.between(startDate, endDate) / interval;
+            case DAY -> (int) ChronoUnit.DAYS.between(startDate, endDate) / interval;
+            case WEEK -> (int) ChronoUnit.WEEKS.between(startDate, endDate) / interval;
+            case MONTH -> (int) ChronoUnit.MONTHS.between(startDate, endDate) / interval;
+            case YEAR -> (int) ChronoUnit.YEARS.between(startDate, endDate) / interval;
         };
     }
 
@@ -45,10 +45,10 @@ public class ScheduleUtility {
         }
 
         return switch (repeatType) {
-            case d -> date.plusDays(repeatInterval);
-            case w -> date.plusWeeks(repeatInterval);
-            case m -> date.plusMonths(repeatInterval);
-            case y -> date.plusYears(repeatInterval);
+            case DAY -> date.plusDays(repeatInterval);
+            case WEEK -> date.plusWeeks(repeatInterval);
+            case MONTH -> date.plusMonths(repeatInterval);
+            case YEAR -> date.plusYears(repeatInterval);
         };
     }
 
