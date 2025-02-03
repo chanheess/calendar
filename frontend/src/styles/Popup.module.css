@@ -23,11 +23,17 @@
 }
 
 .popupHeader {
-  font-size: 18px;
-  font-weight: bold;
-  margin-bottom: 10px;
-  display: flex;
-  align-items: center;
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.popupHeader h2{
+  margin: 10px;
+  flex: 10;
 }
 
 .popupHeader span{
@@ -71,6 +77,7 @@
   display: flex;
   justify-content: flex-end;
   gap: 10px;
+  height: 100%;
 }
 
 .popupButton {
@@ -100,3 +107,23 @@
 .popupButton:hover {
   opacity: 0.9;
 }
+
+.radioGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 20px 0;
+}
+
+.radioLabel {
+  display: flex;
+  align-items: center;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.radioLabel input {
+  margin-right: 10px;
+  transform: scale(1.2);
+}
+

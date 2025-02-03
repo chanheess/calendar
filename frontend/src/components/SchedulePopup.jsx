@@ -3,62 +3,108 @@ import styles from "../styles/SchedulePopup.module.css";
 import Button from "./Button";
 import Toggle from "./Toggle";
 import axios from "axios";
+import RepeatPopup from "./RepeatPopup";
 
-const SchedulePopup = ({ isOpen, mode, eventDetails, onClose, onSave, selectedCalendarList }) => {
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [startAt, setStartAt] = useState("");
-  const [endAt, setEndAt] = useState("");
-  const [calendarId, setCalendarId] = useState("");
-  const [notifications, setNotifications] = useState([]);
-  const [isNotificationEnabled, setIsNotificationEnabled] = useState(false);
-  const [repeatDetails, setRepeatDetails] = useState({
-    repeatInterval: 1,
-    repeatType: "d",
+const SchedulePopup = ({ isOpen, mode, eventDetails, onClose, selectedCalendarList }) => {
+  const [scheduleData, setScheduleData] = useState({
+    id: "",
+    title: "",
+    description: "",
+    startAt: "",
     endAt: "",
+    repeatId: "",
+    userId: "",
+    calendarId: "",
+    notifications: [],
+    repeatDetails: {
+      repeatInterval: 1,
+      repeatType: "DAY",
+      endAt: "",
+    },
   });
+
+  const [isNotificationEnabled, setIsNotificationEnabled] = useState(false);
   const [isRepeatEnabled, setIsRepeatEnabled] = useState(false);
+
+  const [repeatPopupVisible, setRepeatPopupVisible] = useState(false);
+  const [repeatPopupMode, setRepeatPopupMode] = useState("");
 
   useEffect(() => {
     const loadEventDetails = async () => {
       if (isOpen && mode === "edit" && eventDetails) {
-        setTitle(eventDetails.title);
-        setDescription(eventDetails.description);
-        setStartAt(eventDetails.startAt.substring(0, 16));
-        setEndAt(eventDetails.endAt.substring(0, 16));
-        setCalendarId(eventDetails.calendarId);
+        setScheduleData({
+          id: eventDetails.id,
+          title: eventDetails.title,
+          description: eventDetails.description,
+          startAt: eventDetails.startAt.substring(0, 16),
+          endAt: eventDetails.endAt.substring(0, 16),
+          repeatId: eventDetails.repeatId || "",
+          userId: eventDetails.userId,
+          calendarId: eventDetails.calendarId,
+          notifications: [],
+          repeatDetails: {
+            repeatInterval: 1,
+            repeatType: "DAY",
+            endAt: "",
+          },
+        });
 
         const notificationList = await fetchScheduleNotifications(eventDetails.id);
         if(notificationList.length > 0) {
-          setNotifications(convertDTOToNotifications(notificationList, eventDetails.startAt));
+          setScheduleData((data) => ({
+            ...data,
+            notifications: convertDTOToNotifications(notificationList, eventDetails.startAt),
+          }));
           setIsNotificationEnabled(true);
         }
 
         const repeatDetailList = await fetchRepeatDetails(eventDetails.repeatId);
         if (repeatDetailList) {
-          setRepeatDetails(repeatDetailList);
+          setScheduleData((data) => ({
+            ...data,
+            repeatDetails: repeatDetailList,
+          }));
           setIsRepeatEnabled(true);
         }
 
       } else if (isOpen && mode === "create") {
-        // Create mode: reset fields
-        setTitle("");
-        setDescription("");
-        setStartAt(eventDetails.startAt.substring(0, 16));
-        setEndAt(eventDetails.endAt.substring(0, 16));
-
-        const firstCalendarId = Object.keys(selectedCalendarList)[0]; // 첫 번째 캘린더 ID
-        setCalendarId(firstCalendarId); // 기본값으로 첫 번째 캘린더 ID 설정
+        setScheduleData({
+          id: "",
+          title: "",
+          description: "",
+          startAt: eventDetails.startAt.substring(0, 16),
+          endAt: eventDetails.endAt.substring(0, 16),
+          repeatId: "",
+          userId: "",
+          calendarId: Object.keys(selectedCalendarList)[0], // 첫 번째 캘린더 ID 기본값
+          notifications: [{ time: 1, unit: "hours" }],
+          repeatDetails: { repeatInterval: 1, repeatType: "DAY", endAt: "" },
+        });
 
         setIsNotificationEnabled(false);
-        setNotifications([{ time: 1, unit: "hours" }]);
         setIsRepeatEnabled(false);
-        setRepeatDetails({ repeatInterval: 1, repeatType: "d", endAt: "" });
       }
     };
 
     loadEventDetails();
   }, [isOpen, mode, eventDetails]);
+
+  const getScheduleData = () => ({
+    scheduleDto: {
+      id: scheduleData.id,
+      title: scheduleData.title,
+      description: scheduleData.description,
+      startAt: scheduleData.startAt,
+      endAt: scheduleData.endAt,
+      repeatId: scheduleData.repeatId,
+      userId: scheduleData.userId,
+      calendarId: scheduleData.calendarId,
+    },
+    notificationDto: isNotificationEnabled
+      ? convertNotificationsToDTO(scheduleData.notifications, scheduleData.startAt)
+      : [],
+    repeatDto: formatRepeatDetails(scheduleData.repeatDetails),
+  });
 
   const fetchScheduleNotifications = async (eventId) => {
     try {
@@ -73,20 +119,37 @@ const SchedulePopup = ({ isOpen, mode, eventDetails, onClose, onSave, selectedCa
     }
   };
 
-  const handleAddNotification = (e) => {
-      setNotifications([...notifications, { time: 1, unit: "hours" }]);
-    };
-
-  const handleUpdateNotification = (index, value) => {
-    const updatedNotifications = notifications.map((notification, i) =>
-      i === index ? { notificationAt: value } : notification
-    );
-    setNotifications(updatedNotifications);
+  const handleInputChange = (field, value) => {
+    setScheduleData((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
   };
 
+  // 알림 추가 (기본값: 1시간 전)
+  const handleAddNotification = () => {
+    setScheduleData((prevState) => ({
+      ...prevState,
+      notifications: [...prevState.notifications, { time: 1, unit: "hours" }],
+    }));
+  };
+
+  // 특정 인덱스의 알림 업데이트
+  const handleUpdateNotification = (index, field, value) => {
+    setScheduleData((prevState) => ({
+      ...prevState,
+      notifications: prevState.notifications.map((notification, i) =>
+        i === index ? { ...notification, [field]: value } : notification
+      ),
+    }));
+  };
+
+  // 특정 인덱스의 알림 삭제
   const handleRemoveNotification = (index) => {
-    const updatedNotifications = notifications.filter((_, i) => i !== index);
-    setNotifications(updatedNotifications);
+    setScheduleData((prevState) => ({
+      ...prevState,
+      notifications: prevState.notifications.filter((_, i) => i !== index),
+    }));
   };
 
   const convertNotificationsToDTO = (notifications, startAt) => {
@@ -134,6 +197,16 @@ const SchedulePopup = ({ isOpen, mode, eventDetails, onClose, onSave, selectedCa
     return `${year}-${month}-${day}T${hours}:${minutes}`;
   }
 
+  const formatRepeatDetails = (repeatDetails) => {
+    if (!isRepeatEnabled) return null;
+
+    return {
+      repeatInterval: repeatDetails.repeatInterval,
+      repeatType: repeatDetails.repeatType,
+      endAt: repeatDetails.endAt ? new Date(repeatDetails.endAt).toISOString() : null,
+    };
+  };
+
   const convertDTOToNotifications = (notifications, startAt) => {
     return notifications.map((notification) => {
       const startDate = new Date(startAt);
@@ -171,44 +244,120 @@ const SchedulePopup = ({ isOpen, mode, eventDetails, onClose, onSave, selectedCa
     }
   };
 
-  const formatRepeatDetails = (repeatDetails) => {
-    if (!isRepeatEnabled) return null;
+  const handleSave = async () => {
+    try {
+      if (mode === "create") {
+        await axios.post("/schedules", getScheduleData(), {
+            withCredentials: true,
+            headers: { "Content-Type": "application/json" },
+        });
+        alert("Event created successfully!");
+        onClose();
+      } else if (mode === "edit") {
+        if (scheduleData.repeatId) {
+          openRepeatPopup("save");
+        }
+        else {
+          console.log(scheduleData);
 
-    const repeatTypeMap = {
-      d: "DAY",
-      w: "WEEK",
-      m: "MONTH",
-      y: "YEAR",
-    };
-
-    return {
-      repeatInterval: repeatDetails.repeatInterval,
-      repeatType: repeatTypeMap[repeatDetails.repeatType],
-      endAt: repeatDetails.endAt ? new Date(repeatDetails.endAt).toISOString() : null,
-    };
+          await axios.patch(`/schedules/${scheduleData.id}?repeat=${isRepeatEnabled}`, getScheduleData(), {
+              withCredentials: true,
+              headers: { "Content-Type": "application/json" },
+          });
+          alert("Event updated successfully!");
+          onClose();
+        }
+      }
+    } catch (error) {
+        console.error("Error saving schedule:", error.response?.data || error.message);
+        alert("Failed to save schedule.");
+    }
   };
 
-  const handleSave = () => {
-    const scheduleData = {
-      scheduleDto: {
-        title,
-        description,
-        startAt,
-        endAt,
-        calendarId,
-      },
-      notificationDto: isNotificationEnabled
-        ? convertNotificationsToDTO(notifications, startAt)
-        : [],
-      repeatDto: formatRepeatDetails(repeatDetails),
-    };
+  const repeatSave = async (url) => {
+    try {
+      if (mode === "edit" && scheduleData.repeatId) {
+        console.log(getScheduleData());
 
-    onSave(scheduleData);
+        await axios.patch(url, getScheduleData(), {
+            withCredentials: true,
+            headers: { "Content-Type": "application/json" },
+        });
+        alert("Event updated successfully!");
+        onClose();
+      }
+    } catch (error) {
+        console.error("Error saving schedule:", error.response?.data || error.message);
+        alert("Failed to save schedule.");
+    }
   };
+
+  const handleDelete = async () => {
+    try {
+      if (mode === "edit") {
+        if (scheduleData.repeatId) {
+          openRepeatPopup("delete");
+        }
+        else {
+          await axios.delete(`/schedules/${scheduleData.id}/calendars/${scheduleData.calendarId}`, {
+              withCredentials: true,
+          });
+          alert("Event delete successfully!");
+          onClose();
+        }
+      }
+    } catch (error) {
+      alert("Failed to delete schedule.");
+    }
+  };
+
+  const repeatDelete = async (url) => {
+    try {
+      if (mode === "edit") {
+        await axios.delete(url, {
+            withCredentials: true,
+        });
+        alert("Event delete successfully!");
+        onClose();
+      }
+    } catch (error) {
+      alert("Failed to delete schedule.");
+    }
+  };
+
+  const repeatConfirm = async (url) => {
+    if (repeatPopupMode === "save") {
+      repeatSave(url);
+    } else if (repeatPopupMode === "delete") {
+      repeatDelete(url);
+    }
+  }
+
+  function openRepeatPopup(mode) {
+    setRepeatPopupVisible(true);
+    setRepeatPopupMode(mode);
+  }
+
+  function closeRepeatPopup() {
+    setRepeatPopupVisible(false);
+    setRepeatPopupMode("");
+  }
 
   if (!isOpen) return null;
 
   return (
+    <>
+    {repeatPopupVisible && (
+      <RepeatPopup
+        isOpen={repeatPopupVisible}
+        onClose={closeRepeatPopup}
+        mode={repeatPopupMode}
+        scheduleId={scheduleData.id}
+        calendarId={scheduleData.calendarId}
+        repeatCheck={isRepeatEnabled}
+        onConfirm={repeatConfirm}
+      />
+    )}
     <div className={styles.popupOverlay}>
       <div className={styles.popup}>
         <div className={styles.popupHeader}>
@@ -222,58 +371,39 @@ const SchedulePopup = ({ isOpen, mode, eventDetails, onClose, onSave, selectedCa
             <label>Title:</label>
             <input
               type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              value={scheduleData.title}
+              onChange={(e) => handleInputChange("title", e.target.value)}
             />
           </div>
           <div className={styles.infoRow}>
             <label>Description:</label>
             <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              value={scheduleData.description}
+              onChange={(e) => handleInputChange("description", e.target.value)}
             />
           </div>
           <div className={styles.infoRow}>
             <label>Start Time:</label>
             <input
               type="datetime-local"
-              value={startAt}
-              onChange={(e) => setStartAt(e.target.value)}
+              value={scheduleData.startAt}
+              onChange={(e) => handleInputChange("startAt", e.target.value)}
             />
           </div>
           <div className={styles.infoRow}>
             <label>End Time:</label>
             <input
               type="datetime-local"
-              value={endAt}
-              onChange={(e) => setEndAt(e.target.value)}
+              value={scheduleData.endAt}
+              onChange={(e) => handleInputChange("endAt", e.target.value)}
             />
           </div>
           <div className={styles.infoRow}>
             <label>Calendar:</label>
-            <select
-              value={calendarId}
-              onChange={(e) => {
-                setCalendarId(e.target.value);
-                console.log("Selected Calendar ID:", e.target.value); // 선택된 값 출력
-              }}
-
-            >
-              {mode === "create" ? (
-                selectedCalendarList && typeof selectedCalendarList === "object" ? (
-                  Object.entries(selectedCalendarList).map(([key, value]) => (
-                    <option key={key} value={key}>
-                      {value}
-                    </option>
-                  ))
-                ) : (
-                  <option value="">No Calendars Available</option>
-                )
-              ) : (
-                <option value={eventDetails?.calendarId || ""}>
-                  {selectedCalendarList[eventDetails?.calendarId] || "Unknown Calendar"}
-                </option>
-              )}
+            <select value={scheduleData.calendarId} onChange={(e) => handleInputChange("calendarId", e.target.value)}>
+              {Object.entries(selectedCalendarList).map(([key, value]) => (
+                <option key={key} value={key}>{value}</option>
+              ))}
             </select>
           </div>
 
@@ -281,13 +411,13 @@ const SchedulePopup = ({ isOpen, mode, eventDetails, onClose, onSave, selectedCa
             <label>Notifications:</label>
             <Toggle
               checked={isNotificationEnabled}
-              onChange={(e) => setIsNotificationEnabled(e.target.checked)}
+              onChange={() => setIsNotificationEnabled(!isNotificationEnabled)}
             />
           </div>
 
           {isNotificationEnabled && (
             <div>
-              {notifications.map((notification, index) => (
+              {scheduleData.notifications.map((notification, index) => (
                 <div key={index} className={styles.notificationRow}>
                   <input
                     type="number"
@@ -337,7 +467,7 @@ const SchedulePopup = ({ isOpen, mode, eventDetails, onClose, onSave, selectedCa
             <label>Repeat:</label>
             <Toggle
               checked={isRepeatEnabled}
-              onChange={(e) => setIsRepeatEnabled(e.target.checked)}
+              onChange={() => setIsRepeatEnabled(!isRepeatEnabled)}
             />
           </div>
 
@@ -347,39 +477,48 @@ const SchedulePopup = ({ isOpen, mode, eventDetails, onClose, onSave, selectedCa
                 <label>Repeat Interval:</label>
                 <input
                   type="number"
-                  value={repeatDetails.repeatInterval}
+                  value={scheduleData.repeatDetails.repeatInterval}
                   onChange={(e) =>
-                    setRepeatDetails({
-                      ...repeatDetails,
-                      repeatInterval: e.target.value,
-                    })
+                    setScheduleData((prevData) => ({
+                      ...prevData,
+                      repeatDetails: {
+                        ...prevData.repeatDetails,
+                        repeatInterval: e.target.value,
+                      },
+                    }))
                   }
                 />
                 <select
-                  value={repeatDetails.repeatType}
+                  value={scheduleData.repeatDetails.repeatType}
                   onChange={(e) =>
-                    setRepeatDetails({
-                      ...repeatDetails,
-                      repeatType: e.target.value,
-                    })
+                    setScheduleData((prevData) => ({
+                      ...prevData,
+                      repeatDetails: {
+                        ...prevData.repeatDetails,
+                        repeatType: e.target.value,
+                      },
+                    }))
                   }
                 >
-                  <option value="d">Day(s)</option>
-                  <option value="w">Week(s)</option>
-                  <option value="m">Month(s)</option>
-                  <option value="y">Year(s)</option>
+                  <option value="DAY">Day(s)</option>
+                  <option value="WEEK">Week(s)</option>
+                  <option value="MONTH">Month(s)</option>
+                  <option value="YEAR">Year(s)</option>
                 </select>
               </div>
               <div className={styles.infoRow}>
                 <label>End Time:</label>
                 <input
                   type="datetime-local"
-                  value={repeatDetails.endAt}
+                  value={scheduleData.repeatDetails.endAt}
                   onChange={(e) =>
-                    setRepeatDetails({
-                      ...repeatDetails,
-                      endAt: e.target.value,
-                    })
+                    setScheduleData((prevData) => ({
+                      ...prevData,
+                      repeatDetails: {
+                        ...prevData.repeatDetails,
+                        endAt: e.target.value,
+                      },
+                    }))
                   }
                 />
               </div>
@@ -390,6 +529,11 @@ const SchedulePopup = ({ isOpen, mode, eventDetails, onClose, onSave, selectedCa
             <Button variant="green" size="medium" onClick={handleSave} type="button">
               Save
             </Button>
+            {mode === "edit" && (
+              <Button variant="warning" size="medium" onClick={handleDelete} type="button">
+                Delete
+              </Button>
+            )}
             <Button variant="logout" size="medium" onClick={onClose} type="button">
               Close
             </Button>
@@ -397,6 +541,7 @@ const SchedulePopup = ({ isOpen, mode, eventDetails, onClose, onSave, selectedCa
         </form>
       </div>
     </div>
+    </>
   );
 };
 

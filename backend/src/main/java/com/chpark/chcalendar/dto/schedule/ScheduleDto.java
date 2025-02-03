@@ -33,7 +33,7 @@ public class ScheduleDto {
     private Long repeatId;
 
     @NotNull
-    private long userId;
+    private long userId;    //create에서는 필요하지 않음
 
     @NotNull(groups = ValidGroup.CreateGroup.class)
     private long calendarId;

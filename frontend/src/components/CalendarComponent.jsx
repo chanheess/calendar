@@ -17,6 +17,7 @@ const CalendarComponent = ({ selectedCalendarList }) => {
   const [schedulePopupMode, setSchedulePopupMode] = useState("create");
   const [schedulePopupData, setSchedulePopupData] = useState(null);
 
+
   // Fetch events for the calendar
   const fetchEvents = async (fetchInfo, successCallback, failureCallback) => {
     const params = new URLSearchParams({
@@ -33,14 +34,10 @@ const CalendarComponent = ({ selectedCalendarList }) => {
       const data = response.data;
       let events = [];
 
-      // selectedCalendarList가 객체(Map)일 경우 entries 배열로 변환
       if (!selectedCalendarList || Object.keys(selectedCalendarList).length === 0) {
-        console.log("선택된 캘린더 없음:", selectedCalendarList);
         successCallback([]);
         return;
       }
-
-      console.log("사용 가능한 캘린더 목록:", selectedCalendarList);
 
       Object.entries(selectedCalendarList).forEach(([calendarId, calendar]) => {
         if (data[calendarId]) {
@@ -61,7 +58,6 @@ const CalendarComponent = ({ selectedCalendarList }) => {
 
       successCallback(events);
     } catch (error) {
-      console.error("이벤트 가져오기 오류:", error);
       failureCallback(error);
     }
   };
@@ -145,33 +141,6 @@ const CalendarComponent = ({ selectedCalendarList }) => {
     setSchedulePopupVisible(true); // 팝업 열기
   };
 
-
-  // Save event from SchedulePopup
-  const handleSaveSchedule = async (scheduleData) => {
-    try {
-        if (schedulePopupMode === "create") {
-            console.log("Sending Schedule Data:", scheduleData);
-
-            await axios.post("/schedules", scheduleData, {
-                withCredentials: true,
-            });
-            alert("Event created successfully!");
-        } else if (schedulePopupMode === "edit") {
-            await axios.patch(`/schedules/${schedulePopupData.id}`, scheduleData, {
-                withCredentials: true,
-            });
-            alert("Event updated successfully!");
-        }
-
-        setSchedulePopupVisible(false);
-        setPopupVisible(false);
-    } catch (error) {
-        console.error("Error saving schedule:", error.response?.data || error.message);
-        alert("Failed to save schedule.");
-    }
-  };
-
-
   // Close both popups
   const closeAllPopups = () => {
 
@@ -244,7 +213,6 @@ const CalendarComponent = ({ selectedCalendarList }) => {
           mode={schedulePopupMode}
           eventDetails={schedulePopupData}
           onClose={closeAllPopups}
-          onSave={handleSaveSchedule}
           selectedCalendarList={selectedCalendarList}
         />
       )}
