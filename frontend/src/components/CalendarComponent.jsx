@@ -4,9 +4,9 @@ import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import axios from "axios";
-import styles from "../styles/Calendar.module.css";
-import Popup from "./Popup";
-import SchedulePopup from "./SchedulePopup";
+import styles from "styles/Calendar.module.css";
+import Popup from "./popups/Popup";
+import SchedulePopup from "./popups/SchedulePopup";
 
 const CalendarComponent = ({ selectedCalendarList }) => {
   const [popupVisible, setPopupVisible] = useState(false);
@@ -143,7 +143,6 @@ const CalendarComponent = ({ selectedCalendarList }) => {
 
   // Close both popups
   const closeAllPopups = () => {
-
     setPopupVisible(false);
     setSchedulePopupVisible(false);
     setPopupData(null);
@@ -165,6 +164,8 @@ const CalendarComponent = ({ selectedCalendarList }) => {
         }}
         events={fetchEvents}
         dateClick={dateClickEvent}
+        dayMaxEventRows={true}  // 날짜 칸 내에서 이벤트 개수 제한
+        fixedWeekCount={false}
       />
 
       {popupVisible && (
@@ -175,6 +176,7 @@ const CalendarComponent = ({ selectedCalendarList }) => {
             {
               label: "New Event",
               variant: "green",
+              size: "medium",
               onClick: () => {
                 const selectedDate = popupTitle.includes("Events on ")
                   ? popupTitle.split("Events on ")[1]
@@ -184,7 +186,8 @@ const CalendarComponent = ({ selectedCalendarList }) => {
             },
             {
               label: "Close",
-              variant: "red",
+              variant: "logout",
+              size: "medium",
               onClick: closeAllPopups,
             },
           ]}

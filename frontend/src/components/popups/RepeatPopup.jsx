@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import styles from "../styles/Popup.module.css";
-import Button from "./Button";
+import styles from "styles/Popup.module.css";
+import Button from "components/Button";
 
 const RepeatPopup = ({ isOpen, onClose, mode, scheduleId, calendarId, repeatCheck, onConfirm }) => {
   const [selectedOption, setSelectedOption] = useState("single");
@@ -33,7 +33,7 @@ const RepeatPopup = ({ isOpen, onClose, mode, scheduleId, calendarId, repeatChec
       <div className={styles.popup}>
         <div className={styles.popupHeader}>
           <h2>반복 일정 수정</h2>
-          <Button variant="close" size="none" onClick={onClose}>×</Button>
+          <Button variant="close" size="" onClick={onClose}>×</Button>
         </div>
         <div className={styles.popupContent}>
           <p>이 이벤트는 반복 일정의 일부입니다. 어떤 작업을 수행하시겠습니까?</p>

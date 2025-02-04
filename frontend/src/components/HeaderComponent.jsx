@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import Nickname from "./Nickname";
 import axios from "axios";
-import styles from "../styles/Header.module.css";
+import styles from "styles/Header.module.css";
 import Button from "./Button";
 
 const HeaderComponent = ({ mode, onSidebarToggle }) => {
@@ -69,7 +69,7 @@ const HeaderComponent = ({ mode, onSidebarToggle }) => {
       <div className={styles.leftSection}>
         <Button
           variant="function"
-          size="small"
+          size="large"
           onClick={onSidebarToggle}
           aria-label="Toggle Sidebar"
         >

@@ -1,6 +1,6 @@
 import React from "react";
-import styles from "../styles/Popup.module.css";
-import Button from "./Button"
+import styles from "styles/Popup.module.css";
+import Button from "../Button"
 
 const Popup = ({
   mode = "scheduleList", // Default mode
@@ -15,21 +15,22 @@ const Popup = ({
     <div className={`${styles.popupOverlay} ${styles[size]}`} {...props}>
       <div className={styles.popup}>
         <div className={styles.popupHeader}>
-          <span>{title}</span>
-          <Button variant="close" size="none" onClick={onClose}>
-            ×
-          </Button>
+          <h2>{title}</h2>
+          <Button variant="close" size="" onClick={onClose}>×</Button>
         </div>
-        <div className={styles.popupContent}>{children}</div>
+        <div className={styles.popupContent}>
+          {children}
+        </div>
         <div className={styles.popupFooter}>
           {actions.map((action, index) => (
-            <button
+            <Button
               key={index}
-              className={`${styles.popupButton} ${styles[action.variant || "default"]}`}
+              variant={action.variant}
+              size={action.size}
               onClick={action.onClick}
             >
               {action.label}
-            </button>
+            </Button>
           ))}
         </div>
       </div>

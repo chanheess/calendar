@@ -2,7 +2,7 @@ import React, { useState, useCallback } from "react";
 import SidebarComponent from "./SidebarComponent";
 import HeaderComponent from "./HeaderComponent";
 import CalendarComponent from "./CalendarComponent";
-import styles from "../styles/Layout.module.css";
+import styles from "styles/Layout.module.css";
 
 const LayoutComponent = ({ userId }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -26,7 +26,7 @@ const LayoutComponent = ({ userId }) => {
         <SidebarComponent
           isOpen={isSidebarOpen}
           onClose={closeSidebar}
-          onAddCalendar={() => alert("새 캘린더 추가!")}
+          selectedCalendarList={selectedCalendarList}
           onCalendarChange={handleCalendarChange}
           userId={userId}
         />

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import styles from "../../styles/Login.module.css";
+import styles from "styles/Login.module.css";
 import Button from "../Button";
 
 const LoginPage = () => {
@@ -14,7 +14,7 @@ const LoginPage = () => {
     event.preventDefault();
 
     try {
-      const response = await axios.post(
+      await axios.post(
         "/auth/login",
         { email, password },
         {
@@ -60,11 +60,11 @@ const LoginPage = () => {
           autoComplete="on"
           className={styles.input}
         />
-        <Button variant="green" size="medium" type="submit">
+        <Button variant="green" size="medium" margin="top" type="submit">
           Sign in
         </Button>
       </form>
-      <Button variant="blue" size="medium" onClick={() => navigate("/auth/register")}>
+      <Button variant="blue" size="medium" margin="top" onClick={() => navigate("/auth/register")}>
         Sign up
       </Button>
       {errorMessage && <div className={styles.error}>{errorMessage}</div>}

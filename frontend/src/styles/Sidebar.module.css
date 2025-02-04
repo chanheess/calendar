@@ -57,35 +57,37 @@
 
 .calendarItem {
   display: flex;
-  align-items: center;
-  margin-bottom: 10px;
+    align-items: center;
+    margin-bottom: 10px;
+    justify-content: flex-start;
+    gap: 12px;
+}
+
+.calendarItem input {
+  margin-left: 10px;
 }
 
 .calendarItem label {
+  flex: 4;
   margin-left: 10px;
+}
+
+.calendarItem button {
+  flex: 1;
+  padding: 0px;
+  font-size: 10px;
+  margin-left: 10px;
+  opacity: 0; /* 기본적으로 숨김 */
+  transition: opacity 0.3s ease;
+}
+
+.calendarItem button:hover {
+  opacity: 1; /* 마우스 오버 시 나타남 */
 }
 
 .emptyMessage {
   font-size: 14px;
   color: #888;
-}
-
-.addCalendarButton {
-  display: block;
-  width: 100%;
-  padding: 10px;
-  font-size: 16px;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background-color 0.3s;
-  text-align: center;
-}
-
-.addCalendarButton:hover {
-  background-color: #0056b3;
 }
 
 /* 데스크탑 환경 */

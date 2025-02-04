@@ -1,7 +1,15 @@
 import React from "react";
-import styles from "../styles/Sidebar.module.css";
+import styles from "styles/Sidebar.module.css";
+import Button from "./Button";
 
-const CalendarList = ({ title, calendars, sectionId, onCalendarSelection, selectedIds = [] }) => {
+const CalendarList = ({
+  title,
+  calendars,
+  sectionId,
+  onCalendarSelection,
+  onManageClick,
+  selectedIds = [],
+}) => {
   const handleCheckboxChange = (id) => {
     const updatedSelectedIds = selectedIds.includes(id)
       ? selectedIds.filter((calendarId) => calendarId !== id)
@@ -22,6 +30,17 @@ const CalendarList = ({ title, calendars, sectionId, onCalendarSelection, select
               id={`calendar-${calendar.id}`}
             />
             <label htmlFor={`calendar-${calendar.id}`}>{calendar.title}</label>
+
+            {sectionId === "GROUP" && (
+              <Button
+                variant="function"
+                size=""
+                title="그룹 관리"
+                onClick={() => onManageClick(calendar)}
+              >
+                ⚙️
+              </Button>
+            )}
           </li>
         ))}
       </ul>

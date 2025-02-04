@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import styles from "../../styles/Register.module.css";
+import styles from "styles/Register.module.css";
 import Button from "../Button";
 
 const RegisterPage = () => {
@@ -149,6 +149,7 @@ const RegisterPage = () => {
           type="submit"
           variant={isSubmitEnabled ? "green" : "disabled"}
           size="medium"
+          margin="top"
           disabled={!isSubmitEnabled}
         >
           Sign Up
@@ -157,6 +158,7 @@ const RegisterPage = () => {
           type="button"
           variant="danger"
           size="medium"
+          margin="top"
           onClick={() => (window.location.href = "/auth/login")}
         >
           Back

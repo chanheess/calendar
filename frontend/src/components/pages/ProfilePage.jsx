@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import styles from "../../styles/Profile.module.css";
+import styles from "styles/Profile.module.css";
 import Button from "../Button";
 import HeaderComponent from "../HeaderComponent";
 

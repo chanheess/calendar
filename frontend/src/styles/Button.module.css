@@ -11,10 +11,6 @@
   transition: opacity 0.3s ease-in-out;
 }
 
-/* 버튼 크기 */
-.button.none {
-}
-
 .button.small {
   padding: 5px 10px;
   font-size: 14px;
@@ -22,18 +18,17 @@
 
 .button.medium {
   padding: 10px 20px;
-  margin-top: 10px;
   font-size: 16px;
 }
 
 .button.large {
-  padding: 15px 30px;
-  font-size: 18px;
+  padding: 15px 20px;
+  font-size: 24px;
 }
 
+/* input과 동일 높이 */
 .button.input {
     font-size: 14px;
-    border-radius: 4px;
     padding: 7px;
 }
 
@@ -78,11 +73,12 @@
 
 .button.function {
   position: relative;
-  font-size: 24px;
   border: none;
   background: none;
   cursor: pointer;
   color: black;
+  display: inline-block;
+  font-weight: bold;
 }
 
 .button.active {
@@ -93,10 +89,14 @@
 .button.close {
   background: none;
   border: none;
-  font-size: 20px;
+  font-size: 24px;
   color: black;
   cursor: pointer;
   width: 100%;
+}
+
+.button.top {
+  margin-top: 10px;
 }
 
 button:hover {

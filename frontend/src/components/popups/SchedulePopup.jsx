@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
-import styles from "../styles/SchedulePopup.module.css";
-import Button from "./Button";
-import Toggle from "./Toggle";
+import styles from "styles/Popup.module.css";
+import Button from "components/Button";
+import Toggle from "components/Toggle";
 import axios from "axios";
 import RepeatPopup from "./RepeatPopup";
 
@@ -258,8 +258,6 @@ const SchedulePopup = ({ isOpen, mode, eventDetails, onClose, selectedCalendarLi
           openRepeatPopup("save");
         }
         else {
-          console.log(scheduleData);
-
           await axios.patch(`/schedules/${scheduleData.id}?repeat=${isRepeatEnabled}`, getScheduleData(), {
               withCredentials: true,
               headers: { "Content-Type": "application/json" },
@@ -277,8 +275,6 @@ const SchedulePopup = ({ isOpen, mode, eventDetails, onClose, selectedCalendarLi
   const repeatSave = async (url) => {
     try {
       if (mode === "edit" && scheduleData.repeatId) {
-        console.log(getScheduleData());
-
         await axios.patch(url, getScheduleData(), {
             withCredentials: true,
             headers: { "Content-Type": "application/json" },
@@ -362,185 +358,189 @@ const SchedulePopup = ({ isOpen, mode, eventDetails, onClose, selectedCalendarLi
       <div className={styles.popup}>
         <div className={styles.popupHeader}>
           <h2>{mode === "edit" ? "Edit Schedule" : "Create Schedule"}</h2>
-          <Button variant="close" size="none" onClick={onClose}>
+          <Button variant="close" size="" onClick={onClose}>
             ×
           </Button>
         </div>
-        <form>
-          <div className={styles.infoRow}>
-            <label>Title:</label>
-            <input
-              type="text"
-              value={scheduleData.title}
-              onChange={(e) => handleInputChange("title", e.target.value)}
-            />
-          </div>
-          <div className={styles.infoRow}>
-            <label>Description:</label>
-            <textarea
-              value={scheduleData.description}
-              onChange={(e) => handleInputChange("description", e.target.value)}
-            />
-          </div>
-          <div className={styles.infoRow}>
-            <label>Start Time:</label>
-            <input
-              type="datetime-local"
-              value={scheduleData.startAt}
-              onChange={(e) => handleInputChange("startAt", e.target.value)}
-            />
-          </div>
-          <div className={styles.infoRow}>
-            <label>End Time:</label>
-            <input
-              type="datetime-local"
-              value={scheduleData.endAt}
-              onChange={(e) => handleInputChange("endAt", e.target.value)}
-            />
-          </div>
-          <div className={styles.infoRow}>
-            <label>Calendar:</label>
-            <select value={scheduleData.calendarId} onChange={(e) => handleInputChange("calendarId", e.target.value)}>
-              {Object.entries(selectedCalendarList).map(([key, value]) => (
-                <option key={key} value={key}>{value}</option>
-              ))}
-            </select>
-          </div>
 
-          <div className={styles.infoRow}>
-            <label>Notifications:</label>
-            <Toggle
-              checked={isNotificationEnabled}
-              onChange={() => setIsNotificationEnabled(!isNotificationEnabled)}
-            />
-          </div>
+        <div className={styles.popupContent}>
+          <form>
+            <div className={styles.infoRow}>
+              <label>Title:</label>
+              <input
+                type="text"
+                value={scheduleData.title}
+                onChange={(e) => handleInputChange("title", e.target.value)}
+              />
+            </div>
+            <div className={styles.infoRow}>
+              <label>Description:</label>
+              <textarea
+                value={scheduleData.description}
+                onChange={(e) => handleInputChange("description", e.target.value)}
+              />
+            </div>
+            <div className={styles.infoRow}>
+              <label>Start Time:</label>
+              <input
+                type="datetime-local"
+                value={scheduleData.startAt}
+                onChange={(e) => handleInputChange("startAt", e.target.value)}
+              />
+            </div>
+            <div className={styles.infoRow}>
+              <label>End Time:</label>
+              <input
+                type="datetime-local"
+                value={scheduleData.endAt}
+                onChange={(e) => handleInputChange("endAt", e.target.value)}
+              />
+            </div>
+            <div className={styles.infoRow}>
+              <label>Calendar:</label>
+              <select value={scheduleData.calendarId} onChange={(e) => handleInputChange("calendarId", e.target.value)}>
+                {Object.entries(selectedCalendarList).map(([key, value]) => (
+                  <option key={key} value={key}>{value}</option>
+                ))}
+              </select>
+            </div>
 
-          {isNotificationEnabled && (
-            <div>
-              {scheduleData.notifications.map((notification, index) => (
-                <div key={index} className={styles.notificationRow}>
-                  <input
-                    type="number"
-                    value={notification.time}
-                    onChange={(e) =>
-                      handleUpdateNotification(index, "time", e.target.value)
-                    }
-                    className={styles.notificationInput}
-                    min="1"
-                  />
-                  <select
-                    value={notification.unit}
-                    onChange={(e) =>
-                      handleUpdateNotification(index, "unit", e.target.value)
-                    }
-                    className={styles.notificationSelect}
-                  >
-                    <option value="minutes">minutes</option>
-                    <option value="hours">hours</option>
-                    <option value="days">days</option>
-                  </select>
+            <div className={styles.infoRow}>
+              <label>Notifications:</label>
+              <Toggle
+                checked={isNotificationEnabled}
+                onChange={() => setIsNotificationEnabled(!isNotificationEnabled)}
+              />
+            </div>
+
+            {isNotificationEnabled && (
+              <div>
+                {scheduleData.notifications.map((notification, index) => (
+                  <div key={index} className={styles.notificationRow}>
+                    <input
+                      type="number"
+                      value={notification.time}
+                      onChange={(e) =>
+                        handleUpdateNotification(index, "time", e.target.value)
+                      }
+                      className={styles.notificationInput}
+                      min="1"
+                    />
+                    <select
+                      value={notification.unit}
+                      onChange={(e) =>
+                        handleUpdateNotification(index, "unit", e.target.value)
+                      }
+                      className={styles.notificationSelect}
+                    >
+                      <option value="minutes">minutes</option>
+                      <option value="hours">hours</option>
+                      <option value="days">days</option>
+                    </select>
+                    <Button
+                      variant="close"
+                      size=""
+                      onClick={() => handleRemoveNotification(index)}
+                    >
+                      ×
+                    </Button>
+                  </div>
+                ))}
+                <div className={styles.infoRow} >
                   <Button
-                    variant="close"
-                    size="none"
-                    onClick={() => handleRemoveNotification(index)}
+                    variant="primary"
+                    size="medium"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleAddNotification();
+                    }}
                   >
-                    ×
+                    Add Notification
                   </Button>
                 </div>
-              ))}
-              <div className={styles.infoRow} >
-                <Button
-                  variant="primary"
-                  size="medium"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    handleAddNotification();
-                  }}
-                >
-                  Add Notification
-                </Button>
               </div>
-            </div>
-          )}
-
-          <div className={styles.infoRow}>
-            <label>Repeat:</label>
-            <Toggle
-              checked={isRepeatEnabled}
-              onChange={() => setIsRepeatEnabled(!isRepeatEnabled)}
-            />
-          </div>
-
-          {isRepeatEnabled && (
-            <div>
-              <div className={styles.infoRow}>
-                <label>Repeat Interval:</label>
-                <input
-                  type="number"
-                  value={scheduleData.repeatDetails.repeatInterval}
-                  onChange={(e) =>
-                    setScheduleData((prevData) => ({
-                      ...prevData,
-                      repeatDetails: {
-                        ...prevData.repeatDetails,
-                        repeatInterval: e.target.value,
-                      },
-                    }))
-                  }
-                />
-                <select
-                  value={scheduleData.repeatDetails.repeatType}
-                  onChange={(e) =>
-                    setScheduleData((prevData) => ({
-                      ...prevData,
-                      repeatDetails: {
-                        ...prevData.repeatDetails,
-                        repeatType: e.target.value,
-                      },
-                    }))
-                  }
-                >
-                  <option value="DAY">Day(s)</option>
-                  <option value="WEEK">Week(s)</option>
-                  <option value="MONTH">Month(s)</option>
-                  <option value="YEAR">Year(s)</option>
-                </select>
-              </div>
-              <div className={styles.infoRow}>
-                <label>End Time:</label>
-                <input
-                  type="datetime-local"
-                  value={scheduleData.repeatDetails.endAt}
-                  onChange={(e) =>
-                    setScheduleData((prevData) => ({
-                      ...prevData,
-                      repeatDetails: {
-                        ...prevData.repeatDetails,
-                        endAt: e.target.value,
-                      },
-                    }))
-                  }
-                />
-              </div>
-            </div>
-          )}
-
-          <div className={styles.popupFooter}>
-            <Button variant="green" size="medium" onClick={handleSave} type="button">
-              Save
-            </Button>
-            {mode === "edit" && (
-              <Button variant="warning" size="medium" onClick={handleDelete} type="button">
-                Delete
-              </Button>
             )}
-            <Button variant="logout" size="medium" onClick={onClose} type="button">
-              Close
+
+            <div className={styles.infoRow}>
+              <label>Repeat:</label>
+              <Toggle
+                checked={isRepeatEnabled}
+                onChange={() => setIsRepeatEnabled(!isRepeatEnabled)}
+              />
+            </div>
+
+            {isRepeatEnabled && (
+              <div>
+                <div className={styles.infoRow}>
+                  <label>Repeat Interval:</label>
+                  <input
+                    type="number"
+                    value={scheduleData.repeatDetails.repeatInterval}
+                    onChange={(e) =>
+                      setScheduleData((prevData) => ({
+                        ...prevData,
+                        repeatDetails: {
+                          ...prevData.repeatDetails,
+                          repeatInterval: e.target.value,
+                        },
+                      }))
+                    }
+                  />
+                  <select
+                    type="unit"
+                    value={scheduleData.repeatDetails.repeatType}
+                    onChange={(e) =>
+                      setScheduleData((prevData) => ({
+                        ...prevData,
+                        repeatDetails: {
+                          ...prevData.repeatDetails,
+                          repeatType: e.target.value,
+                        },
+                      }))
+                    }
+                  >
+                    <option value="DAY">Day(s)</option>
+                    <option value="WEEK">Week(s)</option>
+                    <option value="MONTH">Month(s)</option>
+                    <option value="YEAR">Year(s)</option>
+                  </select>
+                </div>
+                <div className={styles.infoRow}>
+                  <label>End Time:</label>
+                  <input
+                    type="datetime-local"
+                    value={scheduleData.repeatDetails.endAt}
+                    onChange={(e) =>
+                      setScheduleData((prevData) => ({
+                        ...prevData,
+                        repeatDetails: {
+                          ...prevData.repeatDetails,
+                          endAt: e.target.value,
+                        },
+                      }))
+                    }
+                  />
+                </div>
+              </div>
+            )}
+          </form>
+        </div>  {/* <div className={styles.popupContent}> */}
+
+        <div className={styles.popupFooter}>
+          <Button variant="green" size="medium" onClick={handleSave} type="button">
+            Save
+          </Button>
+          {mode === "edit" && (
+            <Button variant="warning" size="medium" onClick={handleDelete} type="button">
+              Delete
             </Button>
-          </div>
-        </form>
-      </div>
-    </div>
+          )}
+          <Button variant="logout" size="medium" onClick={onClose} type="button">
+            Close
+          </Button>
+        </div>
+      </div>  {/* <div className={styles.popup}> */}
+    </div>  {/* <div className={styles.popupOverlay}> */}
     </>
   );
 };

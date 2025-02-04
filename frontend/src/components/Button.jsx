@@ -1,10 +1,10 @@
 import React from "react";
-import styles from "../styles/Button.module.css";
+import styles from "styles/Button.module.css";
 
-const Button = ({ children, variant = "primary", size = "medium", ...props }) => {
+const Button = ({ children, variant = "primary", size = "medium", margin = "", ...props }) => {
   return (
     <button
-      className={`${styles.button} ${styles[variant]} ${styles[size]}`}
+      className={`${styles.button} ${styles[variant]} ${styles[size]} ${styles[margin]}`}
       {...props}
     >
       {children}

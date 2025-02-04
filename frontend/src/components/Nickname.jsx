@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import styles from "../styles/Nickname.module.css";
+import styles from "styles/Nickname.module.css";
 
 const Nickname = ({ variant = "primary", size = "medium", ...props }) => {
   const [nickname, setNickname] = useState(null);
