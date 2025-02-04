@@ -74,17 +74,34 @@
   padding: 10px;
   z-index: 20;
   min-width: 200px;
+  width: 300px;
+  height: auto;
+}
+
+.dropdown h3 {
+  margin: 0 0 10px 5px;
 }
 
 .notificationList {
   list-style: none;
   margin: 0;
   padding: 0;
+  max-height: 400px; /* 최대 높이 제한 */
+  overflow-y: auto;  /* 내용이 넘칠 때만 스크롤 */
+  scrollbar-width: none; /* Firefox에서 스크롤바 숨기기 */
+  -ms-overflow-style: none; /* IE, Edge에서 스크롤바 숨기기 */
+}
+
+.notificationList::-webkit-scrollbar {
+  display: none; /* Chrome, Safari에서 스크롤바 숨기기 */
 }
 
 .notificationItem {
   padding: 5px 0;
   border-bottom: 1px solid #f0f0f0;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  margin-bottom: 5px;
 }
 
 .notificationItem:last-child {
@@ -95,4 +112,26 @@
   color: #888;
   font-size: 14px;
   text-align: center;
+}
+
+.infoRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 5px;
+  margin: 5px;
+}
+
+.infoRow p {
+  flex: 2;
+  padding: 5px;
+  margin: 0px;
+}
+
+.infoRow button {
+  flex: 1;
+}
+
+.dropdownFooter {
+  margin-top: 10px;
 }

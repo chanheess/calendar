@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Nickname from "./Nickname";
 import axios from "axios";
 import styles from "styles/Header.module.css";
@@ -8,16 +8,57 @@ const HeaderComponent = ({ mode, onSidebarToggle }) => {
   const [notifications, setNotifications] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
 
+  useEffect(() => {
+      fetchNotifications(); // 처음 마운트될 때 실행
+  }, []);
+
+  useEffect(() => {
+    if (showDropdown) {
+      fetchNotifications(); // 알림 드롭다운을 열 때만 다시 가져옴
+    }
+  }, [showDropdown]);
+
   const toggleDropdown = () => {
     console.log("Dropdown toggled:", !showDropdown);
     setShowDropdown((prevState) => !prevState);
   };
 
+  async function fetchNotifications() {
+    try {
+      const response = await axios.get("/notifications", {
+        withCredentials: true,
+      });
+      setNotifications(response.data || []);
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+    }
+  }
+
+  const handleNotificationAction = async (notification, action) => {
+    const url = `/notifications/${action}`;
+    try {
+      const response = await axios({
+        method: action === "accept" ? "POST" : "DELETE",
+        url,
+        data: notification,
+        withCredentials: true,
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (response.status === 200) {
+        alert(`알림 ${action === "accept" ? "수락" : "거절"} 완료`);
+        fetchNotifications();
+      } else {
+        alert("요청 처리 중 문제가 발생했습니다.");
+      }
+    } catch (error) {
+      console.error(`Error processing notification:`, error);
+    }
+  };
+
   const handleLogout = () => {
     axios
-      .post(`/auth/logout`, null, {
-        withCredentials: true,
-      })
+      .post("/auth/logout", null, { withCredentials: true })
       .then((response) => {
         if (response.status === 200) {
           window.location.href = "/auth/login";
@@ -105,13 +146,34 @@ const HeaderComponent = ({ mode, onSidebarToggle }) => {
                 <ul className={styles.notificationList}>
                   {notifications.map((notification, index) => (
                     <li key={index} className={styles.notificationItem}>
-                      {notification}
+                      <div className={styles.infoRow}>
+                        <p>{notification.message}</p>
+                        {notification.type === "INVITE" && (
+                          <div className={styles.infoRow}>
+                            <Button
+                              variant="green"
+                              size="small"
+                              onClick={() => handleNotificationAction(notification, "accept")}
+                            >
+                              수락
+                            </Button>
+                            <Button
+                              variant="logout"
+                              size="small"
+                              onClick={() => handleNotificationAction(notification, "reject")}
+                            >
+                              거절
+                            </Button>
+                          </div>
+                        )}
+                      </div> {/* <div className={styles.infoRow}> */}
                     </li>
                   ))}
                 </ul>
               ) : (
                 <p className={styles.noNotifications}>알림이 없습니다.</p>
               )}
+              <div className={styles.dropdownFooter}/>
             </div>
           )}
         </div>
