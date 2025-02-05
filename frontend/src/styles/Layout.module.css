@@ -1,0 +1,16 @@
+.layout {
+  display: flex;
+  flex-direction: column;
+  height: 100vh; /* 화면 전체 높이 */
+}
+
+.content {
+  display: flex;
+  flex: 1;
+  height: calc(100vh - 60px); /* 헤더를 제외한 나머지 공간 */
+}
+
+.mainContent {
+  flex: 1;
+  height: 100%; /* 콘텐츠 영역 전체 높이 */
+}
