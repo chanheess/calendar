@@ -17,7 +17,7 @@ pipeline {
                 dir('backend') {
                     sh 'chmod +x gradlew'
                     sh './gradlew clean build'
-                    sh 'docker buildx build --platform linux/amd64 -t chanheess/chcalendar-backend . --push'
+                    sh 'docker buildx build --platform linux/amd64 -t chanheess/chcalendar . --push'
                 }
             }
         }
@@ -36,7 +36,7 @@ pipeline {
                     sh '''
                     scp frontend/build.tar.gz ${EC2_IP}:/home/ec2-user/
                     ssh -o StrictHostKeyChecking=no ${EC2_IP} "
-                    docker pull chanheess/chcalendar-backend &&
+                    docker pull chanheess/chcalendar &&
                     cd /home/ec2-user &&
                     docker-compose down &&
                     sudo rm -rf /var/www/frontend/* &&
