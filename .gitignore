@@ -6,6 +6,7 @@
 build/
 
 # Gradle Wrapper
+backend/wrapper/*
 !gradlew
 !gradlew.bat
 !gradle/wrapper/*
@@ -53,7 +54,6 @@ out/
 .vscode/
 
 # Package Files #
-*.jar
 *.war
 *.nar
 *.ear
