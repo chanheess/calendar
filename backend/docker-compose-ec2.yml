@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   redis:
     image: redis
@@ -7,7 +9,7 @@ services:
       - "6379:6379"
 
   spring-app:
-    image: chanheess/chcalendar
+    image: chanheess/chcalendar-backend
     container_name: spring-app
     ports:
       - "8080:8080"
@@ -34,8 +36,7 @@ services:
     volumes:
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
       - ./data/letsencrypt:/etc/letsencrypt
-      - ./data/www:/var/www/html
+      - ./frontend/build:/var/www/frontend
     depends_on:
       - spring-app
-    env_file:
-      - .env
+    restart: always
