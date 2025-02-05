@@ -15,6 +15,7 @@ pipeline {
         stage('Build Backend') {
             steps {
                 dir('backend') {
+                    sh 'chmod +x gradlew'
                     sh './gradlew clean build'
                     sh 'docker buildx build --platform linux/amd64 -t chanheess/chcalendar-backend . --push'
                 }
