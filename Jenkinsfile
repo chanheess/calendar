@@ -12,23 +12,34 @@ pipeline {
                                                credentialsId: 'github']]])
             }
         }
-        stage('Build Application') {
+        stage('Build Backend') {
             steps {
-                sh './gradlew clean build'
+                dir('backend') {
+                    sh './gradlew clean build'
+                    sh 'docker buildx build --platform linux/amd64 -t chanheess/chcalendar-backend . --push'
+                }
             }
         }
-        stage('Build Docker Image') {
+        stage('Build Frontend') {
             steps {
-                sh 'docker buildx build --platform linux/amd64 -t chanheess/chcalendar . --push'
+                dir('frontend') {
+                    sh 'npm install'
+                    sh 'npm run build'
+                    sh 'tar -czf build.tar.gz build'
+                }
             }
         }
         stage('Deploy to EC2') {
             steps {
                 sshagent(['ec2']) {
                     sh '''
+                    scp frontend/build.tar.gz ${EC2_IP}:/home/ec2-user/
                     ssh -o StrictHostKeyChecking=no ${EC2_IP} "
-                    docker pull chanheess/chcalendar &&
+                    docker pull chanheess/chcalendar-backend &&
+                    cd /home/ec2-user &&
                     docker-compose down &&
+                    sudo rm -rf /var/www/frontend/* &&
+                    sudo tar -xzf /home/ec2-user/build.tar.gz -C /var/www/frontend &&
                     docker-compose up -d
                     "
                     '''
