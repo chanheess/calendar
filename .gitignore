@@ -6,9 +6,10 @@
 build/
 
 # Gradle Wrapper
+backend/wrapper/*
 !gradlew
 !gradlew.bat
-!gradle/wrapper/**
+!gradle/wrapper/*
 
 # 예외 설정이 잘못된 부분 제거
 !**/src/main/**/build/
@@ -53,7 +54,6 @@ out/
 .vscode/
 
 # Package Files #
-*.jar
 *.war
 *.nar
 *.ear
