@@ -25,7 +25,7 @@ const HeaderComponent = ({ mode, onSidebarToggle }) => {
 
   async function fetchNotifications() {
     try {
-      const response = await axios.get("/api/notifications", {
+      const response = await axios.get("notifications", {
         withCredentials: true,
       });
       setNotifications(response.data || []);
@@ -35,7 +35,7 @@ const HeaderComponent = ({ mode, onSidebarToggle }) => {
   }
 
   const handleNotificationAction = async (notification, action) => {
-    const url = `/api/notifications/${action}`;
+    const url = `notifications/${action}`;
     try {
       const response = await axios({
         method: action === "accept" ? "POST" : "DELETE",

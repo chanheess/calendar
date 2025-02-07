@@ -57,7 +57,7 @@ const RegisterPage = () => {
         password,
       };
 
-      const response = await axios.post("/api/auth/register", payload, {
+      const response = await axios.post("auth/register", payload, {
         headers: {
             "Content-Type": "application/json",
             },

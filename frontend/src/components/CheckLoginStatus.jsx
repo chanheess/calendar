@@ -1,10 +1,11 @@
-import React, { useEffect } from "react";
+import { useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+
 
 const CheckLoginStatus = ({ children }) => {
   const navigate = useNavigate();
 
-  const checkLoginStatus = async () => {
+  const checkLoginStatus = useCallback(async () => {
     try {
       const response = await fetch("/auth/check", {
         method: "GET",
@@ -26,11 +27,11 @@ const CheckLoginStatus = ({ children }) => {
       alert("로그인 상태를 확인할 수 없습니다.");
       navigate("/auth/login");
     }
-  };
+  }, [navigate]);
 
   useEffect(() => {
     checkLoginStatus();
-  }, []);
+  }, [checkLoginStatus]);
 
   return <>{children}</>; // 로그인 상태 확인 후 자식 컴포넌트 렌더링
 };
