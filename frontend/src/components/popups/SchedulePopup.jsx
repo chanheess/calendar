@@ -108,7 +108,7 @@ const SchedulePopup = ({ isOpen, mode, eventDetails, onClose, selectedCalendarLi
 
   const fetchScheduleNotifications = async (eventId) => {
     try {
-      const response = await axios.get(`schedules/${eventId}/notifications`, {
+      const response = await axios.get(`/schedules/${eventId}/notifications`, {
         withCredentials: true,
         headers: { "Content-Type": "application/json" },
       });
@@ -232,7 +232,7 @@ const SchedulePopup = ({ isOpen, mode, eventDetails, onClose, selectedCalendarLi
     if (!repeatId) return null; // repeatId가 없으면 null 반환
 
     try {
-      const response = await axios.get(`repeats/${repeatId}`, {
+      const response = await axios.get(`/repeats/${repeatId}`, {
         withCredentials: true,
         headers: { "Content-Type": "application/json" },
       });
@@ -247,7 +247,7 @@ const SchedulePopup = ({ isOpen, mode, eventDetails, onClose, selectedCalendarLi
   const handleSave = async () => {
     try {
       if (mode === "create") {
-        await axios.post("schedules", getScheduleData(), {
+        await axios.post("/schedules", getScheduleData(), {
             withCredentials: true,
             headers: { "Content-Type": "application/json" },
         });
@@ -258,7 +258,7 @@ const SchedulePopup = ({ isOpen, mode, eventDetails, onClose, selectedCalendarLi
           openRepeatPopup("save");
         }
         else {
-          await axios.patch(`schedules/${scheduleData.id}?repeat=${isRepeatEnabled}`, getScheduleData(), {
+          await axios.patch(`/schedules/${scheduleData.id}?repeat=${isRepeatEnabled}`, getScheduleData(), {
               withCredentials: true,
               headers: { "Content-Type": "application/json" },
           });
@@ -295,7 +295,7 @@ const SchedulePopup = ({ isOpen, mode, eventDetails, onClose, selectedCalendarLi
           openRepeatPopup("delete");
         }
         else {
-          await axios.delete(`schedules/${scheduleData.id}/calendars/${scheduleData.calendarId}`, {
+          await axios.delete(`/schedules/${scheduleData.id}/calendars/${scheduleData.calendarId}`, {
               withCredentials: true,
           });
           alert("Event delete successfully!");

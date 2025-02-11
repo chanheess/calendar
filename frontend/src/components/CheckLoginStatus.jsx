@@ -1,5 +1,6 @@
 import { useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 
 const CheckLoginStatus = ({ children }) => {
@@ -7,20 +8,15 @@ const CheckLoginStatus = ({ children }) => {
 
   const checkLoginStatus = useCallback(async () => {
     try {
-      const response = await fetch("/auth/check", {
-        method: "GET",
-        credentials: "include",
+      const response = await axios.get("/auth/check", {
+        withCredentials: true,
       });
 
-      if (response.ok) {
-        const isLoggedIn = await response.json();
+      const isLoggedIn = response.data;
 
-        if (!isLoggedIn) {
-          alert("로그인이 필요합니다.");
-          navigate("/auth/login");
-        }
-      } else {
-        throw new Error("Failed to check login status");
+      if (!isLoggedIn) {
+        alert("로그인이 필요합니다.");
+        navigate("/auth/login");
       }
     } catch (error) {
       console.error("Error checking login status:", error);
@@ -33,7 +29,7 @@ const CheckLoginStatus = ({ children }) => {
     checkLoginStatus();
   }, [checkLoginStatus]);
 
-  return <>{children}</>; // 로그인 상태 확인 후 자식 컴포넌트 렌더링
+  return <>{children}</>;
 };
 
 export default CheckLoginStatus;

@@ -15,7 +15,7 @@ const LoginPage = () => {
 
     try {
       await axios.post(
-        "auth/login",
+        "/auth/login",
         { email, password },
         {
           headers: {

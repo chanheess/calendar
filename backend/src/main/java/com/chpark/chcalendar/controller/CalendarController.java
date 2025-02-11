@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 @RequiredArgsConstructor
+@RequestMapping("/api")
 @RestController
 public class CalendarController {
 

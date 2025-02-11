@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import styles from "styles/Nickname.module.css";
+import axios from "axios";
 
 const Nickname = ({ variant = "primary", size = "medium", ...props }) => {
   const [nickname, setNickname] = useState(null);
@@ -7,24 +8,20 @@ const Nickname = ({ variant = "primary", size = "medium", ...props }) => {
 
   useEffect(() => {
     const fetchNickname = async () => {
-          try {
-            const response = await fetch("/user/nickname", {
-              method: "GET",
-              credentials: "include",
-            });
+      try {
+        const response = await axios.get("/user/nickname", {
+          withCredentials: true,
+          responseType: "text",
+        });
 
-            if (!response.ok) {
-              throw new Error("Failed to fetch nickname");
-            }
+        setNickname(response.data);
+      } catch (err) {
+        console.error("Error fetching nickname:", err);
+        setError("닉네임을 가져오지 못했습니다.");
+      }
+    };
 
-            const userNickname = await response.text();
-            setNickname(userNickname);
-          } catch (err) {
-            setError("닉네임을 가져오지 못했습니다.");
-          }
-        };
-
-        fetchNickname();
+    fetchNickname();
   }, []);
 
   // 렌더링 내용 결정

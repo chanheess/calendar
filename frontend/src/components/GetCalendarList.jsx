@@ -1,29 +1,22 @@
+import axios from "axios";
+
 const GetCalendarList = async (category) => {
   try {
-    const response = await fetch(`/calendars?category=${category}`, {
-      method: "GET",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-      },
+    const response = await axios.get(`/calendars`, {
+      params: { category }
     });
 
-    if (response.ok) {
-      const calendars = await response.json();
+    const calendars = response.data;
 
-      // ID를 키로, Title을 값으로 변환
-      const calendarMap = calendars.reduce((acc, calendar) => {
-        acc[calendar.id] = calendar.title;
-        return acc;
-      }, {});
+    // ID를 키로, Title을 값으로 변환
+    const calendarMap = calendars.reduce((acc, calendar) => {
+      acc[calendar.id] = calendar.title;
+      return acc;
+    }, {});
 
-      return calendarMap;
-    } else {
-      console.error("Failed to fetch calendars for category:", category);
-      return {};
-    }
+    return calendarMap;
   } catch (error) {
-    console.error("Error fetching calendars:", error);
+    console.error("Error fetching calendars for category:", category, error);
     return {};
   }
 };

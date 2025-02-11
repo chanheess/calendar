@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/repeats")
+@RequestMapping("/api/repeats")
 @RequiredArgsConstructor
 public class ScheduleRepeatController {
 

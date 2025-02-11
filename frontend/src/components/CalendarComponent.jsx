@@ -27,7 +27,7 @@ const CalendarComponent = ({ selectedCalendarList }) => {
     });
 
     try {
-      const response = await axios.get(`schedules/date?${params.toString()}`, {
+      const response = await axios.get(`/schedules/date?${params.toString()}`, {
         withCredentials: true,
         headers: { "Content-Type": "application/json" },
       });
@@ -70,7 +70,7 @@ const CalendarComponent = ({ selectedCalendarList }) => {
 
     try {
       // Fetch events for the clicked date
-      const response = await axios.get(`schedules/date?start=${selectedDate}&end=${selectedDate}`, {
+      const response = await axios.get(`/schedules/date?start=${selectedDate}&end=${selectedDate}`, {
         withCredentials: true,
       });
 
