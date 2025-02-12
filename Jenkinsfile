@@ -39,9 +39,9 @@ pipeline {
                     scp backend/docker-compose-ec2.yml ${EC2_IP}:/home/ec2-user/docker-compose.yml
                     
                     ssh -o StrictHostKeyChecking=no ${EC2_IP} "
-                        sudo mkdir -p /var/www/html/frontend/build &&
+                        sudo mkdir -p /var/www/html/frontend &&
                         sudo rm -rf /var/www/html/frontend/build/* &&
-                        sudo tar -xzf /home/ec2-user/build.tar.gz -C /var/www/html/frontend/build &&
+                        sudo tar -xzf /home/ec2-user/build.tar.gz -C /var/www/html/frontend &&
                         
                         docker pull chanheess/chcalendar &&
                         
