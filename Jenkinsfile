@@ -36,6 +36,7 @@ pipeline {
                     sh '''
                     scp frontend/build.tar.gz ${EC2_IP}:/home/ec2-user/
                     ssh -o StrictHostKeyChecking=no ${EC2_IP} "
+                        sudo mkdir -p /var/www/html/react-build &&
                         sudo rm -rf /var/www/html/react-build/* &&
                         sudo tar -xzf /home/ec2-user/build.tar.gz -C /var/www/html/react-build &&
                         
