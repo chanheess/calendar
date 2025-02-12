@@ -40,7 +40,7 @@ pipeline {
                     
                     ssh -o StrictHostKeyChecking=no ${EC2_IP} "
                         sudo mkdir -p /var/www/html/frontend &&
-                        sudo rm -rf /var/www/html/frontend/build/* &&
+                        sudo rm -rf /var/www/html/frontend/* &&
                         sudo tar -xzf /home/ec2-user/build.tar.gz -C /var/www/html/frontend &&
                         
                         docker pull chanheess/chcalendar &&
