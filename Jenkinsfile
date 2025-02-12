@@ -35,7 +35,7 @@ pipeline {
                 sshagent(['ec2']) {
                     sh '''
                     scp frontend/build.tar.gz ${EC2_IP}:/home/ec2-user/
-                    scp backend/default-ec2.conf ${EC2_IP}:/home/ec2-user/nginx/default.conf
+                    scp backend/nginx/default-ec2.conf ${EC2_IP}:/home/ec2-user/nginx/default.conf
                     scp backend/docker-compose-ec2.yml ${EC2_IP}:/home/ec2-user/docker-compose.yml
                     
                     ssh -o StrictHostKeyChecking=no ${EC2_IP} "
@@ -53,8 +53,8 @@ pipeline {
         }
     }
     post {
-        always {
-            echo 'Build and Deployment Process Complete!'
+        success {
+            echo 'Build and Deployment Process Completed Successfully!'
         }
         failure {
             echo 'Build or Deployment Failed. Check Logs.'
