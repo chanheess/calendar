@@ -36,12 +36,15 @@ pipeline {
                     sh '''
                     scp frontend/build.tar.gz ${EC2_IP}:/home/ec2-user/
                     ssh -o StrictHostKeyChecking=no ${EC2_IP} "
-                    docker pull chanheess/chcalendar &&
-                    cd /home/ec2-user &&
-                    docker-compose down &&
-                    sudo rm -rf /var/www/frontend/* &&
-                    sudo tar -xzf /home/ec2-user/build.tar.gz -C /var/www/frontend &&
-                    docker-compose up -d
+                        sudo rm -rf /var/www/html/react-build/* &&
+                        sudo tar -xzf /home/ec2-user/build.tar.gz -C /var/www/html/react-build &&
+                        
+                        sudo cp /home/ec2-user/default-ec2.conf /etc/nginx/conf.d/default.conf &&
+                        sudo cp /home/ec2-user/docker-compose-ec2.yml /home/ec2-user/docker-compose.yml &&
+
+                        docker pull chanheess/chcalendar &&
+                        
+                        sudo docker-compose up -d
                     "
                     '''
                 }
