@@ -12,15 +12,15 @@ const RepeatPopup = ({ isOpen, onClose, mode, scheduleId, calendarId, repeatChec
 
     if (mode === "delete") {
       if (selectedOption === "single") {
-        url = `/api/schedules/${scheduleId}/current-only/calendars/${calendarId}`;
+        url = `/schedules/${scheduleId}/current-only/calendars/${calendarId}`;
       } else if (selectedOption === "future") {
-        url = `/api/schedules/${scheduleId}/current-and-future/calendars/${calendarId}`;
+        url = `/schedules/${scheduleId}/current-and-future/calendars/${calendarId}`;
       }
     } else if (mode === "save") {
       if (selectedOption === "single") {
-        url = `/api/schedules/${scheduleId}/current-only?repeat=${repeatCheck}`;
+        url = `/schedules/${scheduleId}/current-only?repeat=${repeatCheck}`;
       } else if (selectedOption === "future") {
-        url = `/api/schedules/${scheduleId}/current-and-future?repeat=${repeatCheck}`;
+        url = `/schedules/${scheduleId}/current-and-future?repeat=${repeatCheck}`;
       }
     }
 

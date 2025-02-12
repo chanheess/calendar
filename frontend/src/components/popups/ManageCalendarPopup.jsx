@@ -16,7 +16,7 @@ const ManageCalendarPopup = ({ isOpen, onClose, calendarTitle, calendarId }) => 
 
   const loadUserList = async (calendarId) => {
     try {
-      const response = await axios.get(`/api/groups/${calendarId}/users`, {
+      const response = await axios.get(`/groups/${calendarId}/users`, {
         headers: { "Content-Type": "application/json" },
       });
 
@@ -34,7 +34,7 @@ const ManageCalendarPopup = ({ isOpen, onClose, calendarTitle, calendarId }) => 
 
     try {
       await axios.post(
-        `/api/notifications/groups/${calendarId}/invite`,
+        `/notifications/groups/${calendarId}/invite`,
         null, // 요청 바디가 필요 없으므로 null 전달
         {
           params: { nickname: inviteUserName }, // query parameters 방식

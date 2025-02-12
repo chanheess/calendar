@@ -15,7 +15,7 @@ import java.util.List;
 
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/schedules/{id}/notifications")
+@RequestMapping("/api/schedules/{id}/notifications")
 @Slf4j
 public class ScheduleNotificationController {
 

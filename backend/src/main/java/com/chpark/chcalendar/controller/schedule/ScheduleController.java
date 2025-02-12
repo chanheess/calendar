@@ -23,7 +23,7 @@ import java.util.Optional;
 
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/schedules")
+@RequestMapping("/api/schedules")
 @Slf4j
 public class ScheduleController {
 

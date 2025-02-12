@@ -1,5 +1,6 @@
 package com.chpark.chcalendar.security;
 
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -43,29 +44,34 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement((sessionManagement) ->
-                        sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                    sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/**").permitAll()
-                        .requestMatchers("/css/**", "/js/**", "/images/**").permitAll()
-                        .anyRequest().authenticated()
+                    .requestMatchers("/api/auth/**").permitAll()
+                    .requestMatchers("/auth/**").permitAll()
+                    .requestMatchers("/css/**", "/js/**", "/images/**").permitAll()
+                    .anyRequest().authenticated()
                 )
                 .cors(cors -> cors
-                        .configurationSource(request -> {
-                            CorsConfiguration config = new CorsConfiguration();
-                            config.setAllowedOrigins(Arrays.asList("http://localhost:8080", "https://localhost:3000"));
-                            config.setAllowCredentials(true);
-                            config.setAllowedMethods(Arrays.asList("GET", "POST", "PATCH", "PUT", "DELETE"));
-                            config.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
-                            return config;
-                        })
+                    .configurationSource(request -> {
+                        CorsConfiguration config = new CorsConfiguration();
+                        config.setAllowedOrigins(Arrays.asList("http://localhost:8080", "https://localhost:3000"));
+                        config.setAllowCredentials(true);
+                        config.setAllowedMethods(Arrays.asList("GET", "POST", "PATCH", "PUT", "DELETE", "OPTION"));
+                        config.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
+                        return config;
+                    })
                 )
                 .exceptionHandling(exception -> exception
-                        .authenticationEntryPoint((request, response, authException) ->
-                                response.sendRedirect("/auth/login"))
+                    .authenticationEntryPoint((request, response, authException) -> {
+                        if (request.getRequestURI().startsWith("/api/")) {
+                            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
+                        } else {
+                            response.sendRedirect("/auth/login");
+                        }
+                    })
                 )
-                .requiresChannel(channel ->
-                        channel.anyRequest().requiresSecure())
+                .requiresChannel(channel -> channel.anyRequest().requiresSecure())
                 .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }

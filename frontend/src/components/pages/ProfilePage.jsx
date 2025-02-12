@@ -18,7 +18,7 @@ const ProfilePage = () => {
 
   const fetchUserInfo = async () => {
     try {
-      const response = await axios.get("/api/user/info", { withCredentials: true });
+      const response = await axios.get("/user/info", { withCredentials: true });
       setEmail(response.data.email);
       setNickname(response.data.nickname);
     } catch (error) {
@@ -34,7 +34,7 @@ const ProfilePage = () => {
     }
 
     try {
-      const response = await axios.patch("/api/user/info",
+      const response = await axios.patch("/user/info",
         { nickname },
         {
           headers: {
@@ -60,7 +60,7 @@ const ProfilePage = () => {
 
     try {
       await axios.patch(
-        "/api/user/password",
+        "/user/password",
         { currentPassword, newPassword },
         { headers: { "Content-Type": "application/json" }, withCredentials: true }
       );

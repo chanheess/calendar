@@ -3,6 +3,7 @@ import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
+
 import axios from "axios";
 import styles from "styles/Calendar.module.css";
 import Popup from "./popups/Popup";
@@ -26,7 +27,7 @@ const CalendarComponent = ({ selectedCalendarList }) => {
     });
 
     try {
-      const response = await axios.get(`/api/schedules/date?${params.toString()}`, {
+      const response = await axios.get(`/schedules/date?${params.toString()}`, {
         withCredentials: true,
         headers: { "Content-Type": "application/json" },
       });
@@ -69,7 +70,7 @@ const CalendarComponent = ({ selectedCalendarList }) => {
 
     try {
       // Fetch events for the clicked date
-      const response = await axios.get(`/api/schedules/date?start=${selectedDate}&end=${selectedDate}`, {
+      const response = await axios.get(`/schedules/date?start=${selectedDate}&end=${selectedDate}`, {
         withCredentials: true,
       });
 

@@ -15,7 +15,7 @@ const AddCalendarPopup = ({ isOpen, onClose, onCalendarAdded }) => {
 
     try {
       const response = await axios.post(
-        "/api/calendars",
+        "/calendars",
         { category: type, title: title },
         {
           withCredentials: true,
