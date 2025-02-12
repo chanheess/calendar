@@ -87,7 +87,7 @@ const SchedulePopup = ({ isOpen, mode, eventDetails, onClose, selectedCalendarLi
     };
 
     loadEventDetails();
-  }, [isOpen, mode, eventDetails]);
+  }, [isOpen, mode, eventDetails, selectedCalendarList]);
 
   const getScheduleData = () => ({
     scheduleDto: {
