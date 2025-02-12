@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import Nickname from "./Nickname";
 import axios from "axios";
 import styles from "styles/Header.module.css";
@@ -7,6 +8,8 @@ import Button from "./Button";
 const HeaderComponent = ({ mode, onSidebarToggle }) => {
   const [notifications, setNotifications] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
+
+  const navigate = useNavigate();
 
   useEffect(() => {
       fetchNotifications(); // 처음 마운트될 때 실행
@@ -61,7 +64,7 @@ const HeaderComponent = ({ mode, onSidebarToggle }) => {
       .post("/auth/logout", null, { withCredentials: true })
       .then((response) => {
         if (response.status === 200) {
-          window.location.href = "/auth/login";
+          navigate("/auth/login");
         } else {
           alert("Unexpected response from the server");
         }
@@ -76,11 +79,11 @@ const HeaderComponent = ({ mode, onSidebarToggle }) => {
   };
 
   const handleHome = () => {
-    window.location.href = "/";
+    navigate("/");
   };
 
   const handleProfile = () => {
-    window.location.href = "/user/profile";
+    navigate("/user/profile");
   };
 
   // "profile" 모드 렌더링

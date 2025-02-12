@@ -72,7 +72,7 @@ class UserControllerTest {
         UserDto.ChangePassword changePasswordDto = new UserDto.ChangePassword("currPassword", "newPassword");
 
         // when & then
-        mockMvc.perform(patch("/user/password")
+        mockMvc.perform(patch("/api/user/password")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(changePasswordDto)))
                 .andExpect(status().isOk())
@@ -89,7 +89,7 @@ class UserControllerTest {
                 .when(userService).updatePassword(anyLong(), any(UserDto.ChangePassword.class));
 
         // when & then
-        mockMvc.perform(patch("/user/password")
+        mockMvc.perform(patch("/api/user/password")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(changePasswordDto)))
                 .andExpect(status().isBadRequest())
