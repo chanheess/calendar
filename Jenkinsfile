@@ -39,10 +39,10 @@ pipeline {
                     scp backend/docker-compose-ec2.yml ${EC2_IP}:/home/ec2-user/docker-compose.yml
                     
                     ssh -o StrictHostKeyChecking=no ${EC2_IP} "
-                        sudo mkdir -p /var/www/html/react-build &&
-                        sudo rm -rf /var/www/html/react-build/* &&
-                        sudo tar -xzf /home/ec2-user/build.tar.gz -C /var/www/html/react-build &&
-
+                        sudo mkdir -p /var/www/html/frontend/build &&
+                        sudo rm -rf /var/www/html/frontend/build/* &&
+                        sudo tar -xzf /home/ec2-user/build.tar.gz -C /var/www/html/frontend/build &&
+                        
                         docker pull chanheess/chcalendar &&
                         
                         sudo docker-compose up -d
