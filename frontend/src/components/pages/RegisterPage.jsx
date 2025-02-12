@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import styles from "styles/Register.module.css";
 import Button from "../Button";
@@ -13,7 +14,9 @@ const RegisterPage = () => {
   const [isPasswordMatch, setIsPasswordMatch] = useState(true);
   const [isSubmitEnabled, setIsSubmitEnabled] = useState(false);
 
-  const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  const navigate = useNavigate();
+
+  const emailPattern = useMemo(() => /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/, []);
 
   useEffect(() => {
     setIsEmailValid(emailPattern.test(email));
@@ -28,7 +31,7 @@ const RegisterPage = () => {
       nickname.trim() !== "";
 
     setIsSubmitEnabled(isFormValid);
-  }, [email, emailCode, nickname, password, confirmPassword]);
+  }, [email, emailCode, nickname, password, confirmPassword, emailPattern]);
 
   const handleEmailVerification = () => {
     if (!isEmailValid) return;
@@ -57,14 +60,14 @@ const RegisterPage = () => {
         password,
       };
 
-      const response = await axios.post("/auth/register", payload, {
+      await axios.post("/auth/register", payload, {
         headers: {
             "Content-Type": "application/json",
             },
         });
 
-        alert("Registration successful!");
-        window.location.href = "/auth/login";
+      alert("Registration successful!");
+      navigate("/auth/login");
     } catch (error) {
       if (error.response) {
         alert("Error: " + error.response.data.message);
@@ -159,7 +162,7 @@ const RegisterPage = () => {
           variant="danger"
           size="medium"
           margin="top"
-          onClick={() => (window.location.href = "/auth/login")}
+          onClick={() => (navigate("/auth/login"))}
         >
           Back
         </Button>
