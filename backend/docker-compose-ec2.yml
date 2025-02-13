@@ -34,7 +34,7 @@ services:
     volumes:
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
       - ./data/letsencrypt:/etc/letsencrypt
-      - ./var/www/html/frontend/build:/var/www/html/frontend/build
+      - ./var/www/html/frontend/build:/var/www/html/frontend
     depends_on:
       - spring-app
     restart: always
