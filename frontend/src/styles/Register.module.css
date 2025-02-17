@@ -42,6 +42,11 @@
   gap: 10px;
 }
 
+.passwordText {
+  margin-top: -10px;
+  margin-bottom: 10px;
+}
+
 .passwordError {
   color: red;
   margin-top: -10px;

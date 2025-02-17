@@ -1,7 +1,6 @@
 package com.chpark.chcalendar.service.user;
 
 import com.chpark.chcalendar.dto.UserDto;
-import com.chpark.chcalendar.entity.GroupUserEntity;
 import com.chpark.chcalendar.entity.UserEntity;
 import com.chpark.chcalendar.repository.user.UserRepository;
 import com.chpark.chcalendar.security.JwtTokenProvider;
@@ -32,15 +31,14 @@ public class UserService {
     @Transactional
     public void create(UserDto.RegisterRequest requestUser) {
         if (userRepository.existsByEmail(requestUser.getEmail())) {
-
-            throw new IllegalArgumentException("이미 해당 \"이메일\"을 가진 사용자가 존재합니다.");
+            throw new IllegalArgumentException("An account with this email already exists.");
         }
         if (userRepository.existsByNickname(requestUser.getNickname())) {
-
-            throw new IllegalArgumentException("이미 해당 \"닉네임\"을 가진 사용자가 존재합니다.");
+            throw new IllegalArgumentException("An account with this nickname already exists.");
         }
 
         ScheduleUtility.validateEmail(requestUser.getEmail());
+        UserEntity.validatePassword(requestUser.getPassword());
 
         UserEntity user = userRepository.save(UserEntity.createWithEncodedPassword(requestUser, passwordEncoder));
 
@@ -111,13 +109,13 @@ public class UserService {
         UserEntity userEntity = userRepository.findById(userId).orElseThrow(
                 () -> new EntityNotFoundException("User not found"));
 
-        if (!userEntity.checkPassword(password.getCurrentPassword(), passwordEncoder)) {
+        userEntity.validatePassword(password.getNewPassword());
 
+        if (!userEntity.checkPasswordsMatch(password.getCurrentPassword(), passwordEncoder)) {
             throw new IllegalArgumentException("Incorrect password");
         }
 
-        if (userEntity.checkPassword(password.getNewPassword(), passwordEncoder)) {
-
+        if (userEntity.checkPasswordsMatch(password.getNewPassword(), passwordEncoder)) {
             throw new IllegalArgumentException("New password can't be the same as the current password.");
         }
 

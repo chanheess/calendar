@@ -59,7 +59,7 @@ public class UserServiceIntegrationTest {
         entityManager.clear();
 
         //then
-        assertThat(savedUser.checkPassword(password.getNewPassword(), passwordEncoder)).isTrue();
+        assertThat(savedUser.checkPasswordsMatch(password.getNewPassword(), passwordEncoder)).isTrue();
     }
 
     @Test

@@ -1,6 +1,7 @@
 package com.chpark.chcalendar.entity;
 
 import com.chpark.chcalendar.dto.UserDto;
+import com.chpark.chcalendar.exception.PasswordException;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -36,8 +37,29 @@ public class UserEntity {
                 .build();
     }
 
-    public boolean checkPassword(String plainPassword, PasswordEncoder passwordEncoder) {
+    public boolean checkPasswordsMatch(String plainPassword, PasswordEncoder passwordEncoder) {
         return passwordEncoder.matches(plainPassword, this.password);
+    }
+
+    public static void validatePassword(String plainPassword) {
+        int passwordMin = 8;
+        int passwordMax = 20;
+
+        if (plainPassword.length() < passwordMin || plainPassword.length() > passwordMax) {
+            throw new PasswordException(String.format("Password must be between %d ~ %d characters long.", passwordMin, passwordMax));
+        }
+
+        if (!plainPassword.matches(".*[0-9].*")) {
+            throw new PasswordException("Password must contain at least one digit.");
+        }
+
+        if (!(plainPassword.matches(".*[a-z].*") || plainPassword.matches(".*[A-Z].*"))) {
+            throw new PasswordException("Password must contain at least one uppercase or lowercase letter.");
+        }
+
+        if (!plainPassword.matches(".*[!\"#$%&'()*+,-./:;<=>?@\\[\\]^_`{|}~].*")) {
+            throw new PasswordException("Password must contain at least one special character.");
+        }
     }
 
     public void changePassword(String plainPassword, PasswordEncoder passwordEncoder) {

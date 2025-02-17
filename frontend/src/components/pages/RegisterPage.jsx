@@ -43,9 +43,9 @@ const RegisterPage = () => {
       })
       .catch((error) => {
         if (error.response) {
-          alert("Error: " + error.response.data);
+          alert(error.response.data);
         } else {
-          alert("Error: " + error.message);
+          alert(error.message);
         }
       });
   };
@@ -70,9 +70,9 @@ const RegisterPage = () => {
       navigate("/auth/login");
     } catch (error) {
       if (error.response) {
-        alert("Error: " + error.response.data.message);
+        alert(error.response.data.message);
       } else {
-        alert("Error: " + error.message);
+        alert(error.message);
       }
     }
   };
@@ -134,9 +134,14 @@ const RegisterPage = () => {
             required
           />
         </div>
-        {!isPasswordMatch && (
-          <small className={styles.passwordError}>Passwords do not match</small>
-        )}
+        <div className={styles.passwordText}>
+          <small>
+            Use 8-20 characters with letters, numbers and symbols.<br/>
+          </small>
+          {!isPasswordMatch && (
+            <small className={styles.passwordError}>Passwords do not match</small>
+          )}
+        </div>
         <div className={styles.infoRow}>
           <label htmlFor="nickname">Nickname:</label>
           <input
