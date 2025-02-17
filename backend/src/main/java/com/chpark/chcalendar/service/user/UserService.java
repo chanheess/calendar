@@ -109,7 +109,7 @@ public class UserService {
         UserEntity userEntity = userRepository.findById(userId).orElseThrow(
                 () -> new EntityNotFoundException("User not found"));
 
-        userEntity.validatePassword(password.getNewPassword());
+        UserEntity.validatePassword(password.getNewPassword());
 
         if (!userEntity.checkPasswordsMatch(password.getCurrentPassword(), passwordEncoder)) {
             throw new IllegalArgumentException("Incorrect password");

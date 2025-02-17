@@ -53,7 +53,7 @@ class UserServiceUnitTest {
     @Test
     void create() {
         //given
-        UserDto.RegisterRequest userDto = new UserDto.RegisterRequest("testing1@naver.com", "testpassword123", "testingKing", "1234");
+        UserDto.RegisterRequest userDto = new UserDto.RegisterRequest("testing1@naver.com", "testpassword123!!", "testingKing", "1234");
 
         when(userRepository.existsByEmail(userDto.getEmail())).thenReturn(false);
         when(userRepository.existsByNickname(userDto.getNickname())).thenReturn(false);
@@ -78,7 +78,7 @@ class UserServiceUnitTest {
     @Test
     void login() {
         // given
-        UserDto userDto = new UserDto("testing1@naver.com", "testpassword123");
+        UserDto userDto = new UserDto("testing1@naver.com", "testpassword123!!");
         UserEntity savedUser = UserEntity.builder()
                 .email(userDto.getEmail())
                 .password("encoded_password")
@@ -102,7 +102,7 @@ class UserServiceUnitTest {
     @Test
     void login_UserNotFound() {
         // given
-        UserDto userDto = new UserDto("imnotuser@naver.com", "testpassword123");
+        UserDto userDto = new UserDto("imnotuser@naver.com", "testpassword123!");
 
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
                 .thenThrow(new IllegalArgumentException("Invalid email or password."));
