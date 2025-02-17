@@ -38,7 +38,7 @@ public class UserServiceIntegrationTest {
     void setupUser() {
         //given
         UserDto.RegisterRequest userDto = new UserDto.RegisterRequest("testing1@naver.com",
-                "testpassword123", "testingKing", "1234");
+                "testpassword123!", "testingKing", "1234");
 
         savedUser = UserEntity.createWithEncodedPassword(userDto, passwordEncoder);
         userRepository.save(savedUser);
@@ -50,7 +50,7 @@ public class UserServiceIntegrationTest {
     @Transactional
     void updatePassword() {
         //given
-        UserDto.ChangePassword password = new UserDto.ChangePassword("testpassword123", "newGoodPassword!!");
+        UserDto.ChangePassword password = new UserDto.ChangePassword("testpassword123!", "newGoodPassword2!!");
 
         //when
         userService.updatePassword(savedUser.getId(), password);
@@ -66,7 +66,7 @@ public class UserServiceIntegrationTest {
     @Transactional
     void updatePassword_InvalidPassword() {
         //given
-        UserDto.ChangePassword password = new UserDto.ChangePassword("wrongPassword", "newGoodPassword!!");
+        UserDto.ChangePassword password = new UserDto.ChangePassword("wrongPassword1!", "newGoodPassword2!!");
 
         //when & then
         assertThatThrownBy(() -> userService.updatePassword(savedUser.getId(), password))
@@ -78,7 +78,7 @@ public class UserServiceIntegrationTest {
     @Transactional
     void updatePassword_SamePassword() {
         //given
-        UserDto.ChangePassword password = new UserDto.ChangePassword("testpassword123", "testpassword123");
+        UserDto.ChangePassword password = new UserDto.ChangePassword("testpassword123!", "testpassword123!");
 
         //when & then
         assertThatThrownBy(() -> userService.updatePassword(savedUser.getId(), password))
