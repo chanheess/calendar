@@ -55,4 +55,12 @@ public class GlobalExceptionHandler {
                 HttpStatus.BAD_REQUEST
         );
     }
+
+    @ExceptionHandler(PasswordException.class)
+    public ResponseEntity<MessageResponseDto> handleGroupAuthority(PasswordException ex) {
+        return new ResponseEntity<>(
+                createCustomErrorResponse(ex, HttpStatus.BAD_REQUEST.value()),
+                HttpStatus.BAD_REQUEST
+        );
+    }
 }

@@ -114,8 +114,8 @@ class ScheduleUtilityTest {
         );
         UserEntity userEntity = UserEntity.createWithEncodedPassword(userRequest, passwordEncoder);
 
-        assertThat(userEntity.checkPassword(rawPassword, passwordEncoder)).isTrue();
-        assertThat(userEntity.checkPassword("password123!@3", passwordEncoder)).isFalse();
+        assertThat(userEntity.checkPasswordsMatch(rawPassword, passwordEncoder)).isTrue();
+        assertThat(userEntity.checkPasswordsMatch("password123!@3", passwordEncoder)).isFalse();
     }
 
 }

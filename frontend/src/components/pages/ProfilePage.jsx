@@ -146,6 +146,11 @@ const ProfilePage = () => {
               autoComplete="off"
             />
           </div>
+          <div className={styles.passwordText}>
+            <small>
+              Use 8-20 characters with letters, numbers and symbols.<br/>
+            </small>
+          </div>
           <Button
             type="button"
             variant="green"
