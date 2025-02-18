@@ -1,5 +1,6 @@
 package com.chpark.chcalendar.service;
 
+import com.chpark.chcalendar.dto.EmailDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.mail.SimpleMailMessage;
@@ -17,14 +18,15 @@ public class MailService {
 
     //이메일 전송
     @Async
-    public void sendMail(String email, int code) {
-        String subject = "회원가입 인증 메일입니다.";
+    public void sendMail(EmailDto emailDto, String code) {
+        String subject = emailDto.getType().getMessage() + " 인증 메일입니다.";
         String text = "인증 코드는 " + code + "입니다.";
 
         SimpleMailMessage message = new SimpleMailMessage();
-        message.setTo(email);
+        message.setTo(emailDto.getEmail());
         message.setSubject(subject);
         message.setText(text);
         javaMailSender.send(message);
     }
+
 }

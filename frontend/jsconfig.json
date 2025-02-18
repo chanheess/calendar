@@ -3,7 +3,8 @@
     "baseUrl": "./src",
     "paths": {
       "styles/*": ["styles/*"],
-      "components/*": ["components/*"]
+      "components/*": ["components/*"],
+      "popups/*": ["components/popups/*"]
     }
   },
   "include": ["src"]

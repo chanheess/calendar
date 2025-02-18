@@ -3,11 +3,14 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import styles from "styles/Login.module.css";
 import Button from "../Button";
+import PasswordResetPopup from "../popups/PasswordResetPopup";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
+  const [passwordResetPopupVisible, setPasswordResetPopupVisible] = useState(false);
+
   const navigate = useNavigate();
 
   const handleSubmit = async (event) => {
@@ -37,7 +40,18 @@ const LoginPage = () => {
     }
   };
 
+  function closePasswordResetPopup () {
+    setPasswordResetPopupVisible(false);
+  }
+
   return (
+    <>
+    {passwordResetPopupVisible && (
+      <PasswordResetPopup
+        isOpen={passwordResetPopupVisible}
+        onClose={closePasswordResetPopup}
+      />
+    )}
     <div className={styles.formContainer}>
       <h2>Sign in</h2>
       <form onSubmit={handleSubmit}>
@@ -67,8 +81,10 @@ const LoginPage = () => {
       <Button variant="blue" size="medium" margin="top" onClick={() => navigate("/auth/register")}>
         Sign up
       </Button>
+      <small onClick={() => setPasswordResetPopupVisible(true)}>비밀번호 찾기</small>
       {errorMessage && <div className={styles.error}>{errorMessage}</div>}
     </div>
+    </>
   );
 };
 

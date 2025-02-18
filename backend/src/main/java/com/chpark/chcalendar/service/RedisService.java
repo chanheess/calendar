@@ -1,5 +1,6 @@
 package com.chpark.chcalendar.service;
 
+import com.chpark.chcalendar.dto.EmailDto;
 import com.chpark.chcalendar.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -7,7 +8,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Random;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -20,23 +21,29 @@ public class RedisService {
     private final UserRepository userRepository;
 
     @Transactional
-    public void sendMailAndSaveCode(String email) {
-        if(userRepository.existsByEmail(email)) {
-            throw new IllegalArgumentException("이미 해당 \"이메일\"을 가진 사용자가 존재합니다.");
+    public void sendMailAndSaveCode(EmailDto emailDto) {
+        switch (emailDto.getType()) {
+            case REGISTER -> {
+                if (userRepository.existsByEmail(emailDto.getEmail())) {
+                    throw new IllegalArgumentException("이미 해당 \"이메일\"을 가진 사용자가 존재합니다.");
+                }
+            }
+            case PASSWORD_RESET -> {
+                if (!userRepository.existsByEmail(emailDto.getEmail())) {
+                    throw new IllegalArgumentException("이메일을 정확하게 입력해주세요.");
+                }
+            }
         }
 
-        long count = getEmailRequestCount(email);
-        if (count >= 5) {
-            throw new RuntimeException("이메일 인증 요청 5번 초과로 24시간 동안 이메일 인증 요청을 할 수 없습니다.");
-        }
+        checkEmailRequestCount(emailDto.getEmail());
 
-        Random random = new Random();
-        int code = random.nextInt(9000) + 1000;
+        // 6자리 알파벳+숫자 코드 생성
+        String code = UUID.randomUUID().toString().replace("-", "").substring(0, 6).toUpperCase();
 
-        mailService.sendMail(email, code);
+        mailService.sendMail(emailDto, code);
 
-        saveVerificationCode(email, String.valueOf(code));
-        increaseEmailRequestCount(email);
+        saveVerificationCode(emailDto.getEmail(), code);
+        increaseEmailRequestCount(emailDto.getEmail());
     }
 
     //이메일 인증
@@ -71,10 +78,13 @@ public class RedisService {
         }
     }
 
-    //이메일 요청 카운트 가져오기
-    public long getEmailRequestCount(String email) {
+    public void checkEmailRequestCount(String email) {
         String key = "email_request_count:" + email;
         String value = redisTemplate.opsForValue().get(key);
-        return value != null ? Long.parseLong(value) : 0;
+        long count = value != null ? Long.parseLong(value) : 0;
+
+        if (count >= 5) {
+            throw new RuntimeException("이메일 인증 요청 5번 초과로 24시간 동안 이메일 인증 요청을 할 수 없습니다.");
+        }
     }
 }

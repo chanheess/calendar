@@ -26,3 +26,11 @@
   margin-top: 10px;
   color: red;
 }
+
+.formContainer small {
+  display: flex;
+  align-items: left;
+  justify-content: space-between;
+  margin-top: 10px;
+  cursor: pointer;
+}
