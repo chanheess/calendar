@@ -33,21 +33,16 @@ const RegisterPage = () => {
     setIsSubmitEnabled(isFormValid);
   }, [email, emailCode, nickname, password, confirmPassword, emailPattern]);
 
-  const handleEmailVerification = () => {
+  const handleEmailVerification = async () => {
     if (!isEmailValid) return;
+    const data = { email: email, type: "REGISTER" };
 
-    axios
-      .post(`/auth/mail/${encodeURIComponent(email)}`)
-      .then((response) => {
-        alert("Verification email sent: " + response.data);
-      })
-      .catch((error) => {
-        if (error.response) {
-          alert(error.response.data);
-        } else {
-          alert(error.message);
-        }
-      });
+    try {
+      const response = await axios.post("/auth/mail", data);
+      alert(response.data);
+    } catch (error) {
+      alert(error.response.data.message);
+    }
   };
 
   const handleSubmit = async (e) => {

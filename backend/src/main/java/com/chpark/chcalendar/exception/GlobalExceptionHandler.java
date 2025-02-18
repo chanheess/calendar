@@ -1,6 +1,7 @@
 package com.chpark.chcalendar.exception;
 
 import com.chpark.chcalendar.dto.MessageResponseDto;
+import com.chpark.chcalendar.exception.authority.EmailAuthorityException;
 import com.chpark.chcalendar.exception.authority.GroupAuthorityException;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.http.HttpStatus;
@@ -56,8 +57,16 @@ public class GlobalExceptionHandler {
         );
     }
 
+    @ExceptionHandler(EmailAuthorityException.class)
+    public ResponseEntity<MessageResponseDto> handleEmailAuthority(EmailAuthorityException ex) {
+        return new ResponseEntity<>(
+                createCustomErrorResponse(ex, HttpStatus.BAD_REQUEST.value()),
+                HttpStatus.BAD_REQUEST
+        );
+    }
+
     @ExceptionHandler(PasswordException.class)
-    public ResponseEntity<MessageResponseDto> handleGroupAuthority(PasswordException ex) {
+    public ResponseEntity<MessageResponseDto> handlePassword(PasswordException ex) {
         return new ResponseEntity<>(
                 createCustomErrorResponse(ex, HttpStatus.BAD_REQUEST.value()),
                 HttpStatus.BAD_REQUEST

@@ -17,7 +17,7 @@
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
   max-width: 400px;
   width: 100%;
-  padding: 20px;
+  padding: 10px;
   display: flex;
   flex-direction: column;
 }
@@ -97,8 +97,14 @@
 .infoRow button {
   flex: 1;
   padding: 7px;
-  margin-top: 10px;
-  margin-bottom: 10px;
+}
+
+.infoRow p {
+    flex: 4;
+    font-size: 14px;
+    padding: 7px;
+    margin: 0px;
+    color: #07f;
 }
 
 .popupFooter {
@@ -188,4 +194,15 @@
     margin-bottom: 5px;
     padding: 5px;
     border-bottom: 1px solid #ddd;
+}
+
+.passwordText {
+  margin-top: -5px;
+  margin-bottom: 10px;
+}
+
+.passwordError {
+  color: red;
+  margin-top: -10px;
+  margin-bottom: 15px;
 }

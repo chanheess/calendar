@@ -107,6 +107,14 @@ public class UserController {
         return ResponseEntity.ok("회원가입이 성공적으로 완료되었습니다.");
     }
 
+    @PatchMapping("/auth/change-password")
+    public ResponseEntity<String> resetPassword(@Validated @RequestBody UserDto.ResetPassword userDto) {
+        redisService.verificationEmail(userDto.getEmail(), userDto.getEmailCode());
+        userService.resetPassword(userDto);
+
+        return ResponseEntity.ok("비밀번호 변경이 완료되었습니다.");
+    }
+
 
 
 }

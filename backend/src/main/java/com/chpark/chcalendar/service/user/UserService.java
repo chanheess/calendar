@@ -122,4 +122,12 @@ public class UserService {
         userEntity.changePassword(password.getNewPassword(), passwordEncoder);
     }
 
+    @Transactional
+    public void resetPassword(UserDto.ResetPassword userDto) {
+        UserEntity userEntity = userRepository.findByEmail(userDto.getEmail()).orElseThrow(
+            () -> new EntityNotFoundException("User not found"));
+
+        UserEntity.validatePassword(userDto.getPassword());
+        userEntity.changePassword(userDto.getPassword(), passwordEncoder);
+    }
 }

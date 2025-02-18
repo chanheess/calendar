@@ -3,6 +3,7 @@ package com.chpark.chcalendar.dto;
 import com.chpark.chcalendar.entity.UserEntity;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -12,8 +13,8 @@ import lombok.Setter;
 @NoArgsConstructor
 public class UserDto {
 
-    @NotBlank
-    @Email
+    @Email(message = "Invalid email format")
+    @NotEmpty(message = "Email cannot be empty")
     private String email;
     @NotBlank
     private String password;
@@ -26,7 +27,7 @@ public class UserDto {
     @Getter
     @Setter
     @NoArgsConstructor
-    public static class RegisterRequest extends UserDto{
+    public static class RegisterRequest extends UserDto {
         @NotBlank
         private String nickname;
         @NotBlank
@@ -35,6 +36,19 @@ public class UserDto {
         public RegisterRequest(String email, String password, String nickname, String emailCode) {
             super(email,password);
             this.nickname = nickname;
+            this.emailCode = emailCode;
+        }
+    }
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    public static class ResetPassword extends UserDto {
+        @NotBlank
+        private String emailCode;
+
+        public ResetPassword(String email, String password, String emailCode) {
+            super(email,password);
             this.emailCode = emailCode;
         }
     }

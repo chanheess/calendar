@@ -1,5 +1,7 @@
 package com.chpark.chcalendar.service;
 
+import com.chpark.chcalendar.dto.EmailDto;
+import com.chpark.chcalendar.enumClass.EmailType;
 import com.chpark.chcalendar.repository.user.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -39,17 +41,18 @@ class RedisServiceTest {
         // given
         String email = "test@example.com";
         String verificationCode = "1049";
+        EmailDto emailDto = new EmailDto(email, EmailType.REGISTER);
 
         when(redisTemplate.opsForValue()).thenReturn(valueOperations);
         when(userRepository.existsByEmail(email)).thenReturn(false);
         when(valueOperations.get("email_request_count:" + email)).thenReturn(null); // 처음 요청
-        doNothing().when(mailService).sendMail(anyString(), anyInt());
+        doNothing().when(mailService).sendMail(any(EmailDto.class), anyString());
 
         // when
-        redisService.sendMailAndSaveCode(email);
+        redisService.sendMailAndSaveCode(emailDto);
 
         // then
-        verify(mailService, times(1)).sendMail(eq(email), anyInt());
+        verify(mailService, times(1)).sendMail(eq(emailDto), anyString());
         verify(valueOperations, times(1)).set(eq(email), anyString(), eq(5L), eq(TimeUnit.MINUTES));
         verify(valueOperations, times(1)).increment(eq("email_request_count:" + email)); // 기본 increment 호출 검증
     }
@@ -59,11 +62,12 @@ class RedisServiceTest {
         // given
         String email = "test@example.com";
         String verificationCode = "1049";
+        EmailDto emailDto = new EmailDto(email, EmailType.REGISTER);
 
         when(userRepository.existsByEmail(email)).thenReturn(true);
 
         // when then
-        assertThatThrownBy(() -> redisService.sendMailAndSaveCode(email))
+        assertThatThrownBy(() -> redisService.sendMailAndSaveCode(emailDto))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("이미 해당 \"이메일\"을 가진 사용자가 존재합니다.");
     }
@@ -73,6 +77,7 @@ class RedisServiceTest {
         // given
         String email = "test@example.com";
         String verificationCode = "1049";
+        EmailDto emailDto = new EmailDto(email, EmailType.REGISTER);
 
         when(redisTemplate.opsForValue()).thenReturn(valueOperations);
         when(userRepository.existsByEmail(email)).thenReturn(false);
@@ -80,7 +85,7 @@ class RedisServiceTest {
 
 
         // when then
-        assertThatThrownBy(() -> redisService.sendMailAndSaveCode(email))
+        assertThatThrownBy(() -> redisService.sendMailAndSaveCode(emailDto))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessageContaining("이메일 인증 요청 5번 초과로 24시간 동안 이메일 인증 요청을 할 수 없습니다.");
     }

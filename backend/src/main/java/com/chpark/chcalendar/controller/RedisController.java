@@ -1,12 +1,13 @@
 package com.chpark.chcalendar.controller;
 
+import com.chpark.chcalendar.dto.EmailDto;
 import com.chpark.chcalendar.service.RedisService;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -17,14 +18,10 @@ public class RedisController {
 
     private final RedisService redisService;
 
-    //이메일 전송
-    @PostMapping("/auth/mail/{email}")
-    public ResponseEntity<?> sendMail(@NotNull @PathVariable(value = "email") String email) {
-        try {
-            redisService.sendMailAndSaveCode(email);
-            return new ResponseEntity<>("이메일 전송 성공", HttpStatus.OK);
-        } catch (Exception exception) {
-            return new ResponseEntity<>(exception.getMessage(), HttpStatus.BAD_REQUEST);
-        }
+    @PostMapping("/auth/mail")
+    public ResponseEntity<String> sendAuthenticationMail(@Validated @RequestBody EmailDto email) {
+        redisService.sendMailAndSaveCode(email);
+
+        return ResponseEntity.ok("이메일 전송 성공");
     }
 }
