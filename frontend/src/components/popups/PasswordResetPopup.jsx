@@ -15,7 +15,7 @@ const PasswordResetPopup = ({ isOpen, onClose }) => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isPasswordMatch, setIsPasswordMatch] = useState(true);
 
-  const [timeLeft, setTimeLeft] = useState(300); // 5분(300초)
+  const [timeLeft, setTimeLeft] = useState(300); // second
   const [isCodeExpired, setIsCodeExpired] = useState(false);
 
   useEffect(() => {
@@ -69,7 +69,7 @@ const PasswordResetPopup = ({ isOpen, onClose }) => {
 
   function openChangePassword() {
     setIsCodeVisible(true);
-    setTimeLeft(300); // 타이머 시작
+    setTimeLeft(300);
     setPassword("");
     setConfirmPassword("");
   }
@@ -77,6 +77,7 @@ const PasswordResetPopup = ({ isOpen, onClose }) => {
   function cancelPasswordChange() {
     setIsCodeVisible(false);
     setEmail("");
+    setEmailCode("");
     setIsCodeExpired(false);
   }
 
@@ -145,7 +146,6 @@ const PasswordResetPopup = ({ isOpen, onClose }) => {
                   required
                   disabled={isCodeExpired} // 코드 만료되면 비활성화
                 />
-                {isCodeExpired && <p className={styles.error}>The code has expired. Please request a new one.</p>}
               </div>
               <div className={styles.infoRow}>
                 <label htmlFor="password">Password:</label>
@@ -174,8 +174,9 @@ const PasswordResetPopup = ({ isOpen, onClose }) => {
                   Use 8-20 characters with letters, numbers, and symbols.<br/>
                 </small>
                 {!isPasswordMatch && (
-                  <small className={styles.passwordError}>Passwords do not match</small>
+                  <small className={styles.passwordError}>Passwords do not match<br/></small>
                 )}
+                {isCodeExpired && <small className={styles.passwordError}>The code has expired. Please request a new one.</small>}
               </div>
               <div className={styles.infoRow}>
                 <Button
