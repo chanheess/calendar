@@ -1,6 +1,7 @@
 package com.chpark.chcalendar.service;
 
 import com.chpark.chcalendar.dto.EmailDto;
+import com.chpark.chcalendar.exception.authority.EmailAuthorityException;
 import com.chpark.chcalendar.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -51,10 +52,10 @@ public class RedisService {
         String savedCode = redisTemplate.opsForValue().get(email);
 
         if (savedCode == null) {
-            throw new IllegalArgumentException("인증 시간이 초과되었습니다. 다시 시도해주세요.");
+            throw new EmailAuthorityException("인증 시간이 초과되었습니다. 다시 시도해주세요.");
         }
         if (!emailCode.equals(savedCode)) {
-            throw new IllegalArgumentException("이메일 인증 실패");
+            throw new EmailAuthorityException("이메일 인증 실패");
         }
     }
 
@@ -84,7 +85,7 @@ public class RedisService {
         long count = value != null ? Long.parseLong(value) : 0;
 
         if (count >= 5) {
-            throw new RuntimeException("이메일 인증 요청 5번 초과로 24시간 동안 이메일 인증 요청을 할 수 없습니다.");
+            throw new EmailAuthorityException("이메일 인증 요청 5번 초과로 24시간 동안 이메일 인증 요청을 할 수 없습니다.");
         }
     }
 }
