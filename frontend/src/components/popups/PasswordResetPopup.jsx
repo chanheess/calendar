@@ -147,6 +147,7 @@ const PasswordResetPopup = ({ isOpen, onClose }) => {
                   onChange={(e) => setEmailCode(e.target.value)}
                   placeholder={`Enter verification code (${formatTime(timeLeft)})`} // 타이머와 함께 표시
                   required
+                  autoComplete="off"
                   disabled={isCodeExpired} // 코드 만료되면 비활성화
                 />
               </div>
