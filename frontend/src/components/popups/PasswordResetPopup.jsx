@@ -158,6 +158,7 @@ const PasswordResetPopup = ({ isOpen, onClose }) => {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter new password"
+                  autoComplete="new-password"
                   required
                 />
               </div>
@@ -169,6 +170,7 @@ const PasswordResetPopup = ({ isOpen, onClose }) => {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Confirm new password"
+                  autoComplete="new-password"
                   required
                 />
               </div>
