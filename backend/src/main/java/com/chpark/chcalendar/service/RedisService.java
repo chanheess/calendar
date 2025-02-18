@@ -57,6 +57,9 @@ public class RedisService {
         if (!emailCode.equals(savedCode)) {
             throw new EmailAuthorityException("이메일 인증 실패");
         }
+
+        // 인증 성공 시 인증 코드 및 이메일 인증 요청 카운트 삭제
+        deleteVerificationData(email);
     }
 
     //redis에 인증코드 저장
@@ -75,7 +78,7 @@ public class RedisService {
         }
 
         if (count == 5) {
-            redisTemplate.expire(key, 24, TimeUnit.HOURS);
+            redisTemplate.expire(key, 30, TimeUnit.MINUTES); // 30분으로 설정
         }
     }
 
@@ -85,7 +88,18 @@ public class RedisService {
         long count = value != null ? Long.parseLong(value) : 0;
 
         if (count >= 5) {
-            throw new EmailAuthorityException("이메일 인증 요청 5번 초과로 24시간 동안 이메일 인증 요청을 할 수 없습니다.");
+            throw new EmailAuthorityException("이메일 인증 요청 5번 초과로 30분 동안 이메일 인증 요청을 할 수 없습니다.");
         }
     }
+
+    // 인증 성공 시 인증 데이터 삭제
+    private void deleteVerificationData(String email) {
+        // 인증 코드를 삭제
+        redisTemplate.delete(email);
+
+        // 이메일 요청 카운트를 삭제
+        String key = "email_request_count:" + email;
+        redisTemplate.delete(key);
+    }
 }
+
