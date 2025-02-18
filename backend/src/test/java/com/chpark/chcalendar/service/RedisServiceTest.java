@@ -87,6 +87,6 @@ class RedisServiceTest {
         // when then
         assertThatThrownBy(() -> redisService.sendMailAndSaveCode(emailDto))
                 .isInstanceOf(RuntimeException.class)
-                .hasMessageContaining("이메일 인증 요청 5번 초과로 24시간 동안 이메일 인증 요청을 할 수 없습니다.");
+                .hasMessageContaining("이메일 인증 요청 5번 초과로 30분 동안 이메일 인증 요청을 할 수 없습니다.");
     }
 }
