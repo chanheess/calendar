@@ -51,7 +51,9 @@ const PasswordResetPopup = ({ isOpen, onClose }) => {
     }
   };
 
-  const handlePasswordChange = async () => {
+  const handlePasswordChange = async (e) => {
+    e.preventDefault();
+
     if (password !== confirmPassword) {
       alert("Passwords do not match!");
       return;
@@ -131,6 +133,7 @@ const PasswordResetPopup = ({ isOpen, onClose }) => {
           )}
           {isCodeVisible && (
             <>
+            <form onSubmit={handlePasswordChange}>
               <div className={styles.infoRow}>
                 <label htmlFor="email">Email:</label>
                 <p>{formatEmail(email)}</p>
@@ -181,7 +184,7 @@ const PasswordResetPopup = ({ isOpen, onClose }) => {
               <div className={styles.infoRow}>
                 <Button
                   variant="green" size="medium"
-                  onClick={handlePasswordChange}
+                  type="summit"
                   disabled={isCodeExpired} // 코드 만료되면 비활성화
                 >
                   Change Password
@@ -193,6 +196,7 @@ const PasswordResetPopup = ({ isOpen, onClose }) => {
                   Cancel
                 </Button>
               </div>
+            </form>
             </>
           )}
         </div>
