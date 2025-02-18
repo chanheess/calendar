@@ -115,6 +115,7 @@ const RegisterPage = () => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Enter your password"
+            autoComplete="new-password"
             required
           />
         </div>
@@ -126,6 +127,7 @@ const RegisterPage = () => {
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             placeholder="Confirm your password"
+            autoComplete="new-password"
             required
           />
         </div>
