@@ -6,7 +6,7 @@ import com.chpark.chcalendar.entity.CalendarInfoEntity;
 import com.chpark.chcalendar.entity.GroupUserEntity;
 import com.chpark.chcalendar.enumClass.CalendarCategory;
 import com.chpark.chcalendar.enumClass.GroupAuthority;
-import com.chpark.chcalendar.exception.authority.GroupAuthorityException;
+import com.chpark.chcalendar.exception.authentication.GroupAuthenticationException;
 import com.chpark.chcalendar.repository.CalendarInfoRepository;
 import com.chpark.chcalendar.repository.GroupUserRepository;
 import lombok.RequiredArgsConstructor;
@@ -48,7 +48,7 @@ public class GroupUserService {
 
     public GroupUserEntity checkGroupUser(long userId, long groupId) {
         return groupUserRepository.findByUserIdAndGroupId(userId, groupId).orElseThrow(
-            () -> new GroupAuthorityException("권한이 없습니다.")
+            () -> new GroupAuthenticationException("권한이 없습니다.")
         );
     }
 
@@ -56,7 +56,7 @@ public class GroupUserService {
         GroupUserEntity result = this.checkGroupUser(userId, groupId);
 
         if (result.getRole().compareTo(GroupAuthority.USER) >= 0) {
-            throw new GroupAuthorityException("권한이 없습니다.");
+            throw new GroupAuthenticationException("권한이 없습니다.");
         }
 
         return result;

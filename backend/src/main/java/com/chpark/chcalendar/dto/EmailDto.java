@@ -1,6 +1,6 @@
 package com.chpark.chcalendar.dto;
 
-import com.chpark.chcalendar.enumClass.EmailType;
+import com.chpark.chcalendar.enumClass.RequestType;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -18,5 +18,5 @@ public class EmailDto {
     String email;
 
     @NotNull
-    EmailType type;
+    RequestType type;
 }

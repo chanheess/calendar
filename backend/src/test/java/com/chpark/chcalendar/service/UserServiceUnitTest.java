@@ -42,6 +42,9 @@ class UserServiceUnitTest {
     private UserService userService;
 
     @Mock
+    private RedisService redisService;
+
+    @Mock
     private PasswordEncoder passwordEncoder;
 
     @Mock
@@ -93,7 +96,7 @@ class UserServiceUnitTest {
                 .thenReturn("mocked_jwt_token");
 
         // when
-        String token = userService.login(userDto);
+        String token = userService.login(userDto, "1234");
 
         // then
         assertThat(token).isEqualTo("mocked_jwt_token");
@@ -108,7 +111,7 @@ class UserServiceUnitTest {
                 .thenThrow(new IllegalArgumentException("Invalid email or password."));
 
         // when & then
-        assertThatThrownBy(() -> userService.login(userDto))
+        assertThatThrownBy(() -> userService.login(userDto, "1234"))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Invalid email or password.");
     }
@@ -122,7 +125,7 @@ class UserServiceUnitTest {
                 .thenThrow(new IllegalArgumentException("Invalid email or password."));
 
         // when & then
-        assertThatThrownBy(() -> userService.login(userDto))
+        assertThatThrownBy(() -> userService.login(userDto, "1234"))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Invalid email or password.");
     }

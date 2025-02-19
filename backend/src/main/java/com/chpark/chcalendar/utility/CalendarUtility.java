@@ -1,7 +1,7 @@
 package com.chpark.chcalendar.utility;
 
-import com.chpark.chcalendar.exception.authority.CalendarAuthorityException;
-import com.chpark.chcalendar.exception.authority.GroupAuthorityException;
+import com.chpark.chcalendar.exception.authentication.CalendarAuthenticationException;
+import com.chpark.chcalendar.exception.authentication.GroupAuthenticationException;
 import com.chpark.chcalendar.service.calendar.UserCalendarService;
 import com.chpark.chcalendar.service.group.GroupUserService;
 import jakarta.persistence.EntityNotFoundException;
@@ -31,7 +31,7 @@ public class CalendarUtility {
 
         try {
             groupUserService.checkGroupUser(userId, calendarId);
-        } catch (GroupAuthorityException ex) {
+        } catch (GroupAuthenticationException ex) {
             checkCount++;
         }
         try {
@@ -42,7 +42,7 @@ public class CalendarUtility {
         }
 
         if(checkCount == 2) {
-            throw new CalendarAuthorityException("권한이 없습니다.");
+            throw new CalendarAuthenticationException("권한이 없습니다.");
         }
     }
 
