@@ -2,8 +2,10 @@ package com.chpark.chcalendar.service.user;
 
 import com.chpark.chcalendar.dto.UserDto;
 import com.chpark.chcalendar.entity.UserEntity;
+import com.chpark.chcalendar.enumClass.RequestType;
 import com.chpark.chcalendar.repository.user.UserRepository;
 import com.chpark.chcalendar.security.JwtTokenProvider;
+import com.chpark.chcalendar.service.RedisService;
 import com.chpark.chcalendar.service.calendar.UserCalendarService;
 import com.chpark.chcalendar.service.group.GroupUserService;
 import com.chpark.chcalendar.utility.ScheduleUtility;
@@ -24,6 +26,7 @@ public class UserService {
     private final UserCalendarService userCalendarService;
     private final PasswordEncoder passwordEncoder;
     private final GroupUserService groupUserService;
+    private final RedisService redisService;
 
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider jwtTokenProvider;
@@ -47,7 +50,11 @@ public class UserService {
     }
 
     @Transactional
-    public String login(UserDto requestUser) {
+    public String login(UserDto requestUser,String ipAddress) {
+
+        redisService.checkRequestCount(RequestType.LOGIN, ipAddress);
+        redisService.increaseRequestCount(RequestType.LOGIN, ipAddress);
+
         try {
             // 인증 시도
             Authentication authentication = authenticationManager.authenticate(
@@ -59,11 +66,14 @@ public class UserService {
                     () -> new EntityNotFoundException("User not found with email: " + requestUser.getEmail())
             );
 
+            redisService.deleteVerificationData(RequestType.LOGIN, ipAddress);
+
             // JWT 토큰 생성 후 반환
             return jwtTokenProvider.generateToken(authentication, userEntity.getId());
-
         } catch (BadCredentialsException e) {
-            throw new IllegalArgumentException("Invalid email or password.");
+            throw new IllegalArgumentException(String.format(
+                    "Invalid email or password. (%s)", redisService.getRequestCount(RequestType.LOGIN, ipAddress))
+            );
         }
     }
 
@@ -123,11 +133,13 @@ public class UserService {
     }
 
     @Transactional
-    public void resetPassword(UserDto.ResetPassword userDto) {
+    public void resetPassword(UserDto.ResetPassword userDto, String ipAddress) {
         UserEntity userEntity = userRepository.findByEmail(userDto.getEmail()).orElseThrow(
             () -> new EntityNotFoundException("User not found"));
 
         UserEntity.validatePassword(userDto.getPassword());
         userEntity.changePassword(userDto.getPassword(), passwordEncoder);
+
+        redisService.deleteVerificationData(RequestType.LOGIN, ipAddress);
     }
 }

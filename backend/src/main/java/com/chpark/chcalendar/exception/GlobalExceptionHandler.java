@@ -1,8 +1,10 @@
 package com.chpark.chcalendar.exception;
 
 import com.chpark.chcalendar.dto.MessageResponseDto;
-import com.chpark.chcalendar.exception.authority.EmailAuthorityException;
-import com.chpark.chcalendar.exception.authority.GroupAuthorityException;
+import com.chpark.chcalendar.exception.authentication.CountAuthenticationException;
+import com.chpark.chcalendar.exception.authentication.EmailAuthenticationException;
+import com.chpark.chcalendar.exception.authentication.GroupAuthenticationException;
+import com.chpark.chcalendar.exception.authentication.PasswordAuthenticationException;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -49,24 +51,32 @@ public class GlobalExceptionHandler {
         );
     }
 
-    @ExceptionHandler(GroupAuthorityException.class)
-    public ResponseEntity<MessageResponseDto> handleGroupAuthority(GroupAuthorityException ex) {
+    @ExceptionHandler(GroupAuthenticationException.class)
+    public ResponseEntity<MessageResponseDto> handleGroupAuthenticationException(GroupAuthenticationException ex) {
         return new ResponseEntity<>(
                 createCustomErrorResponse(ex, HttpStatus.BAD_REQUEST.value()),
                 HttpStatus.BAD_REQUEST
         );
     }
 
-    @ExceptionHandler(EmailAuthorityException.class)
-    public ResponseEntity<MessageResponseDto> handleEmailAuthority(EmailAuthorityException ex) {
+    @ExceptionHandler(EmailAuthenticationException.class)
+    public ResponseEntity<MessageResponseDto> handleEmailAuthenticationException(EmailAuthenticationException ex) {
         return new ResponseEntity<>(
                 createCustomErrorResponse(ex, HttpStatus.BAD_REQUEST.value()),
                 HttpStatus.BAD_REQUEST
         );
     }
 
-    @ExceptionHandler(PasswordException.class)
-    public ResponseEntity<MessageResponseDto> handlePassword(PasswordException ex) {
+    @ExceptionHandler(PasswordAuthenticationException.class)
+    public ResponseEntity<MessageResponseDto> handlePasswordAuthenticationException(PasswordAuthenticationException ex) {
+        return new ResponseEntity<>(
+                createCustomErrorResponse(ex, HttpStatus.BAD_REQUEST.value()),
+                HttpStatus.BAD_REQUEST
+        );
+    }
+
+    @ExceptionHandler(CountAuthenticationException.class)
+    public ResponseEntity<MessageResponseDto> handleCountAuthenticationException(CountAuthenticationException ex) {
         return new ResponseEntity<>(
                 createCustomErrorResponse(ex, HttpStatus.BAD_REQUEST.value()),
                 HttpStatus.BAD_REQUEST

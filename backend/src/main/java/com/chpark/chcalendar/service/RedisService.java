@@ -1,7 +1,9 @@
 package com.chpark.chcalendar.service;
 
 import com.chpark.chcalendar.dto.EmailDto;
-import com.chpark.chcalendar.exception.authority.EmailAuthorityException;
+import com.chpark.chcalendar.enumClass.RequestType;
+import com.chpark.chcalendar.exception.authentication.CountAuthenticationException;
+import com.chpark.chcalendar.exception.authentication.EmailAuthenticationException;
 import com.chpark.chcalendar.repository.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +23,8 @@ public class RedisService {
     private final StringRedisTemplate redisTemplate;
     private final UserRepository userRepository;
 
+    private final int maxRequestCount = 5;
+
     @Transactional
     public void sendMailAndSaveCode(EmailDto emailDto) {
         switch (emailDto.getType()) {
@@ -36,7 +40,7 @@ public class RedisService {
             }
         }
 
-        checkEmailRequestCount(emailDto.getEmail());
+        checkRequestCount(emailDto.getType(), emailDto.getEmail());
 
         // 6자리 알파벳+숫자 코드 생성
         String code = UUID.randomUUID().toString().replace("-", "").substring(0, 6).toUpperCase();
@@ -44,22 +48,22 @@ public class RedisService {
         mailService.sendMail(emailDto, code);
 
         saveVerificationCode(emailDto.getEmail(), code);
-        increaseEmailRequestCount(emailDto.getEmail());
+        increaseRequestCount(emailDto.getType(), emailDto.getEmail());
     }
 
     //이메일 인증
-    public void verificationEmail(String email, String emailCode) {
-        String savedCode = redisTemplate.opsForValue().get(email);
+    public void verificationEmail(EmailDto emailDto, String emailCode) {
+        String savedCode = redisTemplate.opsForValue().get(emailDto.getEmail());
 
         if (savedCode == null) {
-            throw new EmailAuthorityException("인증 시간이 초과되었습니다. 다시 시도해주세요.");
+            throw new EmailAuthenticationException("인증 시간이 초과되었습니다. 다시 시도해주세요.");
         }
         if (!emailCode.equals(savedCode)) {
-            throw new EmailAuthorityException("이메일 인증 실패");
+            throw new EmailAuthenticationException("이메일 인증 실패");
         }
 
         // 인증 성공 시 인증 코드 및 이메일 인증 요청 카운트 삭제
-        deleteVerificationData(email);
+        deleteVerificationData(emailDto.getType(), emailDto.getEmail());
     }
 
     //redis에 인증코드 저장
@@ -68,8 +72,8 @@ public class RedisService {
     }
 
     //이메일 요청 카운트 증가
-    public void increaseEmailRequestCount(String email) {
-        String key = "email_request_count:" + email;
+    public void increaseRequestCount(RequestType requestType, String targetName) {
+        String key = getKey(requestType, targetName);
         Long count = redisTemplate.opsForValue().increment(key);
 
         // null 체크 추가
@@ -77,29 +81,58 @@ public class RedisService {
             count = 0L; // 기본값 설정
         }
 
-        if (count == 5) {
+        if (count == maxRequestCount) {
             redisTemplate.expire(key, 30, TimeUnit.MINUTES); // 30분으로 설정
         }
     }
 
-    public void checkEmailRequestCount(String email) {
-        String key = "email_request_count:" + email;
-        String value = redisTemplate.opsForValue().get(key);
-        long count = value != null ? Long.parseLong(value) : 0;
+    public void checkRequestCount(RequestType requestType, String targetName) {
+        if (hasExceededMaxRequestCount(requestType, targetName)) {
+            long expireTime = getRemainingMinute(requestType, targetName);
 
-        if (count >= 5) {
-            throw new EmailAuthorityException("이메일 인증 요청 5번 초과로 30분 동안 이메일 인증 요청을 할 수 없습니다.");
+            throw new CountAuthenticationException(
+                String.format("%s 인증 요청 %d번 초과로 %d분 동안 %s 인증 요청을 할 수 없습니다.",
+                    requestType.getMessage(), maxRequestCount, expireTime, requestType.getMessage())
+            );
         }
     }
 
     // 인증 성공 시 인증 데이터 삭제
-    private void deleteVerificationData(String email) {
+    public void deleteVerificationData(RequestType requestType, String targetName) {
         // 인증 코드를 삭제
-        redisTemplate.delete(email);
+        redisTemplate.delete(targetName);
 
         // 이메일 요청 카운트를 삭제
-        String key = "email_request_count:" + email;
-        redisTemplate.delete(key);
+        redisTemplate.delete(getKey(requestType, targetName));
+    }
+
+    public String getKey(RequestType requestType, String targetName) {
+        return requestType.getCode() + ":" + targetName;
+    }
+
+    public long getRemainingMinute(RequestType requestType, String targetName) {
+        String key = getKey(requestType, targetName);
+        Long expireTime = redisTemplate.getExpire(key, TimeUnit.MINUTES);
+
+        if (expireTime == null || expireTime <= 0) {
+            return 0;
+        }
+
+        return expireTime;
+    }
+
+    public boolean hasExceededMaxRequestCount(RequestType requestType, String targetName) {
+        String value = redisTemplate.opsForValue().get(getKey(requestType, targetName));
+        int count = value != null ? Integer.parseInt(value) : 0;
+
+        return count >= maxRequestCount;
+    }
+
+    public String getRequestCount(RequestType requestType, String targetName) {
+        String value = redisTemplate.opsForValue().get(getKey(requestType, targetName));
+        int count = value != null ? Integer.parseInt(value) : 0;
+
+        return count + "/" + maxRequestCount;
     }
 }
 

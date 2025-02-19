@@ -30,13 +30,11 @@ const LoginPage = () => {
       navigate("/"); // 로그인 성공 시 리다이렉트
     } catch (error) {
       if (error.response && error.response.data) {
-        // 서버에서 반환한 에러 메시지
+        alert("Invalid email or password.");
         setErrorMessage(error.response.data.message || "Unknown error occurred");
       } else {
-        // 기타 에러 처리
         setErrorMessage(error.message);
       }
-      console.error("Error:", error.message);
     }
   };
 

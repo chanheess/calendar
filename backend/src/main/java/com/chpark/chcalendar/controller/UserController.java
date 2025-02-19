@@ -1,7 +1,9 @@
 package com.chpark.chcalendar.controller;
 
+import com.chpark.chcalendar.dto.EmailDto;
 import com.chpark.chcalendar.dto.JwtAuthenticationResponseDto;
 import com.chpark.chcalendar.dto.UserDto;
+import com.chpark.chcalendar.enumClass.RequestType;
 import com.chpark.chcalendar.security.JwtTokenProvider;
 import com.chpark.chcalendar.service.RedisService;
 import com.chpark.chcalendar.service.user.UserService;
@@ -10,10 +12,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
-import org.springframework.ui.Model;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @RestController
 @RequestMapping("/api")
@@ -24,9 +24,10 @@ public class UserController {
     private final JwtTokenProvider jwtTokenProvider;
 
     @PostMapping("/auth/login")
-    public ResponseEntity<JwtAuthenticationResponseDto> loginUser(@Validated @RequestBody UserDto userRequest, HttpServletResponse response) {
+    public ResponseEntity<JwtAuthenticationResponseDto> loginUser(@Validated @RequestBody UserDto userRequest, HttpServletRequest request, HttpServletResponse response) {
 
-        String token = userService.login(userRequest);
+        String ipAddress = getIpAddress(request);
+        String token = userService.login(userRequest, ipAddress);
 
         // JWT 토큰을 HttpOnly 쿠키로 저장
         ResponseCookie cookie = ResponseCookie.from("jwtToken", token)
@@ -101,20 +102,30 @@ public class UserController {
 
     @PostMapping("/auth/register")
     public ResponseEntity<String> createUser(@Validated @RequestBody UserDto.RegisterRequest userRequest) {
-        redisService.verificationEmail(userRequest.getEmail(), userRequest.getEmailCode());
+        EmailDto emailDto = new EmailDto(userRequest.getEmail(), RequestType.REGISTER);
+
+        redisService.verificationEmail(emailDto, userRequest.getEmailCode());
         userService.create(userRequest);
 
         return ResponseEntity.ok("회원가입이 성공적으로 완료되었습니다.");
     }
 
     @PatchMapping("/auth/change-password")
-    public ResponseEntity<String> resetPassword(@Validated @RequestBody UserDto.ResetPassword userDto) {
-        redisService.verificationEmail(userDto.getEmail(), userDto.getEmailCode());
-        userService.resetPassword(userDto);
+    public ResponseEntity<String> resetPassword(@Validated @RequestBody UserDto.ResetPassword userRequest, HttpServletRequest request) {
+        EmailDto emailDto = new EmailDto(userRequest.getEmail(), RequestType.REGISTER);
+
+        String ipAddress = getIpAddress(request);
+        redisService.verificationEmail(emailDto, userRequest.getEmailCode());
+        userService.resetPassword(userRequest, ipAddress);
 
         return ResponseEntity.ok("비밀번호 변경이 완료되었습니다.");
     }
 
-
-
+    private String getIpAddress(HttpServletRequest request) {
+        String ipAddress = request.getHeader("X-Forwarded-For");
+        if (ipAddress == null) {
+            ipAddress = request.getRemoteAddr();
+        }
+        return ipAddress;
+    }
 }
