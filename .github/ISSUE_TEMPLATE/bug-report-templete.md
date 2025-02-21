@@ -1,6 +1,6 @@
 ---
 name: "bug-report"
-about: 개발되는 기능에 대한 제목을 적어주세요.
+about: 수정되어야 하는 기능에 대한 제목을 적어주세요.
 title: "[bug] 제목"
 labels: ''
 assignees: ''
