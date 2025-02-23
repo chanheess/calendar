@@ -1,8 +1,7 @@
 package com.chpark.chcalendar.controller;
 
 import com.chpark.chcalendar.dto.EmailDto;
-import com.chpark.chcalendar.service.RedisService;
-import jakarta.validation.constraints.NotNull;
+import com.chpark.chcalendar.service.redis.RedisService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;

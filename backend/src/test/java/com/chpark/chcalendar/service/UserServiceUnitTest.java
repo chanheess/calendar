@@ -7,6 +7,7 @@ import com.chpark.chcalendar.repository.user.UserRepository;
 import com.chpark.chcalendar.security.JwtTokenProvider;
 import com.chpark.chcalendar.service.calendar.UserCalendarService;
 import com.chpark.chcalendar.service.group.GroupUserService;
+import com.chpark.chcalendar.service.redis.RedisService;
 import com.chpark.chcalendar.service.user.UserService;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.Test;

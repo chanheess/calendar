@@ -1,4 +1,4 @@
-package com.chpark.chcalendar.service;
+package com.chpark.chcalendar.service.redis;
 
 import com.chpark.chcalendar.dto.EmailDto;
 import lombok.RequiredArgsConstructor;

@@ -5,7 +5,7 @@ import com.chpark.chcalendar.entity.UserEntity;
 import com.chpark.chcalendar.enumClass.RequestType;
 import com.chpark.chcalendar.repository.user.UserRepository;
 import com.chpark.chcalendar.security.JwtTokenProvider;
-import com.chpark.chcalendar.service.RedisService;
+import com.chpark.chcalendar.service.redis.RedisService;
 import com.chpark.chcalendar.service.calendar.UserCalendarService;
 import com.chpark.chcalendar.service.group.GroupUserService;
 import com.chpark.chcalendar.utility.ScheduleUtility;

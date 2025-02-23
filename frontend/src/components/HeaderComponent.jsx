@@ -22,7 +22,6 @@ const HeaderComponent = ({ mode, onSidebarToggle }) => {
   }, [showDropdown]);
 
   const toggleDropdown = () => {
-    console.log("Dropdown toggled:", !showDropdown);
     setShowDropdown((prevState) => !prevState);
   };
 

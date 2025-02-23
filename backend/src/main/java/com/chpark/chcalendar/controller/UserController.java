@@ -5,7 +5,7 @@ import com.chpark.chcalendar.dto.JwtAuthenticationResponseDto;
 import com.chpark.chcalendar.dto.UserDto;
 import com.chpark.chcalendar.enumClass.RequestType;
 import com.chpark.chcalendar.security.JwtTokenProvider;
-import com.chpark.chcalendar.service.RedisService;
+import com.chpark.chcalendar.service.redis.RedisService;
 import com.chpark.chcalendar.service.user.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

@@ -7,7 +7,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
       format_sql: true
       show_sql: true
     properties:
@@ -46,3 +46,7 @@ logging:
 password:
   reset:
     url: ${DOMAIN}
+
+vapid:
+  publicKey: ${VAPID_PUBLIC_KEY}
+  privateKey: ${VAPID_PRIVATE_KEY}
