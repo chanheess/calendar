@@ -1,4 +1,3 @@
-// src/PushNotification.js
 import React, { useEffect, useState } from "react";
 import { getToken, onMessage } from "firebase/messaging";
 import { messaging } from "./firebase";
@@ -9,13 +8,9 @@ const PushNotification = () => {
   const [notifications, setNotifications] = useState([]);
 
   useEffect(() => {
-    console.log("PushNotification mounted");
-
-    // 토큰 요청 및 관리 함수
     const requestToken = async () => {
       try {
         const permission = await Notification.requestPermission();
-        console.log("Notification permission:", permission);
         if (permission === "granted") {
           let token = localStorage.getItem("fcmToken");
           if (!token) {
@@ -24,11 +19,8 @@ const PushNotification = () => {
             });
             if (token) {
               localStorage.setItem("fcmToken", token);
-              console.log("New FCM Token:", token);
               await axios.post(`/notifications/token/${token}`);
             }
-          } else {
-            console.log("Existing FCM Token:", token);
           }
         } else {
           // 권한 거부 시 기존 토큰 삭제
@@ -36,7 +28,6 @@ const PushNotification = () => {
           if (token) {
             await axios.delete(`/notifications/token/${token}`);
             localStorage.removeItem("fcmToken");
-            console.log("FCM Token removed due to permission change");
           }
         }
       } catch (err) {
@@ -46,11 +37,8 @@ const PushNotification = () => {
 
     requestToken();
 
-    // 포그라운드 메시지 처리 (data-only 메시지여야 onMessage가 호출됩니다)
     const unsubscribe = onMessage(messaging, (payload) => {
-      console.log("Message received (foreground):", payload);
       const { title, body } = payload.data || {};
-      // 고유 id는 timestamp를 사용합니다.
       const id = Date.now();
       const newNotification = {
         id,
@@ -58,11 +46,9 @@ const PushNotification = () => {
         body: body || "",
       };
       setNotifications((prev) => [...prev, newNotification]);
-      // 자동 제거 setTimeout 제거 → 사용자가 클릭할 때만 제거
     });
 
     return () => {
-      console.log("Unsubscribing from onMessage");
       unsubscribe();
     };
   }, []);
