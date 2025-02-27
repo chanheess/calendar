@@ -4,7 +4,9 @@ import com.chpark.chcalendar.enumClass.ScheduleRepeatType;
 import org.apache.commons.validator.routines.EmailValidator;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
+import java.util.Locale;
 
 public class ScheduleUtility {
 
@@ -51,6 +53,30 @@ public class ScheduleUtility {
             case YEAR -> date.plusYears(repeatInterval);
         };
     }
+
+    public static String formatNotificationDate(LocalDateTime dateTime, LocalDateTime noticiationTime) {
+
+        long days = ChronoUnit.DAYS.between(noticiationTime, dateTime);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("M월 d일, a h:mm분", Locale.KOREAN);
+        String formattedDate = dateTime.format(formatter);
+
+        if (days > 0) {
+            return days + "일 전 " + formattedDate;
+        } else {
+            long hours = ChronoUnit.HOURS.between(noticiationTime, dateTime);
+            if (hours > 0) {
+                return hours + "시간 전 " + formattedDate;
+            } else {
+                long minutes = ChronoUnit.MINUTES.between(noticiationTime, dateTime);
+                if (minutes > 0) {
+                    return minutes + "분 전 " + formattedDate;
+                } else {
+                    return "방금 " + formattedDate;
+                }
+            }
+        }
+    }
+
 
     public static void validateEmail(String email) {
         EmailValidator validator = EmailValidator.getInstance();

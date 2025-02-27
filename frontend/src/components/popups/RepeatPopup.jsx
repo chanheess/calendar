@@ -65,9 +65,6 @@ const RepeatPopup = ({ isOpen, onClose, mode, scheduleId, calendarId, repeatChec
           <Button variant="green" size="medium" onClick={handleConfirm} type="button">
             Save
           </Button>
-          <Button variant="logout" size="medium" onClick={onClose} type="button">
-            Close
-          </Button>
         </div>
       </div>
     </div>

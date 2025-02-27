@@ -79,5 +79,6 @@ nginx/www/
 *.env
 node_modules/
 build/
+serviceAccountKey.json
 
 

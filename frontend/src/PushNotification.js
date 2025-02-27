@@ -1,101 +1,90 @@
-import React, { useEffect, useRef } from 'react';
+// src/PushNotification.js
+import React, { useEffect, useState } from "react";
+import { getToken, onMessage } from "firebase/messaging";
+import { messaging } from "./firebase";
 import axios from "axios";
+import styles from "styles/PushNotification.module.css";
 
-function PushNotification() {
-  const didInitialize = useRef(false);
+const PushNotification = () => {
+  const [notifications, setNotifications] = useState([]);
 
   useEffect(() => {
-    // 첫 마운트 시점에만 실행
-    if (didInitialize.current) return;
-    didInitialize.current = true;
+    console.log("PushNotification mounted");
 
-    (async () => {
-      if ('Notification' in window && 'serviceWorker' in navigator) {
-        const registration = await navigator.serviceWorker.ready;
-        const permission = Notification.permission;
-        const subscription = await registration.pushManager.getSubscription();
-
-        if (permission === 'denied') {
-          if (subscription) {
-            await unsubscribeAndNotifyServer(subscription);
-          }
-          return;
-        }
-
-        if (permission === 'default') {
-          const newPermission = await Notification.requestPermission();
-          if (newPermission === 'granted') {
-            const sub = await registration.pushManager.getSubscription();
-            if (!sub) {
-              await createSubscription(registration);
+    // 토큰 요청 및 관리 함수
+    const requestToken = async () => {
+      try {
+        const permission = await Notification.requestPermission();
+        console.log("Notification permission:", permission);
+        if (permission === "granted") {
+          let token = localStorage.getItem("fcmToken");
+          if (!token) {
+            token = await getToken(messaging, {
+              vapidKey: "BOOYYhMRpzdRL1n3Nnwm8jAhu1be-_tiMQKpCRPzBs4hXY85KB4yX9kR65__1hOB43Uj7ixfhHyPPSYA1NsNBSI"
+            });
+            if (token) {
+              localStorage.setItem("fcmToken", token);
+              console.log("New FCM Token:", token);
+              await axios.post(`/notifications/token/${token}`);
             }
           } else {
-            const sub = await registration.pushManager.getSubscription();
-            if (sub) {
-              await unsubscribeAndNotifyServer(sub);
-            }
+            console.log("Existing FCM Token:", token);
           }
-          return;
-        }
-
-        if (permission === 'granted') {
-          if (!subscription) {
-            await createSubscription(registration);
+        } else {
+          // 권한 거부 시 기존 토큰 삭제
+          const token = localStorage.getItem("fcmToken");
+          if (token) {
+            await axios.delete(`/notifications/token/${token}`);
+            localStorage.removeItem("fcmToken");
+            console.log("FCM Token removed due to permission change");
           }
         }
+      } catch (err) {
+        console.error("Error getting FCM token:", err);
       }
-    })();
-  }, []);
-
-  // 구독 생성 함수
-  const createSubscription = async (registration) => {
-    const pushSubscription = await registration.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: process.env.REACT_APP_VAPID_PUBLIC_KEY,
-    });
-
-    // ArrayBuffer → Base64 변환
-    const p256dhArrayBuffer = pushSubscription.getKey('p256dh');
-    const authArrayBuffer   = pushSubscription.getKey('auth');
-    const p256dh = arrayBufferToBase64Url(p256dhArrayBuffer);
-    const auth   = arrayBufferToBase64Url(authArrayBuffer);
-
-    const pushSubscriptionDto = {
-      endpoint: pushSubscription.endpoint,
-      p256dhKey: p256dh,
-      authKey: auth
     };
 
-    // 서버에 구독 정보 전송
-    await axios.post('/web-push/subscribe', pushSubscriptionDto, {
-      headers: {'Content-Type': 'application/json'}
+    requestToken();
+
+    // 포그라운드 메시지 처리 (data-only 메시지여야 onMessage가 호출됩니다)
+    const unsubscribe = onMessage(messaging, (payload) => {
+      console.log("Message received (foreground):", payload);
+      const { title, body } = payload.data || {};
+      // 고유 id는 timestamp를 사용합니다.
+      const id = Date.now();
+      const newNotification = {
+        id,
+        title: title || "알림",
+        body: body || "",
+      };
+      setNotifications((prev) => [...prev, newNotification]);
+      // 자동 제거 setTimeout 제거 → 사용자가 클릭할 때만 제거
     });
+
+    return () => {
+      console.log("Unsubscribing from onMessage");
+      unsubscribe();
+    };
+  }, []);
+
+  const handleClick = (id) => {
+    setNotifications((prev) => prev.filter((n) => n.id !== id));
   };
 
-  const unsubscribeAndNotifyServer = async (subscription) => {
-    try {
-      console.log("Unsubscribe:", subscription.endpoint);
-      await axios.delete('/web-push/subscribe', {
-        data: { endpoint: subscription.endpoint }
-      });
-      await subscription.unsubscribe();
-    } catch (err) {
-      console.error("Error unsubscribing:", err);
-    }
-  };
-
-  // ArrayBuffer → Base64 변환
-  function arrayBufferToBase64Url(buffer) {
-    const bytes = new Uint8Array(buffer);
-    let binary = '';
-    bytes.forEach((b) => (binary += String.fromCharCode(b)));
-    let base64 = window.btoa(binary);
-    // URL-safe 변환
-    base64 = base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-    return base64;
-  }
-
-  return null; // 컴포넌트는 UI를 렌더링하지 않음
-}
+  return (
+    <div className={styles.container}>
+      {notifications.map((notification) => (
+        <div
+          key={notification.id}
+          className={styles.toast}
+          onClick={() => handleClick(notification.id)}
+        >
+          <strong>{notification.title}</strong>
+          <p>{notification.body}</p>
+        </div>
+      ))}
+    </div>
+  );
+};
 
 export default PushNotification;

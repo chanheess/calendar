@@ -1,6 +1,6 @@
 package com.chpark.chcalendar.entity;
 
-import com.chpark.chcalendar.dto.NotificationDto;
+import com.chpark.chcalendar.dto.notification.NotificationDto;
 import com.chpark.chcalendar.enumClass.NotificationCategory;
 import com.chpark.chcalendar.enumClass.NotificationType;
 import jakarta.persistence.Id;

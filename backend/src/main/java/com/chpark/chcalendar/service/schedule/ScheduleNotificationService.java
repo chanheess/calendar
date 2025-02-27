@@ -1,9 +1,12 @@
 package com.chpark.chcalendar.service.schedule;
 
 import com.chpark.chcalendar.dto.schedule.ScheduleNotificationDto;
+import com.chpark.chcalendar.entity.schedule.ScheduleEntity;
 import com.chpark.chcalendar.entity.schedule.ScheduleNotificationEntity;
 import com.chpark.chcalendar.repository.schedule.ScheduleNotificationRepository;
 import com.chpark.chcalendar.repository.schedule.ScheduleRepository;
+import com.chpark.chcalendar.service.notification.FirebaseService;
+import com.chpark.chcalendar.utility.ScheduleUtility;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -21,26 +24,36 @@ public class ScheduleNotificationService {
     private final ScheduleRepository scheduleRepository;
     private final ScheduleNotificationRepository scheduleNotificationRepository;
 
+    private final FirebaseService firebaseService;
+
 
     @Transactional
-    public List<ScheduleNotificationDto> create(long scheduleId, List<ScheduleNotificationDto> notifications) {
-        if(notifications == null || notifications.isEmpty()) {
+    public List<ScheduleNotificationDto> create(long userId, long scheduleId, List<ScheduleNotificationDto> notifications) {
+        if (notifications == null || notifications.isEmpty()) {
             return new ArrayList<>();
         }
 
-        if (scheduleRepository.existsById(scheduleId)) {
-            // DTO 리스트를 엔티티 리스트로 변환
-            List<ScheduleNotificationEntity> notificationEntities = ScheduleNotificationEntity.fromScheduleNotificationDtoList(scheduleId, notifications);
+        ScheduleEntity scheduleEntity = scheduleRepository.findById(scheduleId).orElseThrow(
+            () -> new EntityNotFoundException("Schedule not found with id: " + scheduleId)
+        );
 
-            // 엔티티 리스트를 저장
-            List<ScheduleNotificationEntity> savedEntities = scheduleNotificationRepository.saveAll(notificationEntities);
+        List<ScheduleNotificationEntity> notificationEntities = ScheduleNotificationEntity.fromScheduleNotificationDtoList(scheduleId, notifications);
+        notificationEntities = scheduleNotificationRepository.saveAll(notificationEntities);
 
-            // 저장된 엔티티 리스트를 DTO 리스트로 변환하여 반환
-            return ScheduleNotificationDto.fromScheduleNotificationEntityList(savedEntities);
-        } else {
-            // scheduleId가 존재하지 않는 경우 빈 리스트 반환
-            throw new EntityNotFoundException("Schedule not found with id: " + scheduleId);
-        }
+        notificationEntities.forEach(notification -> {
+            String jobId = "schedule-" + userId + "-" + notification.getScheduleId();
+
+            firebaseService.sendPushNotification(
+                userId,
+                jobId,
+                scheduleEntity.getTitle(),
+                ScheduleUtility.formatNotificationDate(scheduleEntity.getStartAt(), notification.getNotificationAt()),
+                "https://localhost:3000",
+                notification.getNotificationAt()
+            );
+        });
+
+        return ScheduleNotificationDto.fromScheduleNotificationEntityList(notificationEntities);
     }
 
     public List<ScheduleNotificationDto> findByScheduleId(long id) {

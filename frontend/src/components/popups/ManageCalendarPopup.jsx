@@ -59,7 +59,7 @@ const ManageCalendarPopup = ({ isOpen, onClose, calendarTitle, calendarId }) => 
     <div className={styles.popupOverlay}>
       <div className={styles.popup}>
         <div className={styles.popupHeader}>
-          <h2>{calendarTitle} 관리</h2>
+          <h2>{calendarTitle} 그룹 관리</h2>
           <Button variant="close" size="" onClick={onClose}>
             &times;
           </Button>
@@ -99,12 +99,6 @@ const ManageCalendarPopup = ({ isOpen, onClose, calendarTitle, calendarId }) => 
               )}
             </div>
           </div>
-        </div>
-
-        <div className={styles.popupFooter}>
-          <Button variant="logout" size="medium" onClick={onClose}>
-            닫기
-          </Button>
         </div>
       </div>
     </div>

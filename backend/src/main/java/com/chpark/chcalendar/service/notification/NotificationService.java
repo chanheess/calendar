@@ -1,6 +1,6 @@
 package com.chpark.chcalendar.service.notification;
 
-import com.chpark.chcalendar.dto.NotificationDto;
+import com.chpark.chcalendar.dto.notification.NotificationDto;
 import com.chpark.chcalendar.entity.GroupUserEntity;
 import com.chpark.chcalendar.entity.NotificationEntity;
 import com.chpark.chcalendar.enumClass.NotificationCategory;

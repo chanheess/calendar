@@ -50,3 +50,6 @@ password:
 vapid:
   publicKey: ${VAPID_PUBLIC_KEY}
   privateKey: ${VAPID_PRIVATE_KEY}
+
+fcm:
+  serviceAccountFile: ${SERVICE_ACCOUNT_FILE}

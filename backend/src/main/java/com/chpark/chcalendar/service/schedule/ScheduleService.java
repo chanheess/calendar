@@ -55,7 +55,7 @@ public class ScheduleService {
     @Transactional
     public ScheduleDto.Response createByForm(ScheduleDto.Request scheduleDto, long userId) {
         ScheduleDto resultSchedule = this.create(scheduleDto.getScheduleDto(), userId);
-        List<ScheduleNotificationDto> resultNotifications = scheduleNotificationService.create(resultSchedule.getId(), scheduleDto.getNotificationDto());
+        List<ScheduleNotificationDto> resultNotifications = scheduleNotificationService.create(userId, resultSchedule.getId(), scheduleDto.getNotificationDto());
         ScheduleRepeatDto resultRepeat = null;
 
         if(scheduleDto.getRepeatDto() != null) {

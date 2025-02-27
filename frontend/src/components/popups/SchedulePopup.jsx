@@ -531,13 +531,10 @@ const SchedulePopup = ({ isOpen, mode, eventDetails, onClose, selectedCalendarLi
             Save
           </Button>
           {mode === "edit" && (
-            <Button variant="warning" size="medium" onClick={handleDelete} type="button">
+            <Button variant="logout" size="medium" onClick={handleDelete} type="button">
               Delete
             </Button>
           )}
-          <Button variant="logout" size="medium" onClick={onClose} type="button">
-            Close
-          </Button>
         </div>
       </div>  {/* <div className={styles.popup}> */}
     </div>  {/* <div className={styles.popupOverlay}> */}

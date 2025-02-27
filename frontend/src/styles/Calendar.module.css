@@ -3,3 +3,8 @@
   height: 100%;
   padding-top: 10px;
 }
+
+:global(.fc-header-toolbar.fc-toolbar) {
+  margin-left: 10px;
+  margin-right: 10px;
+}

@@ -184,13 +184,7 @@ const CalendarComponent = ({ selectedCalendarList }) => {
                   : new Date().toISOString().split("T")[0]; // 기본값 설정
                 openCreatePopup(selectedDate);
               },
-            },
-            {
-              label: "Close",
-              variant: "logout",
-              size: "medium",
-              onClick: closeAllPopups,
-            },
+            }
           ]}
         >
           {popupData && popupData.length > 0 ? (
@@ -198,7 +192,6 @@ const CalendarComponent = ({ selectedCalendarList }) => {
               {popupData.map((event, index) => (
                 <li key={index} onClick={() => handleEventClick(event)}>
                   <strong>{event.title}</strong>
-                  {event.description && <p>{event.description}</p>}
                   <p>
                     {event.startAt} - {event.endAt}
                   </p>

@@ -1,6 +1,6 @@
-package com.chpark.chcalendar.controller;
+package com.chpark.chcalendar.controller.notification;
 
-import com.chpark.chcalendar.dto.NotificationDto;
+import com.chpark.chcalendar.dto.notification.NotificationDto;
 import com.chpark.chcalendar.security.JwtTokenProvider;
 import com.chpark.chcalendar.service.notification.NotificationService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -67,4 +67,6 @@ public class NotificationController {
 
         return ResponseEntity.ok().build();
     }
+
+
 }

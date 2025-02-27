@@ -1,12 +1,10 @@
 package com.chpark.chcalendar.controller;
 
-import com.chpark.chcalendar.dto.webPush.PushSubscriptionDto;
-import com.chpark.chcalendar.dto.webPush.PushUnsubscriptionDto;
 import com.chpark.chcalendar.security.JwtTokenProvider;
-import com.chpark.chcalendar.service.WebPushService;
+import com.chpark.chcalendar.service.notification.FirebaseService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -14,41 +12,30 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api")
-public class WebPushController {
+public class FirebaseController {
 
     private final JwtTokenProvider jwtTokenProvider;
-    private final WebPushService webPushService;
+    private final FirebaseService firebaseService;
 
-    @Value("${vapid.publicKey}")
-    private String vapidPublicKey;
-
-    @Value("${vapid.privateKey}")
-    private String vapidPrivateKey;
-
-    @PostMapping("/web-push/subscribe")
-    public ResponseEntity<String> subscribe(@Validated @RequestBody PushSubscriptionDto subscription,
+    @PostMapping("/notifications/token/{fcmToken}")
+    public ResponseEntity<String> subscribe(@NotNull @PathVariable("fcmToken") String fcmToken,
                                             HttpServletRequest request) {
         String token = jwtTokenProvider.resolveToken(request);
         long userId = jwtTokenProvider.getUserIdFromToken(token);
 
-        webPushService.pushSubscription(userId, subscription);
+        firebaseService.saveToken(userId, fcmToken);
 
         return ResponseEntity.ok("Subscription successful");
     }
 
-    @DeleteMapping("/web-push/subscribe")
-    public ResponseEntity<String> unsubscribe(@Validated @RequestBody PushUnsubscriptionDto unsubscription,
+    @DeleteMapping("/notifications/token/{fcmToken}")
+    public ResponseEntity<String> unsubscribe(@Validated @PathVariable("fcmToken") String fcmToken,
                                               HttpServletRequest request) {
         String token = jwtTokenProvider.resolveToken(request);
         long userId = jwtTokenProvider.getUserIdFromToken(token);
 
-        webPushService.pushUnsubscription(userId, unsubscription);
+        firebaseService.deleteToken(userId, fcmToken);
 
         return ResponseEntity.ok("Unsubscription successful");
-    }
-
-    @GetMapping("/web-push/vapidPublicKey")
-    public String getVapidPublicKey() {
-        return vapidPublicKey;
     }
 }
