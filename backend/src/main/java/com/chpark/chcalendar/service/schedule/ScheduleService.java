@@ -1,5 +1,6 @@
 package com.chpark.chcalendar.service.schedule;
 
+import com.chpark.chcalendar.dto.CursorPage;
 import com.chpark.chcalendar.dto.schedule.ScheduleDto;
 import com.chpark.chcalendar.dto.schedule.ScheduleNotificationDto;
 import com.chpark.chcalendar.dto.schedule.ScheduleRepeatDto;
@@ -10,17 +11,21 @@ import com.chpark.chcalendar.repository.schedule.ScheduleNotificationRepository;
 import com.chpark.chcalendar.repository.schedule.ScheduleRepeatRepository;
 import com.chpark.chcalendar.repository.schedule.ScheduleRepository;
 import com.chpark.chcalendar.service.calendar.UserCalendarService;
-import com.chpark.chcalendar.service.group.GroupUserService;
+import com.chpark.chcalendar.service.user.GroupUserService;
 import com.chpark.chcalendar.utility.ScheduleUtility;
 import com.chpark.chcalendar.utility.CalendarUtility;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 
 @RequiredArgsConstructor
@@ -112,7 +117,7 @@ public class ScheduleService {
         }
 
         ScheduleDto updateDto = this.update(scheduleId, scheduleDto.getScheduleDto(), userId);
-        List<ScheduleNotificationDto> updateNotificationDto = scheduleNotificationService.update(scheduleId, scheduleDto.getNotificationDto());
+        List<ScheduleNotificationDto> updateNotificationDto = scheduleNotificationService.update(userId, scheduleId, scheduleDto.getNotificationDto());
         ScheduleRepeatDto updateRepeatDto = null;
 
         if(isRepeatChecked){
@@ -132,7 +137,7 @@ public class ScheduleService {
             this.deleteFutureRepeatSchedules(scheduleId, userId);
 
             ScheduleDto updateDto = this.update(scheduleId, scheduleDto.getScheduleDto(), true, userId);
-            List<ScheduleNotificationDto> updateNotificationDto = scheduleNotificationService.update(scheduleId, scheduleDto.getNotificationDto());
+            List<ScheduleNotificationDto> updateNotificationDto = scheduleNotificationService.update(userId, scheduleId, scheduleDto.getNotificationDto());
 
             return new ScheduleDto.Response(updateDto, updateNotificationDto);
         }
@@ -145,7 +150,7 @@ public class ScheduleService {
 
             //일정 및 알림 업데이트
             ScheduleDto updateDto = this.update(scheduleId, scheduleDto.getScheduleDto(), true, userId);
-            List<ScheduleNotificationDto> updateNotificationDto = scheduleNotificationService.update(scheduleId, scheduleDto.getNotificationDto());
+            List<ScheduleNotificationDto> updateNotificationDto = scheduleNotificationService.update(userId, scheduleId, scheduleDto.getNotificationDto());
 
             //새로운 반복 일정 등록
             ScheduleRepeatDto updateRepeatDto = scheduleRepeatService.create(scheduleId, scheduleDto.getRepeatDto(), userId);
@@ -165,7 +170,7 @@ public class ScheduleService {
         this.deleteCurrentOnlyRepeatSchedule(scheduleId, userId);
 
         ScheduleDto resultSchedule = this.update(scheduleId, scheduleDto.getScheduleDto(), true, userId);
-        List<ScheduleNotificationDto> resultNotification = scheduleNotificationService.update(scheduleId, scheduleDto.getNotificationDto());
+        List<ScheduleNotificationDto> resultNotification = scheduleNotificationService.update(userId, scheduleId, scheduleDto.getNotificationDto());
 
         return new ScheduleDto.Response(resultSchedule, resultNotification);
     }
@@ -208,7 +213,7 @@ public class ScheduleService {
         }
 
         ScheduleDto resultSchedule = new ScheduleDto(standardSchedule);
-        List<ScheduleNotificationDto> resultNotification = scheduleNotificationService.update(scheduleId, scheduleDto.getNotificationDto());
+        List<ScheduleNotificationDto> resultNotification = scheduleNotificationService.update(userId, scheduleId, scheduleDto.getNotificationDto());
         ScheduleRepeatDto resultRepeat = new ScheduleRepeatDto(scheduleRepeatEntity);
 
         return new ScheduleDto.Response(resultSchedule, resultNotification, resultRepeat);
@@ -308,6 +313,22 @@ public class ScheduleService {
         }
 
         return result;
+    }
+
+    @Transactional
+    public CursorPage<ScheduleDto> getNextSchedules(long userId, LocalDateTime start, LocalDateTime end, LocalDateTime cursorTime, long cursorId, int pageSize) {
+        List<Long> calendars = CalendarUtility.getUserCalendars(userId, groupUserService, userCalendarService);
+
+        Pageable pageable = PageRequest.of(0, pageSize);
+        List<ScheduleEntity> events = scheduleRepository.findSchedulesByCalendarId(calendars, start, end, cursorTime, cursorId, pageable);
+
+        List<ScheduleDto> dtos = events.stream()
+                .map(ScheduleDto::fromScheduleEntity)
+                .collect(Collectors.toList());
+
+        String nextCursor = dtos.isEmpty() ? null : dtos.get(dtos.size() - 1).getStartAt().toString();
+
+        return new CursorPage<>(dtos, nextCursor);
     }
 
     @Transactional

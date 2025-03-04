@@ -58,7 +58,8 @@ class ScheduleNotificationServiceTest {
     @Test
     @Transactional
     void create() {
-        notificationService.create(schedule.getId(), notificationDtoList);
+
+        notificationService.create(schedule.getUserId(), schedule.getId(), notificationDtoList);
 
         List<ScheduleNotificationDto> notifications = notificationService.findByScheduleId(schedule.getId());
 
@@ -68,7 +69,7 @@ class ScheduleNotificationServiceTest {
     @Test
     @Transactional
     void create_notificationsNull() {
-        notificationService.create(Long.MAX_VALUE, null);
+        notificationService.create(schedule.getUserId(), Long.MAX_VALUE, null);
 
         List<ScheduleNotificationDto> notifications = notificationService.findByScheduleId(schedule.getId());
 
@@ -78,7 +79,7 @@ class ScheduleNotificationServiceTest {
     @Test
     @Transactional
     void create_notificationsIsEmpty() {
-        notificationService.create(Long.MAX_VALUE, new ArrayList<>());
+        notificationService.create(schedule.getUserId(), Long.MAX_VALUE, new ArrayList<>());
 
         List<ScheduleNotificationDto> notifications = notificationService.findByScheduleId(schedule.getId());
 
@@ -91,7 +92,7 @@ class ScheduleNotificationServiceTest {
         List<ScheduleNotificationDto> notifications = notificationService.findByScheduleId(schedule.getId());
 
         //when & then
-        assertThatThrownBy(() -> notificationService.create(Long.MAX_VALUE, notificationDtoList))
+        assertThatThrownBy(() -> notificationService.create(schedule.getUserId(), Long.MAX_VALUE, notificationDtoList))
                 .isInstanceOf(EntityNotFoundException.class)
                 .hasMessageContaining("Schedule not found with id: " + Long.MAX_VALUE);
     }
@@ -100,7 +101,7 @@ class ScheduleNotificationServiceTest {
     @Transactional
     void update() {
         //given
-        notificationService.create(schedule.getId(), notificationDtoList);
+        notificationService.create(schedule.getUserId(), schedule.getId(), notificationDtoList);
 
         ScheduleNotificationDto notificationDto = new ScheduleNotificationDto();
         notificationDto.setNotificationAt(LocalDateTime.now().plusHours(2));
@@ -108,13 +109,13 @@ class ScheduleNotificationServiceTest {
         notificationDtoList.add(notificationDto);
 
         //소지한 개수, 추가할 개수에 대한 update 테스트
-        notificationService.update(schedule.getId(), notificationDtoList);
+        notificationService.update(schedule.getUserId(), schedule.getId(), notificationDtoList);
         List<ScheduleNotificationDto> notifications = notificationService.findByScheduleId(schedule.getId());
         assertThat(notifications).hasSize(2);
 
         //소지한 개수 > 추가 개수일 때의 알림 삭제 테스트
         notificationDtoList = new ArrayList<>();
-        notificationService.update(schedule.getId(), notificationDtoList);
+        notificationService.update(schedule.getUserId(), schedule.getId(), notificationDtoList);
         notifications = notificationService.findByScheduleId(schedule.getId());
         assertThat(notifications).isEmpty();
 

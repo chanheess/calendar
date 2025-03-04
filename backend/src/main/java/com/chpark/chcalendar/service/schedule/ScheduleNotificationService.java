@@ -11,6 +11,7 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -25,6 +26,9 @@ public class ScheduleNotificationService {
     private final ScheduleNotificationRepository scheduleNotificationRepository;
 
     private final FirebaseService firebaseService;
+
+    @Value("${home_url}")
+    String homeUrl;
 
 
     @Transactional
@@ -41,16 +45,7 @@ public class ScheduleNotificationService {
         notificationEntities = scheduleNotificationRepository.saveAll(notificationEntities);
 
         notificationEntities.forEach(notification -> {
-            String jobId = "schedule-" + userId + "-" + notification.getScheduleId();
-
-            firebaseService.sendPushNotification(
-                userId,
-                jobId,
-                scheduleEntity.getTitle(),
-                ScheduleUtility.formatNotificationDate(scheduleEntity.getStartAt(), notification.getNotificationAt()),
-                "https://localhost:3000",
-                notification.getNotificationAt()
-            );
+            createNotificationScheduler(userId, scheduleEntity, notification);
         });
 
         return ScheduleNotificationDto.fromScheduleNotificationEntityList(notificationEntities);
@@ -65,10 +60,14 @@ public class ScheduleNotificationService {
     }
 
     @Transactional
-    public List<ScheduleNotificationDto> update(long scheduleId, List<ScheduleNotificationDto> notifications) {
+    public List<ScheduleNotificationDto> update(long userId, long scheduleId, List<ScheduleNotificationDto> notifications) {
 
         List<ScheduleNotificationEntity> resultEntities = scheduleNotificationRepository.findByScheduleId(scheduleId);
         List<ScheduleNotificationDto> updatedNotifications = new ArrayList<>();
+
+        ScheduleEntity scheduleEntity = scheduleRepository.findById(scheduleId).orElseThrow(
+                () -> new EntityNotFoundException("Schedule not found with id: " + scheduleId)
+        );
 
         int existingSize = resultEntities.size();
         int newSize = notifications.size();
@@ -81,14 +80,23 @@ public class ScheduleNotificationService {
                 resultEntity.setNotificationAt(notifications.get(i).getNotificationAt());
                 resultEntity = scheduleNotificationRepository.save(resultEntity);
                 updatedNotifications.add(new ScheduleNotificationDto(resultEntity));
+
+                updateNotificationScheduler(userId, scheduleEntity, resultEntity);
             } else if (i < newSize) {
                 // 새로 생성해야 할 DTO가 있는 경우
                 ScheduleNotificationEntity newEntity = new ScheduleNotificationEntity(scheduleId, notifications.get(i));
                 newEntity = scheduleNotificationRepository.save(newEntity);
                 updatedNotifications.add(new ScheduleNotificationDto(newEntity));
+
+                System.out.println(newEntity.getId());
+
+                createNotificationScheduler(userId, scheduleEntity, newEntity);
             } else {
                 // 삭제해야 할 기존 엔티티가 있는 경우
-                scheduleNotificationRepository.delete(resultEntities.get(i));
+                ScheduleNotificationEntity resultEntity = resultEntities.get(i);
+                deleteNotificationScheduler(userId, scheduleEntity, resultEntity);
+
+                scheduleNotificationRepository.delete(resultEntity);
             }
         }
 
@@ -100,4 +108,40 @@ public class ScheduleNotificationService {
         scheduleNotificationRepository.deleteByScheduleId(scheduleId);
     }
 
+    @Transactional
+    public void createNotificationScheduler(long userId, ScheduleEntity scheduleEntity, ScheduleNotificationEntity notification) {
+        String jobId = getJobId(userId, scheduleEntity.getId(), notification.getId());
+        String body = ScheduleUtility.formatNotificationDate(scheduleEntity.getStartAt(), notification.getNotificationAt());
+
+        firebaseService.createNotifications(
+                userId,
+                jobId,
+                scheduleEntity.getTitle(),
+                body,
+                homeUrl,
+                notification.getNotificationAt()
+        );
+    }
+
+    @Transactional
+    public void updateNotificationScheduler(long userId, ScheduleEntity scheduleEntity, ScheduleNotificationEntity notification) {
+        String jobId = getJobId(userId, scheduleEntity.getId(), notification.getId());
+
+        firebaseService.updateNotifications(
+                userId,
+                jobId,
+                notification.getNotificationAt()
+        );
+    }
+
+    @Transactional
+    public void deleteNotificationScheduler(long userId, ScheduleEntity scheduleEntity, ScheduleNotificationEntity notification) {
+        String jobId = getJobId(userId, scheduleEntity.getId(), notification.getId());
+
+        firebaseService.deleteNotifications(userId, jobId);
+    }
+
+    private String getJobId(long userId, long scheduleId, long notificationId) {
+        return "user" + userId + "-schedule" +  scheduleId + "-notification" + notificationId;
+    }
 }

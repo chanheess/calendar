@@ -3,9 +3,6 @@ package com.chpark.chcalendar.service.notification;
 import com.chpark.chcalendar.entity.FirebaseTokenEntity;
 import com.chpark.chcalendar.repository.FirebaseTokenRepository;
 import com.chpark.chcalendar.repository.user.UserRepository;
-import com.google.firebase.messaging.FirebaseMessaging;
-import com.google.firebase.messaging.Message;
-import com.google.firebase.messaging.Notification;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.quartz.SchedulerException;
@@ -24,7 +21,7 @@ public class FirebaseService {
     private final QuartzSchedulerService quartzSchedulerService;
 
     @Transactional
-    public void sendPushNotification(long userId, String jobId, String title, String body, String url, LocalDateTime notificationTime) {
+    public void createNotifications(long userId, String jobId, String title, String body, String url, LocalDateTime notificationTime) {
         List<FirebaseTokenEntity> fcmTokenList = firebaseTokenRepository.findByUserId(userId);
 
         if(fcmTokenList.isEmpty()) {
@@ -33,7 +30,7 @@ public class FirebaseService {
 
         fcmTokenList.forEach(fcmToken -> {
             try {
-                quartzSchedulerService.scheduleFcmPushNotification(
+                quartzSchedulerService.createFcmPushNotification(
                         jobId,
                         fcmToken.getToken(),
                         title,
@@ -41,6 +38,42 @@ public class FirebaseService {
                         url,
                         notificationTime
                 );
+            } catch (SchedulerException e) {
+                // 실패시 처리 필요
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
+    @Transactional
+    public void updateNotifications(long userId, String jobId, LocalDateTime notificationTime) {
+        List<FirebaseTokenEntity> fcmTokenList = firebaseTokenRepository.findByUserId(userId);
+
+        if(fcmTokenList.isEmpty()) {
+            return;
+        }
+
+        fcmTokenList.forEach(fcmToken -> {
+            try {
+                quartzSchedulerService.updateFcmPushNotification(jobId, notificationTime);
+            } catch (SchedulerException e) {
+                // 실패시 처리 필요
+                throw new RuntimeException(e);
+            }
+        });
+    }
+
+    @Transactional
+    public void deleteNotifications(long userId, String jobId) {
+        List<FirebaseTokenEntity> fcmTokenList = firebaseTokenRepository.findByUserId(userId);
+
+        if(fcmTokenList.isEmpty()) {
+            return;
+        }
+
+        fcmTokenList.forEach(fcmToken -> {
+            try {
+                quartzSchedulerService.deleteFcmPushNotification(jobId);
             } catch (SchedulerException e) {
                 // 실패시 처리 필요
                 throw new RuntimeException(e);

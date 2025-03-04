@@ -57,6 +57,10 @@ public class ScheduleDto {
         this.calendarId = entity.getCalendarId();
     }
 
+    public static ScheduleDto fromScheduleEntity(ScheduleEntity scheduleEntity) {
+        return new ScheduleDto(scheduleEntity);
+    }
+
     public static List<ScheduleDto> fromScheduleEntityList(List<ScheduleEntity> entityList) {
         return entityList.stream()
                 .map(ScheduleDto::new)
@@ -73,6 +77,8 @@ public class ScheduleDto {
                 ", endAt=" + endAt +
                 '}';
     }
+
+
 
     @Getter
     @Setter

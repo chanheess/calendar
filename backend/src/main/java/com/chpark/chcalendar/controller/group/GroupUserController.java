@@ -2,9 +2,8 @@ package com.chpark.chcalendar.controller.group;
 
 import com.chpark.chcalendar.dto.calendar.CalendarInfoDto;
 import com.chpark.chcalendar.dto.group.GroupUserDto;
-import com.chpark.chcalendar.dto.group.GroupUserDto;
 import com.chpark.chcalendar.security.JwtTokenProvider;
-import com.chpark.chcalendar.service.group.GroupUserService;
+import com.chpark.chcalendar.service.user.GroupUserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;

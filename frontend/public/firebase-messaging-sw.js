@@ -21,8 +21,6 @@ self.addEventListener('activate', (event) => {
 });
 // 백그라운드 메시지 처리
 messaging.onBackgroundMessage((payload) => {
-  console.log('Message received (background): ', payload);
-  // payload.data 안에 title, body, url이 들어옴
   const { title, body, url } = payload.data || {};
 
   const notificationTitle = title || "알림";
@@ -37,20 +35,16 @@ messaging.onBackgroundMessage((payload) => {
 
 // 알림 클릭 시 동작
 self.addEventListener('notificationclick', (event) => {
-  console.log('Notification click received:', event);
   event.notification.close();
 
   const clickAction = event.notification.data?.url;
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
-      for (const client of clientList) {
-        if (client.url === clickAction && 'focus' in client) {
-          return client.focus();
-        }
+      const matchedClient = clientList.find(client => client.url === clickAction && 'focus' in client);
+      if (matchedClient) {
+        return matchedClient.focus();
       }
-      if (clients.openWindow) {
-        return clients.openWindow(clickAction);
-      }
+      return clients.openWindow(clickAction);
     })
   );
 });

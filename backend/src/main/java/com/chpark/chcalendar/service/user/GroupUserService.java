@@ -1,4 +1,4 @@
-package com.chpark.chcalendar.service.group;
+package com.chpark.chcalendar.service.user;
 
 import com.chpark.chcalendar.dto.calendar.CalendarInfoDto;
 import com.chpark.chcalendar.dto.group.GroupUserDto;
@@ -74,6 +74,8 @@ public class GroupUserService {
                 () -> new IllegalArgumentException("The group does not exist.")
         );
 
+        //그룹 가입 최대 유저 수 제한 필요
+
         GroupUserDto groupUserDto = new GroupUserDto(
                 entity.getTitle(),
                 groupId,
@@ -92,5 +94,9 @@ public class GroupUserService {
         result.forEach(groupUserEntity -> {
             groupUserEntity.setUserNickname(nickname);
         });
+    }
+
+    public List<Long> getUserList(long calendarId) {
+        return groupUserRepository.findUserIdByGroupId(calendarId);
     }
 }

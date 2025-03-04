@@ -47,8 +47,12 @@ public class ScheduleNotificationController {
 
     @PutMapping
     public ResponseEntity<List<ScheduleNotificationDto>> updateNotification(@PathVariable("id") long scheduleId,
-                                                                            @Validated @RequestBody List<ScheduleNotificationDto> notificationDto) {
-        List<ScheduleNotificationDto> responseDto = scheduleNotificationService.update(scheduleId, notificationDto);
+                                                                            @Validated @RequestBody List<ScheduleNotificationDto> notificationDto,
+                                                                            HttpServletRequest request) {
+        String token = jwtTokenProvider.resolveToken(request);
+        long userId = jwtTokenProvider.getUserIdFromToken(token);
+
+        List<ScheduleNotificationDto> responseDto = scheduleNotificationService.update(userId, scheduleId, notificationDto);
 
         return ResponseEntity.ok().body(responseDto);
     }

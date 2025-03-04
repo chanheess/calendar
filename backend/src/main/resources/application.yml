@@ -53,3 +53,5 @@ vapid:
 
 fcm:
   serviceAccountFile: ${SERVICE_ACCOUNT_FILE}
+
+home_url: ${HOME_URL}

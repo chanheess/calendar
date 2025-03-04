@@ -17,7 +17,7 @@ public class QuartzSchedulerService {
     private Scheduler scheduler;
 
     @Transactional
-    public void scheduleFcmPushNotification(String jobId, String fcmToken, String title, String body, String url, LocalDateTime scheduledTime) throws SchedulerException {
+    public void createFcmPushNotification(String jobId, String fcmToken, String title, String body, String url, LocalDateTime scheduledTime) throws SchedulerException {
         JobDataMap jobDataMap = new JobDataMap();
         jobDataMap.put("fcmToken", fcmToken);
         jobDataMap.put("title", title);
@@ -39,6 +39,25 @@ public class QuartzSchedulerService {
 
         scheduler.scheduleJob(jobDetail, trigger);
     }
+
+    @Transactional
+    public void updateFcmPushNotification(String jobId, LocalDateTime newScheduledTime) throws SchedulerException {
+        TriggerKey triggerKey = TriggerKey.triggerKey(jobId);
+        Date newTriggerTime = Date.from(newScheduledTime.atZone(ZoneId.systemDefault()).toInstant());
+        Trigger newTrigger = TriggerBuilder.newTrigger()
+                .withIdentity(jobId)
+                .startAt(newTriggerTime)
+                .withSchedule(SimpleScheduleBuilder.simpleSchedule())
+                .build();
+        scheduler.rescheduleJob(triggerKey, newTrigger);
+    }
+
+    @Transactional
+    public void deleteFcmPushNotification(String jobId) throws SchedulerException {
+        JobKey jobKey = JobKey.jobKey(jobId);
+        scheduler.deleteJob(jobKey);
+    }
+
 }
 
 

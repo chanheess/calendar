@@ -1,6 +1,7 @@
 package com.chpark.chcalendar.repository.schedule;
 
 import com.chpark.chcalendar.entity.schedule.ScheduleEntity;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -21,6 +22,25 @@ public interface ScheduleRepository extends JpaRepository<ScheduleEntity, Long> 
     @Query("SELECT s FROM ScheduleEntity s WHERE s.startAt <= :end AND s.endAt >= :start AND s.calendarId = :calendarId")
     List<ScheduleEntity> findSchedulesByCalendarId(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end, @Param("calendarId") Long calendarId);
 
+    @Query("""
+            SELECT s
+              FROM ScheduleEntity s
+             WHERE s.calendarId IN :calendarIds
+               AND s.startAt <= :end
+               AND s.endAt >= :start
+               AND (s.startAt > :cursorStartAt
+                    OR (s.startAt = :cursorStartAt AND s.id > :cursorId))
+          ORDER BY s.startAt ASC, s.id ASC
+          """)
+    List<ScheduleEntity> findSchedulesByCalendarId(
+            @Param("calendarIds") List<Long> calendarIds,
+            @Param("start") LocalDateTime start,
+            @Param("end") LocalDateTime end,
+            @Param("cursorStartAt") LocalDateTime cursorStartAt,
+            @Param("cursorId") Long cursorId,
+            Pageable pageable
+    );
+
     @Query("SELECT s FROM ScheduleEntity s WHERE s.repeatId = :repeatId AND s.startAt > :startAt AND s.userId = :userId")
     List<ScheduleEntity> findFutureRepeatSchedules(@Param("repeatId") Long repeatId, @Param("startAt") LocalDateTime startAt, @Param("userId") Long userId);
 
@@ -38,5 +58,7 @@ public interface ScheduleRepository extends JpaRepository<ScheduleEntity, Long> 
     Optional<ScheduleEntity> findByIdAndUserId(@Param("id") Long id, @Param("userId") Long userId);
 
     void deleteByIdAndUserId(@Param("id") Long id, @Param("userId") Long userId);
+
+
 
 }
