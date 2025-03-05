@@ -4,10 +4,15 @@ import Nickname from "./Nickname";
 import axios from "axios";
 import styles from "styles/Header.module.css";
 import Button from "./Button";
+import { getToken, deleteToken, onMessage } from "firebase/messaging";
+import { messaging } from "../firebase";
+import LoadingOverlay from "components/LoadingOverlay";
+
 
 const HeaderComponent = ({ mode, onSidebarToggle }) => {
   const [notifications, setNotifications] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const navigate = useNavigate();
 
@@ -58,23 +63,41 @@ const HeaderComponent = ({ mode, onSidebarToggle }) => {
     }
   };
 
-  const handleLogout = () => {
-    axios
-      .post("/auth/logout", null, { withCredentials: true })
-      .then((response) => {
-        if (response.status === 200) {
-          navigate("/auth/login");
-        } else {
-          alert("Unexpected response from the server");
-        }
-      })
-      .catch((error) => {
-        if (error.response) {
-          alert("Error: " + (error.response.data.message || error.response.data));
-        } else {
-          alert("Error: " + error.message);
-        }
+  const handleLogout = async () => {
+    try {
+      setIsLoading(true); // 로딩 시작
+      // FCM 토큰을 가져옴
+      const token = await getToken(messaging, {
+        vapidKey:
+          "BOOYYhMRpzdRL1n3Nnwm8jAhu1be-_tiMQKpCRPzBs4hXY85KB4yX9kR65__1hOB43Uj7ixfhHyPPSYA1NsNBSI",
       });
+
+      // 로그아웃 API 호출은 백그라운드에서 실행 (실패해도 바로 리다이렉트)
+      axios.post(`/auth/logout/${token}`, {}, { withCredentials: true })
+        .catch((error) => {
+          console.error("Logout API failed:", error);
+        });
+
+      // FCM 토큰 삭제 작업도 백그라운드에서 실행
+      if (token) {
+        deleteToken(messaging, token)
+          .then(() => localStorage.removeItem("fcmToken"))
+          .catch((error) => {
+            console.error("deleteToken failed:", error);
+          });
+      }
+
+      // 바로 로그인 페이지로 이동
+      navigate("/auth/login");
+    } catch (error) {
+      if (error.response) {
+        alert("Error: " + (error.response.data.message || error.response.data));
+      } else {
+        alert("Error: " + error.message);
+      }
+    } finally {
+      setIsLoading(false); // 로딩 종료
+    }
   };
 
   const handleHome = () => {
@@ -89,6 +112,7 @@ const HeaderComponent = ({ mode, onSidebarToggle }) => {
   if (mode === "profile") {
     return (
       <header className={styles.header}>
+        {isLoading && <LoadingOverlay fullScreen={true} />}
         <div className={styles.leftSection}>
           <span className={styles.logo}>chcalendar</span>
         </div>
@@ -109,6 +133,7 @@ const HeaderComponent = ({ mode, onSidebarToggle }) => {
   // "main" 모드 렌더링
   return (
     <header className={styles.header}>
+      {isLoading && <LoadingOverlay fullScreen={true} />}
       <div className={styles.leftSection}>
         <Button
           variant="function"

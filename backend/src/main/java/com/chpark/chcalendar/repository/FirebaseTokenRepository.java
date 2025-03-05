@@ -11,5 +11,6 @@ public interface FirebaseTokenRepository extends JpaRepository<FirebaseTokenEnti
 
     List<FirebaseTokenEntity> findByUserId(long userId);
     void deleteByUserIdAndToken(long userId, String token);
+    void deleteByToken(String token);
 
 }

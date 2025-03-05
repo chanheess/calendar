@@ -1,11 +1,13 @@
 package com.chpark.chcalendar.service.schedule;
 
+import com.chpark.chcalendar.dto.group.GroupUserDto;
 import com.chpark.chcalendar.dto.schedule.ScheduleNotificationDto;
 import com.chpark.chcalendar.entity.schedule.ScheduleEntity;
 import com.chpark.chcalendar.entity.schedule.ScheduleNotificationEntity;
 import com.chpark.chcalendar.repository.schedule.ScheduleNotificationRepository;
 import com.chpark.chcalendar.repository.schedule.ScheduleRepository;
 import com.chpark.chcalendar.service.notification.FirebaseService;
+import com.chpark.chcalendar.service.user.GroupUserService;
 import com.chpark.chcalendar.utility.ScheduleUtility;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
@@ -26,6 +28,7 @@ public class ScheduleNotificationService {
     private final ScheduleNotificationRepository scheduleNotificationRepository;
 
     private final FirebaseService firebaseService;
+    private final GroupUserService groupUserService;
 
     @Value("${home_url}")
     String homeUrl;
@@ -113,13 +116,19 @@ public class ScheduleNotificationService {
         String jobId = getJobId(userId, scheduleEntity.getId(), notification.getId());
         String body = ScheduleUtility.formatNotificationDate(scheduleEntity.getStartAt(), notification.getNotificationAt());
 
-        firebaseService.createNotifications(
-                userId,
+        //멤버 가져오기
+        List<Long> targetUserIds = getUserIdList(userId, scheduleEntity);
+
+        // 대상 사용자에게 알림 전송
+        targetUserIds.forEach(targetUserId ->
+            firebaseService.createNotifications(
+                targetUserId,
                 jobId,
                 scheduleEntity.getTitle(),
                 body,
-                homeUrl,
+                homeUrl,  // homeUrl은 클래스 멤버 변수 또는 상수로 정의되어 있어야 합니다.
                 notification.getNotificationAt()
+            )
         );
     }
 
@@ -127,10 +136,14 @@ public class ScheduleNotificationService {
     public void updateNotificationScheduler(long userId, ScheduleEntity scheduleEntity, ScheduleNotificationEntity notification) {
         String jobId = getJobId(userId, scheduleEntity.getId(), notification.getId());
 
+        List<Long> targetUserIds = getUserIdList(userId, scheduleEntity);
+
+        targetUserIds.forEach(targetUserId ->
         firebaseService.updateNotifications(
                 userId,
                 jobId,
                 notification.getNotificationAt()
+            )
         );
     }
 
@@ -138,10 +151,28 @@ public class ScheduleNotificationService {
     public void deleteNotificationScheduler(long userId, ScheduleEntity scheduleEntity, ScheduleNotificationEntity notification) {
         String jobId = getJobId(userId, scheduleEntity.getId(), notification.getId());
 
-        firebaseService.deleteNotifications(userId, jobId);
+        List<Long> targetUserIds = getUserIdList(userId, scheduleEntity);
+
+        targetUserIds.forEach(targetUserId ->
+            firebaseService.deleteNotifications(targetUserId, jobId)
+        );
     }
 
     private String getJobId(long userId, long scheduleId, long notificationId) {
         return "user" + userId + "-schedule" +  scheduleId + "-notification" + notificationId;
+    }
+
+    private List<Long> getUserIdList(long userId, ScheduleEntity scheduleEntity) {
+        List<GroupUserDto> groupUserList = groupUserService.findGroupUserList(userId, scheduleEntity.getCalendarId());
+
+        // 대상 사용자 ID를 담을 리스트 생성
+        List<Long> targetUserIds = new ArrayList<>();
+        if (groupUserList == null || groupUserList.isEmpty()) {
+            targetUserIds.add(userId);
+        } else {
+            groupUserList.forEach(groupUser -> targetUserIds.add(groupUser.getUserId()));
+        }
+
+        return targetUserIds;
     }
 }

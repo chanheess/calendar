@@ -5,15 +5,18 @@ import com.chpark.chcalendar.dto.JwtAuthenticationResponseDto;
 import com.chpark.chcalendar.dto.UserDto;
 import com.chpark.chcalendar.enumClass.RequestType;
 import com.chpark.chcalendar.security.JwtTokenProvider;
+import com.chpark.chcalendar.service.notification.FirebaseService;
 import com.chpark.chcalendar.service.redis.RedisService;
 import com.chpark.chcalendar.service.user.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("/api")
@@ -21,6 +24,7 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
     private final UserService userService;
     private final RedisService redisService;
+    private final FirebaseService firebaseService;
     private final JwtTokenProvider jwtTokenProvider;
 
     @PostMapping("/auth/login")
@@ -41,8 +45,9 @@ public class UserController {
         return ResponseEntity.ok().body(new JwtAuthenticationResponseDto(token, "Login successful!"));
     }
 
-    @PostMapping("/auth/logout")
-    public ResponseEntity<String> logoutUser(HttpServletResponse response) {
+    @PostMapping("/auth/logout/{fcmToken}")
+    public ResponseEntity<String> logoutUser(@PathVariable("fcmToken") String fcmToken,
+                                            HttpServletResponse response) {
         // jwtToken 쿠키 삭제
         ResponseCookie cookie = ResponseCookie.from("jwtToken", null)
                 .httpOnly(true)
@@ -51,18 +56,21 @@ public class UserController {
                 .maxAge(0)  // 만료 시간 0으로 설정하여 쿠키 삭제
                 .build();
         response.addHeader("Set-Cookie", cookie.toString());
+        firebaseService.deleteToken(fcmToken);
 
         return ResponseEntity.ok().body("Logged out successfully");
     }
 
-    @GetMapping("/auth/check")
-    public ResponseEntity<Boolean> checkLogin(HttpServletRequest request) {
+    @GetMapping("/auth/check/{fcmToken}")
+    public ResponseEntity<Boolean> checkLogin(@PathVariable("fcmToken") String fcmToken,
+                                              HttpServletRequest request) {
         String token = jwtTokenProvider.resolveToken(request);
 
-        if(token != null && jwtTokenProvider.validateToken(token)) {
-            return ResponseEntity.ok().body(true);
+        if (token != null && jwtTokenProvider.validateToken(token)) {
+            return ResponseEntity.ok(true);
         } else {
-            return ResponseEntity.ok().body(false);
+            firebaseService.deleteToken(fcmToken);
+            return ResponseEntity.ok(false);
         }
     }
 

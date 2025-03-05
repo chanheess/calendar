@@ -9,6 +9,8 @@ import styles from "styles/Calendar.module.css";
 import Popup from "./popups/Popup";
 import SchedulePopup from "./popups/SchedulePopup";
 
+import LoadingOverlay from "components/LoadingOverlay";
+
 const CalendarComponent = ({ selectedCalendarList }) => {
   // 팝업 / 스케줄 팝업 상태
   const [popupVisible, setPopupVisible] = useState(false);
@@ -261,11 +263,7 @@ const CalendarComponent = ({ selectedCalendarList }) => {
 
   return (
     <div className={styles.calendarContainer}>
-      {isLoading && (
-        <div className={styles.loadingOverlay}>
-          <div className={styles.spinner}></div>
-        </div>
-      )}
+      {isLoading && <LoadingOverlay fullScreen={false} />}
 
       <FullCalendar
         key={refreshKey}

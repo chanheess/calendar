@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { getToken, onMessage } from "firebase/messaging";
+import { getToken, deleteToken, onMessage } from "firebase/messaging";
 import { messaging } from "./firebase";
 import axios from "axios";
 import styles from "styles/PushNotification.module.css";
@@ -27,6 +27,7 @@ const PushNotification = () => {
           const token = localStorage.getItem("fcmToken");
           if (token) {
             await axios.delete(`/notifications/token/${token}`);
+            await deleteToken(messaging, token);
             localStorage.removeItem("fcmToken");
           }
         }
