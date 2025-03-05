@@ -7,24 +7,27 @@ import com.chpark.chcalendar.dto.schedule.ScheduleRepeatDto;
 import com.chpark.chcalendar.entity.schedule.ScheduleEntity;
 import com.chpark.chcalendar.entity.schedule.ScheduleRepeatEntity;
 import com.chpark.chcalendar.exception.CustomException;
+import com.chpark.chcalendar.exception.ScheduleException;
 import com.chpark.chcalendar.repository.schedule.ScheduleNotificationRepository;
 import com.chpark.chcalendar.repository.schedule.ScheduleRepeatRepository;
 import com.chpark.chcalendar.repository.schedule.ScheduleRepository;
 import com.chpark.chcalendar.service.calendar.UserCalendarService;
 import com.chpark.chcalendar.service.user.GroupUserService;
-import com.chpark.chcalendar.utility.ScheduleUtility;
 import com.chpark.chcalendar.utility.CalendarUtility;
+import com.chpark.chcalendar.utility.ScheduleUtility;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 
@@ -123,7 +126,7 @@ public class ScheduleService {
         if(isRepeatChecked){
             updateRepeatDto = scheduleRepeatService.create(scheduleId, scheduleDto.getRepeatDto(), userId);
         }
-        
+
         return new ScheduleDto.Response(updateDto, updateNotificationDto, updateRepeatDto);
     }
 

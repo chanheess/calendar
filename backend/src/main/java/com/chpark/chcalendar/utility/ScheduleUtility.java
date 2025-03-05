@@ -77,7 +77,6 @@ public class ScheduleUtility {
         }
     }
 
-
     public static void validateEmail(String email) {
         EmailValidator validator = EmailValidator.getInstance();
         if (!validator.isValid(email)) {

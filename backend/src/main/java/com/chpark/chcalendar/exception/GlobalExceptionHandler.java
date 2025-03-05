@@ -82,4 +82,12 @@ public class GlobalExceptionHandler {
                 HttpStatus.BAD_REQUEST
         );
     }
+
+    @ExceptionHandler(ScheduleException.class)
+    public ResponseEntity<MessageResponseDto> ScheduleException(ScheduleException ex) {
+        return new ResponseEntity<>(
+                createCustomErrorResponse(ex, HttpStatus.BAD_REQUEST.value()),
+                HttpStatus.BAD_REQUEST
+        );
+    }
 }

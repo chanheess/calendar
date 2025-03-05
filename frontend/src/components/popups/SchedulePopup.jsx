@@ -5,7 +5,7 @@ import Toggle from "components/Toggle";
 import axios from "axios";
 import RepeatPopup from "./RepeatPopup";
 
-const SchedulePopup = ({ isOpen, mode, eventDetails, onClose, selectedCalendarList }) => {
+const SchedulePopup = ({ isOpen, mode, eventDetails, onClose, selectedCalendarList, handleUpdatedSchedule }) => {
   const [scheduleData, setScheduleData] = useState({
     id: "",
     title: "",
@@ -252,7 +252,7 @@ const SchedulePopup = ({ isOpen, mode, eventDetails, onClose, selectedCalendarLi
             headers: { "Content-Type": "application/json" },
         });
         alert("Event created successfully!");
-        onClose();
+        onClose(true);
       } else if (mode === "edit") {
         if (scheduleData.repeatId) {
           openRepeatPopup("save");
@@ -263,7 +263,7 @@ const SchedulePopup = ({ isOpen, mode, eventDetails, onClose, selectedCalendarLi
               headers: { "Content-Type": "application/json" },
           });
           alert("Event updated successfully!");
-          onClose();
+          onClose(true);
         }
       }
     } catch (error) {
@@ -280,7 +280,7 @@ const SchedulePopup = ({ isOpen, mode, eventDetails, onClose, selectedCalendarLi
             headers: { "Content-Type": "application/json" },
         });
         alert("Event updated successfully!");
-        onClose();
+        onClose(true);
       }
     } catch (error) {
         console.error("Error saving schedule:", error.response?.data || error.message);
@@ -299,7 +299,7 @@ const SchedulePopup = ({ isOpen, mode, eventDetails, onClose, selectedCalendarLi
               withCredentials: true,
           });
           alert("Event delete successfully!");
-          onClose();
+          onClose(true);
         }
       }
     } catch (error) {
@@ -314,7 +314,7 @@ const SchedulePopup = ({ isOpen, mode, eventDetails, onClose, selectedCalendarLi
             withCredentials: true,
         });
         alert("Event delete successfully!");
-        onClose();
+        onClose(true);
       }
     } catch (error) {
       alert("Failed to delete schedule.");
@@ -339,6 +339,10 @@ const SchedulePopup = ({ isOpen, mode, eventDetails, onClose, selectedCalendarLi
     setRepeatPopupMode("");
   }
 
+  function closePopup() {
+    onClose(false);
+  }
+
   if (!isOpen) return null;
 
   return (
@@ -358,7 +362,7 @@ const SchedulePopup = ({ isOpen, mode, eventDetails, onClose, selectedCalendarLi
       <div className={styles.popup}>
         <div className={styles.popupHeader}>
           <h2>{mode === "edit" ? "Edit Schedule" : "Create Schedule"}</h2>
-          <Button variant="close" size="" onClick={onClose}>
+          <Button variant="close" size="" onClick={closePopup}>
             ×
           </Button>
         </div>

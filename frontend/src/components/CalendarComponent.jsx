@@ -23,6 +23,7 @@ const CalendarComponent = ({ selectedCalendarList }) => {
   const [fetchEvents, setFetchEvents] = useState([]);   // FullCalendar에 표시할 최종 이벤트
   const [isLoading, setIsLoading] = useState(false);
   const [autoLoadComplete, setAutoLoadComplete] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   // 캐시 / 커서 / 이전 범위 / 중복 fetch 방지
   const eventCacheRef = useRef([]);
@@ -33,10 +34,8 @@ const CalendarComponent = ({ selectedCalendarList }) => {
   const isFetchingRef = useRef(false); // 중복 fetch 방지
   const calendarRef = useRef(null);
 
-  const pageSize = 50;
+  const pageSize = 1000;
   const maxLoops = 10;
-
-
 
   // selectedCalendarList 변경 시 캐시/상태 초기화
   useEffect(() => {
@@ -57,7 +56,8 @@ const CalendarComponent = ({ selectedCalendarList }) => {
         loadEvents(v.activeStart, v.activeEnd, true);
       }
     }
-  }, [selectedCalendarList]);
+
+  }, [selectedCalendarList, refreshKey]);
 
   const handleDatesSet = (arg) => {
     const { start, end } = arg;
@@ -247,7 +247,11 @@ const CalendarComponent = ({ selectedCalendarList }) => {
     setSchedulePopupVisible(true);
   };
 
-  const closeAllPopups = () => {
+  const closeAllPopups = (updated) => {
+    if (updated && calendarRef.current) {
+      setRefreshKey((prev) => prev + 1);
+    }
+
     setPopupVisible(false);
     setPopupData([]);
     setPopupTitle("");
@@ -264,6 +268,7 @@ const CalendarComponent = ({ selectedCalendarList }) => {
       )}
 
       <FullCalendar
+        key={refreshKey}
         ref={calendarRef}
         plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
         initialView="dayGridMonth"
@@ -290,7 +295,11 @@ const CalendarComponent = ({ selectedCalendarList }) => {
             endAt: seg.event.endStr,
           }));
 
-          setPopupTitle(`${arg.dateStr}`);
+          const formattedDate = arg.date
+              ? arg.date.toLocaleDateString("en-US", { month: "long", day: "numeric" })
+              : "";
+
+          setPopupTitle(`${formattedDate}`);
           setPopupData(customEvents);
           setPopupVisible(true);
 
@@ -315,7 +324,7 @@ const CalendarComponent = ({ selectedCalendarList }) => {
       {popupVisible && (
         <Popup
           title={popupTitle}
-          onClose={closeAllPopups}
+          onClose={() => closeAllPopups(false)}
           actions={[
             {
               label: "New Event",
