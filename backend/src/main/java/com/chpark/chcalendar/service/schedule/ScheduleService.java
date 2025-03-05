@@ -63,7 +63,7 @@ public class ScheduleService {
     @Transactional
     public ScheduleDto.Response createByForm(ScheduleDto.Request scheduleDto, long userId) {
         ScheduleDto resultSchedule = this.create(scheduleDto.getScheduleDto(), userId);
-        List<ScheduleNotificationDto> resultNotifications = scheduleNotificationService.create(userId, resultSchedule.getId(), scheduleDto.getNotificationDto());
+        List<ScheduleNotificationDto> resultNotifications = scheduleNotificationService.create(userId, resultSchedule.getId(), scheduleDto.getNotificationDto().stream().toList());
         ScheduleRepeatDto resultRepeat = null;
 
         if(scheduleDto.getRepeatDto() != null) {
@@ -120,7 +120,7 @@ public class ScheduleService {
         }
 
         ScheduleDto updateDto = this.update(scheduleId, scheduleDto.getScheduleDto(), userId);
-        List<ScheduleNotificationDto> updateNotificationDto = scheduleNotificationService.update(userId, scheduleId, scheduleDto.getNotificationDto());
+        List<ScheduleNotificationDto> updateNotificationDto = scheduleNotificationService.update(userId, scheduleId, scheduleDto.getNotificationDto().stream().toList());
         ScheduleRepeatDto updateRepeatDto = null;
 
         if(isRepeatChecked){
@@ -140,7 +140,7 @@ public class ScheduleService {
             this.deleteFutureRepeatSchedules(scheduleId, userId);
 
             ScheduleDto updateDto = this.update(scheduleId, scheduleDto.getScheduleDto(), true, userId);
-            List<ScheduleNotificationDto> updateNotificationDto = scheduleNotificationService.update(userId, scheduleId, scheduleDto.getNotificationDto());
+            List<ScheduleNotificationDto> updateNotificationDto = scheduleNotificationService.update(userId, scheduleId, scheduleDto.getNotificationDto().stream().toList());
 
             return new ScheduleDto.Response(updateDto, updateNotificationDto);
         }
@@ -153,7 +153,7 @@ public class ScheduleService {
 
             //일정 및 알림 업데이트
             ScheduleDto updateDto = this.update(scheduleId, scheduleDto.getScheduleDto(), true, userId);
-            List<ScheduleNotificationDto> updateNotificationDto = scheduleNotificationService.update(userId, scheduleId, scheduleDto.getNotificationDto());
+            List<ScheduleNotificationDto> updateNotificationDto = scheduleNotificationService.update(userId, scheduleId, scheduleDto.getNotificationDto().stream().toList());
 
             //새로운 반복 일정 등록
             ScheduleRepeatDto updateRepeatDto = scheduleRepeatService.create(scheduleId, scheduleDto.getRepeatDto(), userId);
@@ -173,7 +173,7 @@ public class ScheduleService {
         this.deleteCurrentOnlyRepeatSchedule(scheduleId, userId);
 
         ScheduleDto resultSchedule = this.update(scheduleId, scheduleDto.getScheduleDto(), true, userId);
-        List<ScheduleNotificationDto> resultNotification = scheduleNotificationService.update(userId, scheduleId, scheduleDto.getNotificationDto());
+        List<ScheduleNotificationDto> resultNotification = scheduleNotificationService.update(userId, scheduleId, scheduleDto.getNotificationDto().stream().toList());
 
         return new ScheduleDto.Response(resultSchedule, resultNotification);
     }
@@ -216,7 +216,7 @@ public class ScheduleService {
         }
 
         ScheduleDto resultSchedule = new ScheduleDto(standardSchedule);
-        List<ScheduleNotificationDto> resultNotification = scheduleNotificationService.update(userId, scheduleId, scheduleDto.getNotificationDto());
+        List<ScheduleNotificationDto> resultNotification = scheduleNotificationService.update(userId, scheduleId, scheduleDto.getNotificationDto().stream().toList());
         ScheduleRepeatDto resultRepeat = new ScheduleRepeatDto(scheduleRepeatEntity);
 
         return new ScheduleDto.Response(resultSchedule, resultNotification, resultRepeat);

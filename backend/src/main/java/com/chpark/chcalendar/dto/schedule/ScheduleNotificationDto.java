@@ -3,6 +3,7 @@ package com.chpark.chcalendar.dto.schedule;
 import com.chpark.chcalendar.entity.schedule.ScheduleNotificationEntity;
 import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotNull;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -14,6 +15,7 @@ import java.util.stream.Collectors;
 @Getter
 @Setter
 @NoArgsConstructor
+@EqualsAndHashCode
 public class ScheduleNotificationDto {
 
     @NotNull

@@ -9,7 +9,9 @@ import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Getter
@@ -87,8 +89,7 @@ public class ScheduleDto {
         //비교하기 쉽게 상속하지 않고 오브젝트로
         @NotNull(groups = ValidGroup.CreateGroup.class)
         private ScheduleDto scheduleDto;
-
-        private List<ScheduleNotificationDto> notificationDto = new ArrayList<>();
+        private Set<ScheduleNotificationDto> notificationDto = new HashSet<>();
         private ScheduleRepeatDto repeatDto;
     }
 

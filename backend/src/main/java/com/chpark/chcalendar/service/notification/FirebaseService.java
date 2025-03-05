@@ -31,14 +31,15 @@ public class FirebaseService {
         fcmTokenList.forEach(fcmToken -> {
             try {
                 quartzSchedulerService.createFcmPushNotification(
-                        jobId,
+                        jobId + fcmToken.getToken(),
                         fcmToken.getToken(),
                         title,
                         body,
                         url,
                         notificationTime
                 );
-            } catch (SchedulerException e) {
+            }
+            catch (SchedulerException e) {
                 // 실패시 처리 필요
                 throw new RuntimeException(e);
             }
@@ -55,7 +56,7 @@ public class FirebaseService {
 
         fcmTokenList.forEach(fcmToken -> {
             try {
-                quartzSchedulerService.updateFcmPushNotification(jobId, notificationTime);
+                quartzSchedulerService.updateFcmPushNotification(jobId + fcmToken.getToken(), notificationTime);
             } catch (SchedulerException e) {
                 // 실패시 처리 필요
                 throw new RuntimeException(e);
@@ -73,7 +74,7 @@ public class FirebaseService {
 
         fcmTokenList.forEach(fcmToken -> {
             try {
-                quartzSchedulerService.deleteFcmPushNotification(jobId);
+                quartzSchedulerService.deleteFcmPushNotification(jobId + fcmToken.getToken());
             } catch (SchedulerException e) {
                 // 실패시 처리 필요
                 throw new RuntimeException(e);
