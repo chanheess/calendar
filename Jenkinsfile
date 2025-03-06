@@ -20,6 +20,7 @@ pipeline {
                         cp "$SERVICE_ACCOUNT_KEY" backend/src/main/resources/serviceAccountKey.json
                     '''
                     dir('backend') {
+                        sh 'echo "SERVICE_ACCOUNT_FILE=serviceAccountKey.json" > .env'
                         sh 'chmod +x gradlew'
                         sh './gradlew clean build'
                         sh 'docker buildx build --platform linux/amd64 -t chanheess/chcalendar . --push'
