@@ -1,0 +1,60 @@
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+      format_sql: true
+      show_sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+
+  mail:
+    host: ${SMTP_HOST}
+    port: ${SMTP_PORT}
+    username: ${SMTP_USERNAME}
+    password: ${SMTP_PASSWORD}
+    protocol: smtp
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls.enable: true
+
+  redis:
+    host: ${REDIS_HOST}
+    port: 6379
+    env_file:
+      - .env
+
+server:
+  forward-headers-strategy: native
+  use-forward-headers: true
+
+jwt:
+  secret: ${JWT_SECRET}
+
+logging:
+  level:
+    org.hibernate.SQL: debug
+
+password:
+  reset:
+    url: ${DOMAIN}
+
+vapid:
+  publicKey: ${VAPID_PUBLIC_KEY}
+  privateKey: ${VAPID_PRIVATE_KEY}
+
+firebase:
+  enabled: true
+
+home_url: ${HOME_URL}
+
+fcm:
+  serviceAccountFile: serviceAccountKey.json
