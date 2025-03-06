@@ -15,7 +15,7 @@ pipeline {
         stage('Build Backend') {
             steps {
                 withCredentials([file(credentialsId: 'service-account-key', variable: 'SERVICE_ACCOUNT_KEY')]) {
-                    sh 'cp $SERVICE_ACCOUNT_KEY backend/src/main/resources/serviceAccountKey.json'
+                    sh 'cp "$SERVICE_ACCOUNT_KEY" backend/src/main/resources/serviceAccountKey.json'
                     dir('backend') {
                         sh 'chmod +x gradlew'
                         sh './gradlew clean build'
