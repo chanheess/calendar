@@ -32,22 +32,25 @@ pipeline {
         }
         stage('Deploy to EC2') {
             steps {
-                sshagent(['ec2']) {
-                    sh '''
-                    scp frontend/build.tar.gz ${EC2_IP}:/home/ec2-user/
-                    scp backend/nginx/default-ec2.conf ${EC2_IP}:/home/ec2-user/nginx/default.conf
-                    scp backend/docker-compose-ec2.yml ${EC2_IP}:/home/ec2-user/docker-compose.yml
-                    
-                    ssh -o StrictHostKeyChecking=no ${EC2_IP} "
-                        sudo mkdir -p /var/www/html/frontend &&
-                        sudo rm -rf /var/www/html/frontend/* &&
-                        sudo tar -xzf /home/ec2-user/build.tar.gz -C /var/www/html/frontend &&
+                withCredentials([file(credentialsId: 'service-account-key', variable: 'SERVICE_ACCOUNT_KEY')]) {
+                    sshagent(['ec2']) {
+                        sh '''
+                        scp frontend/build.tar.gz ${EC2_IP}:/home/ec2-user/
+                        scp backend/nginx/default-ec2.conf ${EC2_IP}:/home/ec2-user/nginx/default.conf
+                        scp backend/docker-compose-ec2.yml ${EC2_IP}:/home/ec2-user/docker-compose.yml
+                        scp -o StrictHostKeyChecking=no $SERVICE_ACCOUNT_KEY ${EC2_IP}:/home/ec2-user/serviceAccountKey.json
                         
-                        docker pull chanheess/chcalendar &&
-                        
-                        sudo docker-compose up -d
-                    "
-                    '''
+                        ssh -o StrictHostKeyChecking=no ${EC2_IP} "
+                            sudo mkdir -p /var/www/html/frontend &&
+                            sudo rm -rf /var/www/html/frontend/* &&
+                            sudo tar -xzf /home/ec2-user/build.tar.gz -C /var/www/html/frontend &&
+                            
+                            docker pull chanheess/chcalendar &&
+                            
+                            sudo docker-compose up -d
+                        "
+                        '''
+                    }
                 }
             }
         }
