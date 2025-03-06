@@ -14,10 +14,16 @@ pipeline {
         }
         stage('Build Backend') {
             steps {
-                dir('backend') {
-                    sh 'chmod +x gradlew'
-                    sh './gradlew clean build'
-                    sh 'docker buildx build --platform linux/amd64 -t chanheess/chcalendar . --push'
+                withCredentials([file(credentialsId: 'service-account-key', variable: 'SERVICE_ACCOUNT_KEY')]) {
+                    // 서비스 계정 키 파일 복사
+                    sh 'cp "$SERVICE_ACCOUNT_KEY" backend/src/main/resources/serviceAccountKey.json'
+                    // .env 파일 생성 (백엔드 빌드 폴더에 SERVICE_ACCOUNT_FILE 속성을 설정)
+                    sh 'echo "SERVICE_ACCOUNT_FILE=serviceAccountKey.json" > backend/.env'
+                    dir('backend') {
+                        sh 'chmod +x gradlew'
+                        sh './gradlew clean build'
+                        sh 'docker buildx build --platform linux/amd64 -t chanheess/chcalendar . --push'
+                    }
                 }
             }
         }
