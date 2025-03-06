@@ -18,6 +18,7 @@ pipeline {
                     sh 'chmod +x gradlew'
                     sh './gradlew clean build'
                     sh 'docker buildx build --platform linux/amd64 -t chanheess/chcalendar . --push'
+                }
             }
         }
         stage('Build Frontend') {
