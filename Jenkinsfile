@@ -16,7 +16,6 @@ pipeline {
             steps {
                 withCredentials([file(credentialsId: 'service-account-key', variable: 'SERVICE_ACCOUNT_KEY')]) {
                     sh '''
-                        chmod -R 777 backend/src/main/resources
                         rm -f backend/src/main/resources/serviceAccountKey.json
                         cp "$SERVICE_ACCOUNT_KEY" backend/src/main/resources/serviceAccountKey.json
                     '''
