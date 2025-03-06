@@ -19,7 +19,6 @@ public class UserCalendarService implements CalendarService {
 
     @Override
     public CalendarInfoDto.Response create(long userId, String title) {
-
         int maxCalendarCount = 10;
 
         if (maxCalendarCount <= calendarInfoRepository.findByAdminIdAndCategory(userId, CalendarCategory.USER).size()) {

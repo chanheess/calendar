@@ -3,7 +3,7 @@ package com.chpark.chcalendar.utility;
 import com.chpark.chcalendar.exception.authentication.CalendarAuthenticationException;
 import com.chpark.chcalendar.exception.authentication.GroupAuthenticationException;
 import com.chpark.chcalendar.service.calendar.UserCalendarService;
-import com.chpark.chcalendar.service.group.GroupUserService;
+import com.chpark.chcalendar.service.user.GroupUserService;
 import jakarta.persistence.EntityNotFoundException;
 
 import java.util.ArrayList;

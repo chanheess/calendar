@@ -4,9 +4,9 @@ import LayoutComponent from "../LayoutComponent";
 
 const HomePage = () => {
   return (
-      <CheckLoginStatus>
-        <LayoutComponent />
-      </CheckLoginStatus>
+    <CheckLoginStatus>
+      <LayoutComponent />
+    </CheckLoginStatus>
   )
 };
 

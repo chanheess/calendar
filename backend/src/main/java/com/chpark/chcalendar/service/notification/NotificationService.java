@@ -1,12 +1,12 @@
 package com.chpark.chcalendar.service.notification;
 
-import com.chpark.chcalendar.dto.NotificationDto;
+import com.chpark.chcalendar.dto.notification.NotificationDto;
 import com.chpark.chcalendar.entity.GroupUserEntity;
 import com.chpark.chcalendar.entity.NotificationEntity;
 import com.chpark.chcalendar.enumClass.NotificationCategory;
 import com.chpark.chcalendar.enumClass.NotificationType;
 import com.chpark.chcalendar.repository.NotificationRepository;
-import com.chpark.chcalendar.service.group.GroupUserService;
+import com.chpark.chcalendar.service.user.GroupUserService;
 import com.chpark.chcalendar.service.user.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;

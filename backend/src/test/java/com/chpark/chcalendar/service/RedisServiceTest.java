@@ -3,6 +3,8 @@ package com.chpark.chcalendar.service;
 import com.chpark.chcalendar.dto.EmailDto;
 import com.chpark.chcalendar.enumClass.RequestType;
 import com.chpark.chcalendar.repository.user.UserRepository;
+import com.chpark.chcalendar.service.redis.MailService;
+import com.chpark.chcalendar.service.redis.RedisService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

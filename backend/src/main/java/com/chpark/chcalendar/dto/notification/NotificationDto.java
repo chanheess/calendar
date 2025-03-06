@@ -1,4 +1,4 @@
-package com.chpark.chcalendar.dto;
+package com.chpark.chcalendar.dto.notification;
 
 import com.chpark.chcalendar.entity.NotificationEntity;
 import com.chpark.chcalendar.enumClass.NotificationCategory;

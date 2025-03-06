@@ -3,6 +3,7 @@ import SidebarComponent from "./SidebarComponent";
 import HeaderComponent from "./HeaderComponent";
 import CalendarComponent from "./CalendarComponent";
 import styles from "styles/Layout.module.css";
+import PushNotification from "../PushNotification";
 
 const LayoutComponent = ({ userId }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -36,6 +37,7 @@ const LayoutComponent = ({ userId }) => {
           <CalendarComponent selectedCalendarList={selectedCalendarList} />
         </main>
       </div>
+      <PushNotification />
     </div>
   );
 };

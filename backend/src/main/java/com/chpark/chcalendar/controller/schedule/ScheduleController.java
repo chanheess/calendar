@@ -1,5 +1,6 @@
 package com.chpark.chcalendar.controller.schedule;
 
+import com.chpark.chcalendar.dto.CursorPage;
 import com.chpark.chcalendar.dto.schedule.ScheduleDto;
 import com.chpark.chcalendar.enumClass.ScheduleRepeatScope;
 import com.chpark.chcalendar.exception.ValidGroup;
@@ -48,19 +49,29 @@ public class ScheduleController {
     }
 
     @GetMapping("/date")
-    public ResponseEntity<Map<Long, List<ScheduleDto>>> getSchedulesByDateRangeAndCalendarId(@RequestParam("start") String startAt,
-                                                                                             @RequestParam("end") String endAt,
-                                                                                             HttpServletRequest request) {
-        // Parsing the start and end dates to LocalDateTime
-        LocalDateTime startDate = LocalDate.parse(startAt).atStartOfDay(); // 00:00:00
-        LocalDateTime endDate = LocalDate.parse(endAt).atTime(LocalTime.MAX); // 23:59:59.999999999
+    public ResponseEntity<CursorPage<ScheduleDto>> getNextSchedules(
+            @RequestParam("start") String start,
+            @RequestParam("end") String end,
+            @RequestParam(name = "cursor-time", required = false) String cursorTime,
+            @RequestParam(name = "cursor-id", required = false) Long cursorId,
+            @RequestParam(name = "size", defaultValue = "50") int size,
+            HttpServletRequest request) {
+
+        LocalDateTime startTime = LocalDate.parse(start).atStartOfDay();
+        LocalDateTime endTime = LocalDate.parse(end).atTime(LocalTime.MAX);
+        String trimmedCursor = (cursorTime != null) ? cursorTime.trim() : "";
+        LocalDateTime targetCursorTime = (!trimmedCursor.isEmpty()
+                && !"null".equalsIgnoreCase(trimmedCursor)
+                && !"undefined".equalsIgnoreCase(trimmedCursor))
+                ? LocalDateTime.parse(trimmedCursor)
+                : LocalDateTime.of(1000, 1, 1, 0, 0);
+        long targetCursorId = (cursorId != null) ? cursorId : 0L;
 
         String token = jwtTokenProvider.resolveToken(request);
         long userId = jwtTokenProvider.getUserIdFromToken(token);
 
-        Map<Long, List<ScheduleDto>> schedules = scheduleService.getScheduleByDateRangeAndCalendarId(startDate, endDate, userId);
-
-        return ResponseEntity.ok(schedules);
+        CursorPage<ScheduleDto> result = scheduleService.getNextSchedules(userId, startTime, endTime, targetCursorTime, targetCursorId, size);
+        return ResponseEntity.ok(result);
     }
 
     @GetMapping("/{id}")

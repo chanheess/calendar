@@ -6,7 +6,7 @@ import com.chpark.chcalendar.entity.CalendarInfoEntity;
 import com.chpark.chcalendar.enumClass.CalendarCategory;
 import com.chpark.chcalendar.enumClass.GroupAuthority;
 import com.chpark.chcalendar.repository.CalendarInfoRepository;
-import com.chpark.chcalendar.service.group.GroupUserService;
+import com.chpark.chcalendar.service.user.GroupUserService;
 import com.chpark.chcalendar.service.user.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -23,7 +23,6 @@ public class GroupCalendarService implements CalendarService {
 
     @Override
     public CalendarInfoDto.Response create(long userId, String title) {
-
         int maxAdminCount = 10;
 
         if (maxAdminCount <= calendarInfoRepository.countAdminGroups(userId)) {
@@ -49,7 +48,6 @@ public class GroupCalendarService implements CalendarService {
 
     @Override
     public List<CalendarInfoDto.Response> findCalendarList(long userId) {
-
         return groupUserService.findMyGroup(userId);
     }
 

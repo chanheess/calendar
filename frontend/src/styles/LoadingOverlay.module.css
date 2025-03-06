@@ -1,16 +1,17 @@
-.calendarContainer {
+.fullScreenOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
-  padding-top: 10px;
-  position: relative;
+  background: rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000; /* 뷰포트 전체를 덮음 */
 }
 
-:global(.fc-header-toolbar.fc-toolbar) {
-  margin-left: 10px;
-  margin-right: 10px;
-}
-
-.loadingOverlay {
+.containerOverlay {
   position: absolute;
   top: 0;
   left: 0;
@@ -20,7 +21,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 1000; /* 부모 컨테이너 내에서 덮음 */
 }
 
 .spinner {
