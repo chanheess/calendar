@@ -54,4 +54,7 @@ vapid:
 fcm:
   serviceAccountFile: ${SERVICE_ACCOUNT_FILE}
 
+firebase:
+  enabled: true
+
 home_url: ${HOME_URL}
