@@ -10,7 +10,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
@@ -19,6 +19,9 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.doNothing;
 
 @SpringBootTest
 @Slf4j
@@ -26,7 +29,7 @@ class ScheduleNotificationServiceTest {
     @Autowired
     private ScheduleRepository scheduleRepository;
 
-    @Autowired
+    @SpyBean
     private ScheduleNotificationService notificationService;
 
     private ScheduleEntity schedule;
@@ -58,9 +61,9 @@ class ScheduleNotificationServiceTest {
     @Test
     @Transactional
     void create() {
+        doNothing().when(notificationService).createNotificationScheduler(anyLong(), any(ScheduleEntity.class), any());
 
         notificationService.create(schedule.getUserId(), schedule.getId(), notificationDtoList);
-
         List<ScheduleNotificationDto> notifications = notificationService.findByScheduleId(schedule.getId());
 
         assertThat(notifications).isNotEmpty();
@@ -69,8 +72,9 @@ class ScheduleNotificationServiceTest {
     @Test
     @Transactional
     void create_notificationsNull() {
-        notificationService.create(schedule.getUserId(), Long.MAX_VALUE, null);
+        doNothing().when(notificationService).createNotificationScheduler(anyLong(), any(ScheduleEntity.class), any());
 
+        notificationService.create(schedule.getUserId(), Long.MAX_VALUE, null);
         List<ScheduleNotificationDto> notifications = notificationService.findByScheduleId(schedule.getId());
 
         assertThat(notifications).isEmpty();
@@ -79,8 +83,9 @@ class ScheduleNotificationServiceTest {
     @Test
     @Transactional
     void create_notificationsIsEmpty() {
-        notificationService.create(schedule.getUserId(), Long.MAX_VALUE, new ArrayList<>());
+        doNothing().when(notificationService).createNotificationScheduler(anyLong(), any(ScheduleEntity.class), any());
 
+        notificationService.create(schedule.getUserId(), Long.MAX_VALUE, new ArrayList<>());
         List<ScheduleNotificationDto> notifications = notificationService.findByScheduleId(schedule.getId());
 
         assertThat(notifications).isEmpty();
@@ -89,6 +94,7 @@ class ScheduleNotificationServiceTest {
     @Test
     @Transactional
     void create_EntityNotFoundException() {
+        doNothing().when(notificationService).createNotificationScheduler(anyLong(), any(ScheduleEntity.class), any());
         List<ScheduleNotificationDto> notifications = notificationService.findByScheduleId(schedule.getId());
 
         //when & then
@@ -101,6 +107,10 @@ class ScheduleNotificationServiceTest {
     @Transactional
     void update() {
         //given
+        doNothing().when(notificationService).createNotificationScheduler(anyLong(), any(ScheduleEntity.class), any());
+        doNothing().when(notificationService).updateNotificationScheduler(anyLong(), any(ScheduleEntity.class), any());
+        doNothing().when(notificationService).deleteNotificationScheduler(anyLong(), any(ScheduleEntity.class), any());
+
         notificationService.create(schedule.getUserId(), schedule.getId(), notificationDtoList);
 
         ScheduleNotificationDto notificationDto = new ScheduleNotificationDto();

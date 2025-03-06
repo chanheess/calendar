@@ -162,7 +162,7 @@ public class ScheduleNotificationService {
         return "user" + userId + "-schedule" +  scheduleId + "-notification" + notificationId;
     }
 
-    private List<Long> getUserIdList(long userId, ScheduleEntity scheduleEntity) {
+    public List<Long> getUserIdList(long userId, ScheduleEntity scheduleEntity) {
         List<GroupUserDto> groupUserList = groupUserService.findGroupUserList(userId, scheduleEntity.getCalendarId());
 
         // 대상 사용자 ID를 담을 리스트 생성

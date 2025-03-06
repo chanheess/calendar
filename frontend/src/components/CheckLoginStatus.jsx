@@ -1,7 +1,7 @@
 import { useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { getToken, deleteToken, onMessage } from "firebase/messaging";
+import { getToken, deleteToken } from "firebase/messaging";
 import { messaging } from "../firebase";
 
 
@@ -14,7 +14,7 @@ const CheckLoginStatus = ({ children }) => {
     });
 
     try {
-      const response = await axios.get("/auth/check/${fcmToken}", { withCredentials: true });
+      const response = await axios.get(`/auth/check/${token}`, { withCredentials: true });
 
       if (!response.data) {
         throw new Error("Invalid login status");

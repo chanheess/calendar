@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
@@ -39,6 +39,87 @@ const CalendarComponent = ({ selectedCalendarList }) => {
   const pageSize = 1000;
   const maxLoops = 10;
 
+  const loadEvents = useCallback(async (startDateObj, endDateObj, firstLoad) => {
+    if (!selectedCalendarList || Object.keys(selectedCalendarList).length === 0) {
+      setFetchEvents([]);
+      return;
+    }
+    if (isFetchingRef.current) return;
+    isFetchingRef.current = true;
+    setIsLoading(true);
+
+    try {
+      const startStr = startDateObj.toISOString().split("T")[0];
+      const endStr = endDateObj.toISOString().split("T")[0];
+      let loopCount = 0;
+      let keepLoading = true;
+      const loopLimit = firstLoad ? maxLoops : 1;
+
+      while (keepLoading && loopCount < loopLimit) {
+        loopCount++;
+        const params = new URLSearchParams({
+          start: startStr,
+          end: endStr,
+          size: pageSize,
+        });
+        if (cursorTimeRef.current && cursorTimeRef.current !== "null" && cursorTimeRef.current !== "undefined") {
+          params.append("cursor-time", cursorTimeRef.current);
+        }
+        if (cursorIdRef.current !== null) {
+          params.append("cursor-id", cursorIdRef.current);
+        }
+        const res = await axios.get(`/schedules/date?${params.toString()}`, {
+          withCredentials: true,
+          headers: { "Content-Type": "application/json" },
+        });
+        const data = res.data;
+        if (data.nextCursor && data.nextCursor !== "null" && data.nextCursor !== "undefined") {
+          cursorTimeRef.current = data.nextCursor;
+        } else {
+          cursorTimeRef.current = "";
+        }
+        if (data.content && data.content.length > 0) {
+          const lastEvent = data.content[data.content.length - 1];
+          cursorIdRef.current = lastEvent.id;
+        } else {
+          cursorIdRef.current = null;
+        }
+        const newEvents = (data.content || []).map((evt) => ({
+          id: evt.id,
+          title: evt.title,
+          start: evt.startAt,
+          end: evt.endAt,
+          description: evt.description,
+          repeatId: evt.repeatId,
+          userId: evt.userId,
+          calendarId: evt.calendarId,
+        }));
+        const filtered = newEvents.filter(
+          (ev) => selectedCalendarList[ev.calendarId]
+        );
+        eventCacheRef.current.push(...filtered);
+        setFetchEvents([...eventCacheRef.current]);
+        if (filtered.length === 0) {
+          keepLoading = false;
+        }
+        if (!cursorTimeRef.current) {
+          keepLoading = false;
+        }
+      }
+      if (firstLoad && loopCount >= maxLoops && cursorTimeRef.current) {
+        setAutoLoadComplete(true);
+      } else if (!cursorTimeRef.current) {
+        setAutoLoadComplete(false);
+      }
+    } catch (err) {
+      console.error("[loadEvents] error:", err);
+    } finally {
+      isFetchingRef.current = false;
+      setIsLoading(false);
+    }
+  }, [selectedCalendarList, pageSize, maxLoops]);
+
+
   // selectedCalendarList 변경 시 캐시/상태 초기화
   useEffect(() => {
     // 캐시 및 커서, 이전 범위, "더보기" 상태 모두 리셋
@@ -59,7 +140,7 @@ const CalendarComponent = ({ selectedCalendarList }) => {
       }
     }
 
-  }, [selectedCalendarList, refreshKey]);
+  }, [selectedCalendarList, refreshKey, loadEvents]);
 
   const handleDatesSet = (arg) => {
     const { start, end } = arg;
@@ -84,103 +165,7 @@ const CalendarComponent = ({ selectedCalendarList }) => {
     }
   };
 
-  const loadEvents = async (startDateObj, endDateObj, firstLoad) => {
-    if (!selectedCalendarList || Object.keys(selectedCalendarList).length === 0) {
-      setFetchEvents([]);
-      return;
-    }
 
-    if (isFetchingRef.current) return;
-    isFetchingRef.current = true;
-    setIsLoading(true);
-
-    try {
-      const startStr = startDateObj.toISOString().split("T")[0];
-      const endStr = endDateObj.toISOString().split("T")[0];
-
-      let loopCount = 0;
-      let keepLoading = true;
-
-      // firstLoad 시에는 최대 maxLoops번 반복, 더보기 시에는 1번만
-      const loopLimit = firstLoad ? maxLoops : 1;
-
-      while (keepLoading && loopCount < loopLimit) {
-        loopCount++;
-
-        const params = new URLSearchParams({
-          start: startStr,
-          end: endStr,
-          size: pageSize,
-        });
-        if (cursorTimeRef.current && cursorTimeRef.current !== "null" && cursorTimeRef.current !== "undefined") {
-          params.append("cursor-time", cursorTimeRef.current);
-        }
-        if (cursorIdRef.current !== null) {
-          params.append("cursor-id", cursorIdRef.current);
-        }
-
-        const res = await axios.get(`/schedules/date?${params.toString()}`, {
-          withCredentials: true,
-          headers: { "Content-Type": "application/json" },
-        });
-        const data = res.data;
-
-        // nextCursor 갱신
-        if (data.nextCursor && data.nextCursor !== "null" && data.nextCursor !== "undefined") {
-          cursorTimeRef.current = data.nextCursor;
-        } else {
-          cursorTimeRef.current = "";
-        }
-
-        // 마지막 이벤트 ID
-        if (data.content && data.content.length > 0) {
-          const lastEvent = data.content[data.content.length - 1];
-          cursorIdRef.current = lastEvent.id;
-        } else {
-          cursorIdRef.current = null;
-        }
-
-        const newEvents = (data.content || []).map((evt) => ({
-          id: evt.id,
-          title: evt.title,
-          start: evt.startAt,
-          end: evt.endAt,
-          description: evt.description,
-          repeatId: evt.repeatId,
-          userId: evt.userId,
-          calendarId: evt.calendarId,
-        }));
-
-        const filtered = newEvents.filter(
-          (ev) => selectedCalendarList[ev.calendarId]
-        );
-
-        eventCacheRef.current.push(...filtered);
-
-        setFetchEvents([...eventCacheRef.current]);
-
-        if (filtered.length === 0) {
-          keepLoading = false;
-        }
-
-        if (!cursorTimeRef.current) {
-          keepLoading = false;
-        }
-      }
-
-      if (firstLoad && loopCount >= maxLoops && cursorTimeRef.current) {
-        setAutoLoadComplete(true);
-      }
-      else if (!cursorTimeRef.current) {
-        setAutoLoadComplete(false);
-      }
-    } catch (err) {
-      console.error("[loadEvents] error:", err);
-    } finally {
-      isFetchingRef.current = false;
-      setIsLoading(false);
-    }
-  };
 
   const handleLoadMore = async () => {
     if (!prevStartRef.current) {

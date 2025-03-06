@@ -4,7 +4,7 @@ import Nickname from "./Nickname";
 import axios from "axios";
 import styles from "styles/Header.module.css";
 import Button from "./Button";
-import { getToken, deleteToken, onMessage } from "firebase/messaging";
+import { getToken, deleteToken } from "firebase/messaging";
 import { messaging } from "../firebase";
 import LoadingOverlay from "components/LoadingOverlay";
 
