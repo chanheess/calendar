@@ -15,10 +15,11 @@ pipeline {
         stage('Build Backend') {
             steps {
                 withCredentials([file(credentialsId: 'service-account-key', variable: 'SERVICE_ACCOUNT_KEY')]) {
-                    // 서비스 계정 키 파일 복사
-                    sh 'cp "$SERVICE_ACCOUNT_KEY" backend/src/main/resources/serviceAccountKey.json'
-                    // .env 파일 생성 (백엔드 빌드 폴더에 SERVICE_ACCOUNT_FILE 속성을 설정)
-                    sh 'echo "SERVICE_ACCOUNT_FILE=serviceAccountKey.json" > backend/.env'
+                    sh '''
+                        chmod -R 777 backend/src/main/resources
+                        rm -f backend/src/main/resources/serviceAccountKey.json
+                        cp "$SERVICE_ACCOUNT_KEY" backend/src/main/resources/serviceAccountKey.json
+                    '''
                     dir('backend') {
                         sh 'chmod +x gradlew'
                         sh './gradlew clean build'
