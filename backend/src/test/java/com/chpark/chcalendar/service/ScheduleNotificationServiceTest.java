@@ -26,6 +26,7 @@ import static org.mockito.Mockito.doNothing;
 
 @SpringBootTest
 @Slf4j
+@ActiveProfiles("test")
 class ScheduleNotificationServiceTest {
     @Autowired
     private ScheduleRepository scheduleRepository;
