@@ -51,10 +51,7 @@ vapid:
   publicKey: ${VAPID_PUBLIC_KEY}
   privateKey: ${VAPID_PRIVATE_KEY}
 
-fcm:
-  serviceAccountFile: ${SERVICE_ACCOUNT_FILE}
-
 firebase:
-  enabled: true
+  service-account-file: ${SERVICE_ACCOUNT_FILE}
 
 home_url: ${HOME_URL}

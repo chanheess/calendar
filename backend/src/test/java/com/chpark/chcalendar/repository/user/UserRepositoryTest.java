@@ -1,5 +1,6 @@
 package com.chpark.chcalendar.repository.user;
 
+import com.chpark.chcalendar.DotenvInitializer;
 import com.chpark.chcalendar.dto.UserDto;
 import com.chpark.chcalendar.entity.UserEntity;
 import jakarta.persistence.EntityManager;
@@ -8,7 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
@@ -17,7 +18,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 
 @SpringBootTest
-@ActiveProfiles("test")
+@ContextConfiguration(initializers = DotenvInitializer.class)
 class UserRepositoryTest {
 
     @Autowired

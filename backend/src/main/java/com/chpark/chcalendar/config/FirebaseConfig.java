@@ -6,7 +6,6 @@ import com.google.firebase.FirebaseOptions;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.ClassPathResource;
 
 import javax.annotation.PostConstruct;
@@ -14,10 +13,9 @@ import java.io.IOException;
 import java.io.InputStream;
 
 @Configuration
-@ConditionalOnProperty(name = "firebase.enabled", havingValue = "true", matchIfMissing = true)
 public class FirebaseConfig {
 
-    @Value("${fcm.serviceAccountFile}")
+    @Value("${firebase.service-account-file}")
     String serviceAccountFile;
 
     @PostConstruct
