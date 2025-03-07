@@ -14,16 +14,29 @@ pipeline {
         }
         stage('Build Backend') {
             steps {
-                withCredentials([file(credentialsId: 'service-account-key', variable: 'SERVICE_ACCOUNT_KEY')]) {
-                    sh '''
-                        rm -f backend/src/main/resources/serviceAccountKey.json
-                        cp "$SERVICE_ACCOUNT_KEY" backend/src/main/resources/serviceAccountKey.json
-                    '''
-                    dir('backend') {
-                        sh 'echo "SERVICE_ACCOUNT_FILE=serviceAccountKey.json" > .env'
-                        sh 'chmod +x gradlew'
-                        sh './gradlew clean build'
-                        sh 'docker buildx build --platform linux/amd64 -t chanheess/chcalendar . --push'
+                script {
+                    def envContent = readFile('.env')
+                    def envVars = []
+                    envContent.split('\n').each { line ->
+                        line = line.trim()
+                        if(line && !line.startsWith("#")) {
+                            envVars.add(line)
+                        }
+                    }
+                    echo "Loaded env vars: ${envVars}"
+        
+                    withEnv(envVars) {
+                        withCredentials([file(credentialsId: 'service-account-key', variable: 'SERVICE_ACCOUNT_KEY')]) {
+                            sh '''
+                                rm -f backend/src/main/resources/serviceAccountKey.json
+                                cp "$SERVICE_ACCOUNT_KEY" backend/src/main/resources/serviceAccountKey.json
+                            '''
+                            dir('backend') {
+                                sh 'chmod +x gradlew'
+                                sh './gradlew clean build'
+                                sh 'docker buildx build --platform linux/amd64 -t chanheess/chcalendar . --push'
+                            }
+                        }
                     }
                 }
             }
