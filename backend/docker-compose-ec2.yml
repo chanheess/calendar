@@ -17,13 +17,18 @@ services:
       - redis
 
   certbot:
-    image: certbot/certbot
+    image: certbot/certbot:latest
     container_name: certbot
     volumes:
       - ./data/letsencrypt:/etc/letsencrypt
       - ./data/www:/var/www/html
-    command: certonly --webroot --webroot-path=/var/www/html --email ${EMAIL} --agree-tos --no-eff-email -d ${DOMAIN}
-    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do sleep 6h & wait $${!}; certbot renew; done;'"
+    environment:
+      - EMAIL=${EMAIL}
+      - DOMAIN=${DOMAIN}
+    # entrypoint: 무한 루프를 통해 6시간마다 갱신 시도
+    entrypoint: >
+      /bin/sh -c "while :; do certbot renew --non-interactive; sleep 6h; done"
+    restart: unless-stopped
 
   nginx:
     image: nginx

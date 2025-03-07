@@ -1,5 +1,6 @@
 package com.chpark.chcalendar.service;
 
+import com.chpark.chcalendar.DotenvInitializer;
 import com.chpark.chcalendar.dto.schedule.ScheduleNotificationDto;
 import com.chpark.chcalendar.entity.schedule.ScheduleEntity;
 import com.chpark.chcalendar.repository.schedule.ScheduleRepository;
@@ -11,7 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.SpyBean;
-import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
@@ -26,7 +27,7 @@ import static org.mockito.Mockito.doNothing;
 
 @SpringBootTest
 @Slf4j
-@ActiveProfiles("test")
+@ContextConfiguration(initializers = DotenvInitializer.class)
 class ScheduleNotificationServiceTest {
     @Autowired
     private ScheduleRepository scheduleRepository;
