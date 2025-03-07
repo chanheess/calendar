@@ -39,6 +39,7 @@ services:
     volumes:
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
       - ./data/letsencrypt:/etc/letsencrypt
+      - ./data/www:/var/www/html
       - type: bind
         source: /var/www/html/frontend/build
         target: /var/www/html/frontend/build
