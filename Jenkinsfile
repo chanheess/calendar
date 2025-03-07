@@ -15,23 +15,28 @@ pipeline {
         stage('Prepare .env file') {
             steps {
                 withCredentials([file(credentialsId: 'env', variable: 'ENV_FILE')]) {
-                    sh 'cp "$ENV_FILE" .env'
+                    sh '''
+                        rm -f .env
+                        cp "$ENV_FILE" .env
+                    '''
                 }
             }
         }
         stage('Build Backend') {
             steps {
                 script {
+                    // .env 파일의 내용을 읽어서 각 줄("KEY=value")을 envVars 배열에 저장합니다.
                     def envContent = readFile('.env')
                     def envVars = []
                     envContent.split('\n').each { line ->
                         line = line.trim()
-                        if(line && !line.startsWith("#")) {
+                        if (line && !line.startsWith("#")) {
                             envVars.add(line)
                         }
                     }
                     echo "Loaded env vars: ${envVars}"
-                
+                    
+                    // withEnv 블록 안에서 .env 파일의 환경변수들을 적용합니다.
                     withEnv(envVars) {
                         withCredentials([file(credentialsId: 'service-account-key', variable: 'SERVICE_ACCOUNT_KEY')]) {
                             sh '''
@@ -65,7 +70,7 @@ pipeline {
                         scp frontend/build.tar.gz ${EC2_IP}:/home/ec2-user/
                         scp backend/nginx/default-ec2.conf ${EC2_IP}:/home/ec2-user/nginx/default.conf
                         scp backend/docker-compose-ec2.yml ${EC2_IP}:/home/ec2-user/docker-compose.yml
-                        scp -o StrictHostKeyChecking=no $SERVICE_ACCOUNT_KEY ${EC2_IP}:/home/ec2-user/serviceAccountKey.json
+                        scp -o StrictHostKeyChecking=no "$SERVICE_ACCOUNT_KEY" ${EC2_IP}:/home/ec2-user/serviceAccountKey.json
                         
                         ssh -o StrictHostKeyChecking=no ${EC2_IP} "
                             sudo mkdir -p /var/www/html/frontend &&
