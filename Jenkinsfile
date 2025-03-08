@@ -68,14 +68,11 @@ pipeline {
                         scp frontend/build.tar.gz ${EC2_IP}:/home/ec2-user/
                         scp backend/nginx/default-ec2.conf ${EC2_IP}:/home/ec2-user/nginx/default.conf
                         scp backend/docker-compose-ec2.yml ${EC2_IP}:/home/ec2-user/docker-compose.yml
-                        
-                        # 대상 파일 삭제 (존재하면)
+        
+                        ssh -o StrictHostKeyChecking=no ${EC2_IP} "mkdir -p /home/ec2-user/secret"
                         ssh -o StrictHostKeyChecking=no ${EC2_IP} "rm -f /home/ec2-user/secret/serviceAccountKey.json"
-                        
-                        # 파일 복사
                         scp -o StrictHostKeyChecking=no "$SERVICE_ACCOUNT_KEY" ${EC2_IP}:/home/ec2-user/secret/serviceAccountKey.json
                         
-                        # 배포 스크립트 실행 (예: Nginx reload 및 Docker Compose 업)
                         ssh -o StrictHostKeyChecking=no ${EC2_IP} "
                             sudo mkdir -p /var/www/html/frontend &&
                             sudo rm -rf /var/www/html/frontend/* &&
