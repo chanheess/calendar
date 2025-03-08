@@ -52,6 +52,6 @@ vapid:
   privateKey: ${VAPID_PRIVATE_KEY}
 
 firebase:
-  service-account-file: ${SERVICE_ACCOUNT_FILE}
+  service-account-file: serviceAccountKey.json
 
 home_url: ${HOME_URL}
