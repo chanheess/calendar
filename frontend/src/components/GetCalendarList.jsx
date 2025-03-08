@@ -8,6 +8,8 @@ const GetCalendarList = async (category) => {
 
     const calendars = response.data;
 
+    console.log(calendars);
+
     // ID를 키로, Title을 값으로 변환
     const calendarMap = calendars.reduce((acc, calendar) => {
       acc[calendar.id] = calendar.title;

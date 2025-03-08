@@ -28,6 +28,7 @@ const CalendarList = ({
               checked={selectedIds.includes(calendar.id)}
               onChange={() => handleCheckboxChange(calendar.id)}
               id={`calendar-${calendar.id}`}
+              style={{ accentColor: calendar.color }}
             />
             <label htmlFor={`calendar-${calendar.id}`}>{calendar.title}</label>
 

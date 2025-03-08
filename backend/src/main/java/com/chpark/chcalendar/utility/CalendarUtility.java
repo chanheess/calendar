@@ -30,7 +30,7 @@ public class CalendarUtility {
         int checkCount = 0;
 
         try {
-            groupUserService.checkGroupUser(userId, calendarId);
+            groupUserService.getGroupUser(userId, calendarId);
         } catch (GroupAuthenticationException ex) {
             checkCount++;
         }

@@ -1,6 +1,7 @@
 package com.chpark.chcalendar.service.calendar;
 
 
+import com.chpark.chcalendar.dto.calendar.CalendarColorDto;
 import com.chpark.chcalendar.dto.calendar.CalendarInfoDto;
 import com.chpark.chcalendar.entity.CalendarInfoEntity;
 import com.chpark.chcalendar.enumClass.CalendarCategory;
@@ -37,6 +38,16 @@ public class UserCalendarService implements CalendarService {
         return CalendarInfoDto.Response.fromCalendarEntityList(
                 calendarInfoRepository.findByAdminIdAndCategory(userId, CalendarCategory.USER)
         );
+    }
+
+    @Override
+    public CalendarColorDto changeColor(long userId, CalendarColorDto calendarColorDto) {
+        CalendarInfoEntity calendarInfo = calendarInfoRepository.findByIdAndAdminId(userId, calendarColorDto.getCalendarId()).orElseThrow(
+                () -> new EntityNotFoundException("없는 캘린더다.")
+        );
+
+        calendarInfo.setColor(calendarColorDto.getColor());
+        return new CalendarColorDto(calendarInfo.getId(), calendarInfo.getColor());
     }
 
     public List<Long> findCalendarIdList(long userId) {
