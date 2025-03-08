@@ -25,7 +25,6 @@ pipeline {
         stage('Build Backend') {
             steps {
                 script {
-                    // .env 파일의 내용을 읽어서 각 줄("KEY=value")을 envVars 배열에 저장합니다.
                     def envContent = readFile('.env')
                     def envVars = []
                     envContent.split('\n').each { line ->
@@ -36,12 +35,11 @@ pipeline {
                     }
                     echo "Loaded env vars: ${envVars}"
                     
-                    // withEnv 블록 안에서 .env 파일의 환경변수들을 적용합니다.
                     withEnv(envVars) {
                         withCredentials([file(credentialsId: 'service-account-key', variable: 'SERVICE_ACCOUNT_KEY')]) {
                             sh '''
-                                rm -f backend/src/main/resources/serviceAccountKey.json
-                                cp "$SERVICE_ACCOUNT_KEY" backend/src/main/resources/serviceAccountKey.json
+                                rm -f backend/serviceAccountKey.json
+                                cp "$SERVICE_ACCOUNT_KEY" backend/serviceAccountKey.json
                             '''
                             dir('backend') {
                                 sh 'chmod +x gradlew'
