@@ -30,7 +30,7 @@ public class CalendarUtility {
         int checkCount = 0;
 
         try {
-            groupUserService.checkGroupUser(userId, calendarId);
+            groupUserService.getGroupUser(userId, calendarId);
         } catch (GroupAuthenticationException ex) {
             checkCount++;
         }
@@ -42,7 +42,7 @@ public class CalendarUtility {
         }
 
         if(checkCount == 2) {
-            throw new CalendarAuthenticationException("권한이 없습니다.");
+            throw new CalendarAuthenticationException("You do not have permission.");
         }
     }
 

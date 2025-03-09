@@ -99,6 +99,14 @@
   margin-top: 10px;
 }
 
+.button.marginNone {
+  margin: 0px;
+}
+
+.button.paddingNone {
+  padding: 0px;
+}
+
 button:hover {
   opacity: 0.8;
 }

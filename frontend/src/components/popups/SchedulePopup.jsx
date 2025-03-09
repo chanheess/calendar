@@ -402,9 +402,14 @@ const SchedulePopup = ({ isOpen, mode, eventDetails, onClose, selectedCalendarLi
             </div>
             <div className={styles.infoRow}>
               <label>Calendar:</label>
-              <select value={scheduleData.calendarId} onChange={(e) => handleInputChange("calendarId", e.target.value)}>
-                {Object.entries(selectedCalendarList).map(([key, value]) => (
-                  <option key={key} value={key}>{value}</option>
+              <select
+                value={scheduleData.calendarId}
+                onChange={(e) => handleInputChange("calendarId", e.target.value)}
+              >
+                {Object.entries(selectedCalendarList).map(([calendarId, calInfo]) => (
+                  <option key={calendarId} value={calendarId}>
+                    {calInfo.title}
+                  </option>
                 ))}
               </select>
             </div>

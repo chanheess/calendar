@@ -1,6 +1,7 @@
 package com.chpark.chcalendar.service.calendar;
 
 
+import com.chpark.chcalendar.dto.calendar.CalendarColorDto;
 import com.chpark.chcalendar.dto.calendar.CalendarInfoDto;
 import com.chpark.chcalendar.entity.CalendarInfoEntity;
 import com.chpark.chcalendar.enumClass.CalendarCategory;
@@ -39,13 +40,24 @@ public class UserCalendarService implements CalendarService {
         );
     }
 
+    @Override
+    public CalendarColorDto changeColor(long userId, CalendarColorDto calendarColorDto) {
+        CalendarInfoEntity calendarInfo = calendarInfoRepository.findByIdAndAdminId(calendarColorDto.getCalendarId(), userId).orElseThrow(
+                () -> new EntityNotFoundException("Calendar not found.")
+        );
+
+        calendarInfo.setColor(calendarColorDto.getColor());
+        calendarInfoRepository.save(calendarInfo);
+        return new CalendarColorDto(calendarInfo.getId(), calendarInfo.getColor(), CalendarCategory.USER);
+    }
+
     public List<Long> findCalendarIdList(long userId) {
         return calendarInfoRepository.findIdByAdminIdAndCategory(userId, CalendarCategory.USER);
     }
 
     public void checkCalendarAdminUser(long calendarId, long userId) {
         calendarInfoRepository.findByIdAndAdminId(calendarId, userId).orElseThrow(
-                () -> new EntityNotFoundException("권한이 없습니다.")
+                () -> new EntityNotFoundException("You do not have permission.")
         );
     }
 

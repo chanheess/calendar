@@ -1,13 +1,16 @@
 package com.chpark.chcalendar.service.calendar;
 
+import com.chpark.chcalendar.dto.calendar.CalendarColorDto;
 import com.chpark.chcalendar.dto.calendar.CalendarInfoDto;
 import com.chpark.chcalendar.dto.group.GroupUserDto;
 import com.chpark.chcalendar.entity.CalendarInfoEntity;
+import com.chpark.chcalendar.entity.GroupUserEntity;
 import com.chpark.chcalendar.enumClass.CalendarCategory;
 import com.chpark.chcalendar.enumClass.GroupAuthority;
 import com.chpark.chcalendar.repository.CalendarInfoRepository;
 import com.chpark.chcalendar.service.user.GroupUserService;
 import com.chpark.chcalendar.service.user.UserService;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -40,7 +43,8 @@ public class GroupCalendarService implements CalendarService {
                 groupEntity.getId(),
                 nickname,
                 groupEntity.getAdminId(),
-                GroupAuthority.ADMIN)
+                GroupAuthority.ADMIN,
+                groupEntity.getColor())
         );
 
         return new CalendarInfoDto.Response(groupEntity);
@@ -49,6 +53,12 @@ public class GroupCalendarService implements CalendarService {
     @Override
     public List<CalendarInfoDto.Response> findCalendarList(long userId) {
         return groupUserService.findMyGroup(userId);
+    }
+
+    @Override
+    public CalendarColorDto changeColor(long userId, CalendarColorDto calendarColorDto) {
+        GroupUserEntity groupUser = groupUserService.updateGroupColor(userId, calendarColorDto.getCalendarId(), calendarColorDto.getColor());
+        return new CalendarColorDto(groupUser.getGroupId(), groupUser.getColor(), CalendarCategory.GROUP);
     }
 
     public List<CalendarInfoDto.Response> findGroup(String title) {

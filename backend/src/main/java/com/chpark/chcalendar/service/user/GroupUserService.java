@@ -40,23 +40,23 @@ public class GroupUserService {
     }
 
     public List<GroupUserDto> findGroupUserList(long userId, long groupId) {
-        checkGroupUser(userId, groupId);
+        getGroupUser(userId, groupId);
         List<GroupUserEntity> userEntityList = groupUserRepository.findByGroupId(groupId);
 
         return GroupUserDto.fromGroupUserEntityList(userEntityList);
     }
 
-    public GroupUserEntity checkGroupUser(long userId, long groupId) {
+    public GroupUserEntity getGroupUser(long userId, long groupId) {
         return groupUserRepository.findByUserIdAndGroupId(userId, groupId).orElseThrow(
-            () -> new GroupAuthenticationException("권한이 없습니다.")
+            () -> new GroupAuthenticationException("You do not have permission.")
         );
     }
 
     public GroupUserEntity checkGroupUserAuthority(long userId, long groupId) {
-        GroupUserEntity result = this.checkGroupUser(userId, groupId);
+        GroupUserEntity result = this.getGroupUser(userId, groupId);
 
         if (result.getRole().compareTo(GroupAuthority.USER) >= 0) {
-            throw new GroupAuthenticationException("권한이 없습니다.");
+            throw new GroupAuthenticationException("You do not have permission.");
         }
 
         return result;
@@ -81,7 +81,8 @@ public class GroupUserService {
                 groupId,
                 nickname,
                 userId,
-                GroupAuthority.USER
+                GroupAuthority.USER,
+                "blue"
         );
 
         this.create(groupUserDto);
@@ -96,7 +97,15 @@ public class GroupUserService {
         });
     }
 
+    @Transactional
+    public GroupUserEntity updateGroupColor(long userId, long groupId, String color) {
+        GroupUserEntity groupUser = getGroupUser(userId, groupId);
+        groupUser.setColor(color);
+        return groupUser;
+    }
+
     public List<Long> getUserList(long calendarId) {
         return groupUserRepository.findUserIdByGroupId(calendarId);
     }
+
 }

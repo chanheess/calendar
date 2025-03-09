@@ -26,6 +26,8 @@ public class GroupUserDto {
     private Long userId;
     @NotNull
     private GroupAuthority role;
+    @NotNull
+    private String color;
 
     public GroupUserDto(GroupUserEntity groupUserEntity) {
         this.groupTitle = groupUserEntity.getGroupTitle();
@@ -33,6 +35,7 @@ public class GroupUserDto {
         this.userNickname = groupUserEntity.getUserNickname();
         this.userId = groupUserEntity.getUserId();
         this.role = groupUserEntity.getRole();
+        this.color = groupUserEntity.getColor();
     }
 
     public static List<GroupUserDto> fromGroupUserEntityList(List<GroupUserEntity> entityList) {

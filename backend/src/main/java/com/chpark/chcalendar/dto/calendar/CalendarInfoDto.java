@@ -36,15 +36,21 @@ public class CalendarInfoDto {
     public static class Response extends CalendarInfoDto {
 
         private long id;
+        private String color;
+        private CalendarCategory category;
 
         public Response(CalendarInfoEntity entity) {
             super(entity.getTitle());
             this.id = entity.getId();
+            this.color = entity.getColor();
+            this.category = entity.getCategory();
         }
 
         public Response(GroupUserEntity entity) {
             super(entity.getGroupTitle());
             this.id = entity.getGroupId();
+            this.color = entity.getColor();
+            this.category = CalendarCategory.GROUP;
         }
 
         public static List<CalendarInfoDto.Response> fromCalendarEntityList(List<CalendarInfoEntity> entityList) {

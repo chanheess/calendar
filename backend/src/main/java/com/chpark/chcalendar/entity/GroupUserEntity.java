@@ -32,16 +32,26 @@ public class GroupUserEntity {
     @Column(name = "role", nullable = false)
     private GroupAuthority role;
 
+    @Column
+    private String color = "#3788d8";
+
+    public void setColor(String color) {
+        this.color = color;
+    }
+
     public void setUserNickname(String userNickname) {
         this.userNickname = userNickname;
     }
 
-    public GroupUserEntity(String groupTitle, Long groupId, String userNickname, Long userId, GroupAuthority role) {
+
+
+    public GroupUserEntity(String groupTitle, Long groupId, String userNickname, Long userId, GroupAuthority role, String color) {
         this.groupTitle = groupTitle;
         this.groupId = groupId;
         this.userNickname = userNickname;
         this.userId = userId;
         this.role = role;
+        this.color = color;
     }
 
     public GroupUserEntity(GroupUserDto groupUserDto) {
@@ -50,5 +60,6 @@ public class GroupUserEntity {
         this.userNickname = groupUserDto.getUserNickname();
         this.userId = groupUserDto.getUserId();
         this.role = groupUserDto.getRole();
+        this.color = groupUserDto.getColor();
     }
 }

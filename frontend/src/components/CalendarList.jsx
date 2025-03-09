@@ -8,13 +8,9 @@ const CalendarList = ({
   sectionId,
   onCalendarSelection,
   onManageClick,
-  selectedIds = [],
 }) => {
-  const handleCheckboxChange = (id) => {
-    const updatedSelectedIds = selectedIds.includes(id)
-      ? selectedIds.filter((calendarId) => calendarId !== id)
-      : [...selectedIds, id];
-    onCalendarSelection(updatedSelectedIds);
+  const handleCheckboxChange = (id, e) => {
+    onCalendarSelection(String(id), e.target.checked);
   };
 
   return (
@@ -25,22 +21,22 @@ const CalendarList = ({
           <li key={calendar.id} className={styles.calendarItem}>
             <input
               type="checkbox"
-              checked={selectedIds.includes(calendar.id)}
-              onChange={() => handleCheckboxChange(calendar.id)}
+              checked={calendar.isSelected}
+              onChange={(e) => handleCheckboxChange(calendar.id, e)}
               id={`calendar-${calendar.id}`}
+              style={{ accentColor: calendar.color }}
             />
             <label htmlFor={`calendar-${calendar.id}`}>{calendar.title}</label>
-
-            {sectionId === "GROUP" && (
-              <Button
-                variant="function"
-                size=""
-                title="그룹 관리"
-                onClick={() => onManageClick(calendar)}
-              >
-                ⚙️
-              </Button>
-            )}
+            <Button
+              variant="function"
+              size="medium"
+              margin="marginNone"
+              padding="paddingNone"
+              title="설정"
+              onClick={() => onManageClick(calendar, sectionId)}
+            >
+              ⋮
+            </Button>
           </li>
         ))}
       </ul>
