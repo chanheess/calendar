@@ -57,10 +57,17 @@
 
 .calendarItem {
   display: flex;
-    align-items: center;
-    margin-bottom: 10px;
-    justify-content: flex-start;
-    gap: 12px;
+  align-items: center;
+  margin-bottom: 10px;
+  justify-content: flex-start;
+  gap: 12px;
+  border-radius: 8px;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.calendarItem:hover {
+  background-color: rgba(0, 0, 0, 0.08);
+  cursor: pointer;
 }
 
 .calendarItem input {
@@ -79,13 +86,6 @@
   margin-left: 10px;
   opacity: 0; /* 기본적으로 숨김 */
   transition: opacity 0.3s ease;
-}
-
-.calendarItem:hover {
-  background-color: rgba(0, 0, 0, 0.05);
-  transition: left 0.3s ease-in-out;
-  cursor: pointer;
-  border-radius: 8px;
 }
 
 .calendarItem:hover button{
