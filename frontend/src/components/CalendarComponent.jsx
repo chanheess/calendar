@@ -93,10 +93,13 @@ const CalendarComponent = ({ selectedCalendarList }) => {
           repeatId: evt.repeatId,
           userId: evt.userId,
           calendarId: evt.calendarId,
+          backgroundColor: selectedCalendarList[evt.calendarId]?.color || "#3788d8",
         }));
+
         const filtered = newEvents.filter(
           (ev) => selectedCalendarList[ev.calendarId]
         );
+
         eventCacheRef.current.push(...filtered);
         setFetchEvents([...eventCacheRef.current]);
         if (filtered.length === 0) {

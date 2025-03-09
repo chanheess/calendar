@@ -48,7 +48,7 @@ public class GroupUserService {
 
     public GroupUserEntity getGroupUser(long userId, long groupId) {
         return groupUserRepository.findByUserIdAndGroupId(userId, groupId).orElseThrow(
-            () -> new GroupAuthenticationException("권한이 없습니다.")
+            () -> new GroupAuthenticationException("You do not have permission.")
         );
     }
 
@@ -56,7 +56,7 @@ public class GroupUserService {
         GroupUserEntity result = this.getGroupUser(userId, groupId);
 
         if (result.getRole().compareTo(GroupAuthority.USER) >= 0) {
-            throw new GroupAuthenticationException("권한이 없습니다.");
+            throw new GroupAuthenticationException("You do not have permission.");
         }
 
         return result;

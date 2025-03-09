@@ -7,14 +7,14 @@ import AddCalendarPopup from "./popups/AddCalendarPopup";
 import ManageCalendarPopup from "./popups/ManageCalendarPopup";
 
 const SidebarComponent = ({ isOpen, onClose, selectedCalendarList, onCalendarChange }) => {
+  // 최초 데이터 로딩을 위한 로컬 상태 (초기 로딩 시 사용)
   const [myCalendars, setMyCalendars] = useState({});
   const [groupCalendars, setGroupCalendars] = useState({});
-  const [selectedCalendars, setSelectedCalendars] = useState({}); // 선택된 캘린더 데이터 저장
-  const [managePopupCalendar, setManagePopupCalendar] = useState({ title: "", id: "" }); // managePopup 데이터
-
+  const [managePopupCalendar, setManagePopupCalendar] = useState({ title: "", id: "", color: "", category: "" });
   const [addCalendarPopupVisible, setAddCalendarPopupVisible] = useState(false);
   const [managePopupVisible, setManagePopupVisible] = useState(false);
 
+  // 최초 로딩 시 캘린더에 isSelected: true, 그리고 category를 추가
   useEffect(() => {
     const fetchAllCalendars = async () => {
       try {
@@ -22,12 +22,21 @@ const SidebarComponent = ({ isOpen, onClose, selectedCalendarList, onCalendarCha
           getCalendarList("USER"),
           getCalendarList("GROUP"),
         ]);
-        setMyCalendars(userCalendars);
-        setGroupCalendars(groupCalendars);
 
-        // 초기 상태: 모든 캘린더를 기본 선택 상태로 설정
-        setSelectedCalendars({ ...userCalendars, ...groupCalendars });
-        onCalendarChange({ ...userCalendars, ...groupCalendars }); // 부모 컴포넌트로 전달
+        const userCalWithSelected = Object.entries(userCalendars).reduce((acc, [id, data]) => {
+          acc[id] = { ...data, isSelected: true, category: "USER" };
+          return acc;
+        }, {});
+        const groupCalWithSelected = Object.entries(groupCalendars).reduce((acc, [id, data]) => {
+          acc[id] = { ...data, isSelected: true, category: "GROUP" };
+          return acc;
+        }, {});
+
+        setMyCalendars(userCalWithSelected);
+        setGroupCalendars(groupCalWithSelected);
+
+        const merged = { ...userCalWithSelected, ...groupCalWithSelected };
+        onCalendarChange(merged);
       } catch (error) {
         console.error("Error fetching calendars:", error);
       }
@@ -36,51 +45,37 @@ const SidebarComponent = ({ isOpen, onClose, selectedCalendarList, onCalendarCha
     fetchAllCalendars();
   }, [onCalendarChange]);
 
-  const handleCalendarSelection = (updatedSelectedIds) => {
+  // 체크박스 선택 시, 선택 상태(isSelected)를 토글하는 함수
+  const handleCalendarSelection = (id, checked) => {
+    // 모든 캘린더를 통합한 상태
     const allCalendars = { ...myCalendars, ...groupCalendars };
-
-    // 선택된 캘린더 ID를 기반으로 필터링된 데이터 생성
-    const updatedSelectedCalendars = updatedSelectedIds.reduce((acc, id) => {
-      if (allCalendars[id]) acc[id] = allCalendars[id];
-      return acc;
-    }, {});
-
-    setSelectedCalendars(updatedSelectedCalendars); // 선택된 캘린더 상태 업데이트
-    onCalendarChange(updatedSelectedCalendars); // 부모 컴포넌트로 전달
+    if (allCalendars[id]) {
+      const updatedCalendar = { ...allCalendars[id], isSelected: checked };
+      const updatedList = { ...allCalendars, [id]: updatedCalendar };
+      onCalendarChange(updatedList);
+    }
   };
 
   const handleCalendarAdded = (type, newCalendar) => {
+    const calendarObj = { title: newCalendar.title, color: newCalendar.color, category: type, isSelected: true };
+    const allCalendars = { ...myCalendars, ...groupCalendars, [newCalendar.id]: calendarObj };
+
     if (type === "USER") {
-      setMyCalendars((prevCalendars) => ({
-        ...prevCalendars,
-        [newCalendar.id]: newCalendar.title,
-      }));
+      setMyCalendars((prev) => ({ ...prev, [newCalendar.id]: calendarObj }));
     } else if (type === "GROUP") {
-      setGroupCalendars((prevCalendars) => ({
-        ...prevCalendars,
-        [newCalendar.id]: newCalendar.title,
-      }));
+      setGroupCalendars((prev) => ({ ...prev, [newCalendar.id]: calendarObj }));
     }
-
-    // 선택된 캘린더 목록에도 자동 추가
-    setSelectedCalendars((prevSelected) => ({
-      ...prevSelected,
-      [newCalendar.id]: newCalendar.title,
-    }));
-
-    onCalendarChange((prevSelected) => ({
-      ...prevSelected,
-      [newCalendar.id]: newCalendar.title,
-    }));
+    onCalendarChange(allCalendars);
   };
 
   function openAddCalendarPopup() {
     setAddCalendarPopupVisible(true);
   }
 
-  const openManageCalendarPopup = (calendar) => {
+  // 관리 팝업 열 때, sectionId (USER/GROUP)도 함께 설정
+  const openManageCalendarPopup = (calendar, sectionId) => {
     setManagePopupVisible(true);
-    setManagePopupCalendar(calendar);
+    setManagePopupCalendar({ ...calendar, category: sectionId });
   };
 
   function handleClose() {
@@ -88,43 +83,53 @@ const SidebarComponent = ({ isOpen, onClose, selectedCalendarList, onCalendarCha
     setManagePopupVisible(false);
   }
 
+  // 전체 캘린더 목록은 부모의 selectedCalendarList를 그대로 사용
+  const calendarsArray = Object.entries(selectedCalendarList || {}).map(([id, data]) => ({
+    id,
+    ...data,
+  }));
+
+  // 그룹과 개인을 구분하여 전달
+  const userCalendars = calendarsArray.filter((cal) => cal.category === "USER");
+  const groupCalendarsArray = calendarsArray.filter((cal) => cal.category === "GROUP");
+
   return (
     <>
-    {addCalendarPopupVisible && (
-      <AddCalendarPopup
-        isOpen={addCalendarPopupVisible}
-        onClose={handleClose}
-        onCalendarAdded={handleCalendarAdded}
-      />
-    )}
-    {managePopupVisible && (
-      <ManageCalendarPopup
-        isOpen={managePopupVisible}
-        onClose={handleClose}
-        calendarTitle={managePopupCalendar.title}
-        calendarId={managePopupCalendar.id}
-      />
-    )}
-    <div className={`${styles.sidebar} ${isOpen ? styles.open : ""}`} role="navigation">
-      <CalendarList
-        title="내 캘린더"
-        calendars={Object.entries(myCalendars).map(([id, title]) => ({ id, title }))}
-        sectionId="USER"
-        onCalendarSelection={handleCalendarSelection}
-        selectedIds={Object.keys(selectedCalendars)}
-      />
-      <CalendarList
-        title="그룹 캘린더"
-        calendars={Object.entries(groupCalendars).map(([id, title]) => ({ id, title }))}
-        sectionId="GROUP"
-        onCalendarSelection={handleCalendarSelection}
-        onManageClick={openManageCalendarPopup}
-        selectedIds={Object.keys(selectedCalendars)}
-      />
-      <Button variant="blue" size="medium" onClick={openAddCalendarPopup}>
-        +
-      </Button>
-    </div>
+      {addCalendarPopupVisible && (
+        <AddCalendarPopup
+          isOpen={addCalendarPopupVisible}
+          onClose={handleClose}
+          onCalendarAdded={handleCalendarAdded}
+        />
+      )}
+      {managePopupVisible && (
+        <ManageCalendarPopup
+          isOpen={managePopupVisible}
+          onClose={handleClose}
+          calendarInfo={managePopupCalendar}
+          selectedCalendarList={selectedCalendarList}
+          onCalendarChange={onCalendarChange}
+        />
+      )}
+      <div className={`${styles.sidebar} ${isOpen ? styles.open : ""}`} role="navigation">
+        <CalendarList
+          title="내 캘린더"
+          calendars={userCalendars}
+          sectionId="USER"
+          onCalendarSelection={handleCalendarSelection}
+          onManageClick={openManageCalendarPopup}
+        />
+        <CalendarList
+          title="그룹 캘린더"
+          calendars={groupCalendarsArray}
+          sectionId="GROUP"
+          onCalendarSelection={handleCalendarSelection}
+          onManageClick={openManageCalendarPopup}
+        />
+        <Button variant="blue" size="medium" onClick={openAddCalendarPopup}>
+          +
+        </Button>
+      </div>
     </>
   );
 };

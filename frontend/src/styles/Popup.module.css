@@ -200,3 +200,13 @@
   margin-top: -10px;
   margin-bottom: 15px;
 }
+
+.colorPicker {
+  width: 30px;
+  height: 30px;
+  padding: 0px;
+  border: none;
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
+}

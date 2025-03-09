@@ -47,17 +47,18 @@ public class CalendarController {
         return ResponseEntity.ok(calendar.create(userId, calendarInfoDto.getTitle()));
     }
 
-    @PatchMapping("/calendars/{calendar-id}/color/")
-    public ResponseEntity<CalendarColorDto> updateCalendarColor(@PathVariable(value = "calendar-id") Long calendarId,
-                                                                @NotNull @RequestParam String color,
+    @PatchMapping("/calendars/{calendarId}/color")
+    public ResponseEntity<CalendarColorDto> updateCalendarColor(@PathVariable(value = "calendarId") Long calendarId,
+                                                                @Validated @RequestBody CalendarColorDto requestCalendarInfo,
                                                                 HttpServletRequest request) {
         String token = jwtTokenProvider.resolveToken(request);
         long userId = jwtTokenProvider.getUserIdFromToken(token);
 
-        CalendarService calendar = calendarService.get(CalendarCategory.USER);
-        CalendarColorDto calendarColorDto = new CalendarColorDto(calendarId, color);
-        calendarColorDto = calendar.changeColor(userId, calendarColorDto);
+        CalendarService calendar = calendarService.get(requestCalendarInfo.getCategory());
+        requestCalendarInfo.setCalendarId(calendarId);
 
-        return ResponseEntity.ok(calendarColorDto);
+        CalendarColorDto result = calendar.changeColor(userId, requestCalendarInfo);
+
+        return ResponseEntity.ok(result);
     }
 }

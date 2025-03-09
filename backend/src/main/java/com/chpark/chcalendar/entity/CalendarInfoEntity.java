@@ -28,7 +28,7 @@ public class CalendarInfoEntity {
     private CalendarCategory category;
 
     @Column(nullable = false, length = 20)
-    private String color = "blue";
+    private String color = "#3788d8";
 
     public CalendarInfoEntity(String title, long adminId, CalendarCategory category) {
         this.title = title;

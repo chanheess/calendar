@@ -42,12 +42,13 @@ public class UserCalendarService implements CalendarService {
 
     @Override
     public CalendarColorDto changeColor(long userId, CalendarColorDto calendarColorDto) {
-        CalendarInfoEntity calendarInfo = calendarInfoRepository.findByIdAndAdminId(userId, calendarColorDto.getCalendarId()).orElseThrow(
-                () -> new EntityNotFoundException("없는 캘린더다.")
+        CalendarInfoEntity calendarInfo = calendarInfoRepository.findByIdAndAdminId(calendarColorDto.getCalendarId(), userId).orElseThrow(
+                () -> new EntityNotFoundException("Calendar not found.")
         );
 
         calendarInfo.setColor(calendarColorDto.getColor());
-        return new CalendarColorDto(calendarInfo.getId(), calendarInfo.getColor());
+        calendarInfoRepository.save(calendarInfo);
+        return new CalendarColorDto(calendarInfo.getId(), calendarInfo.getColor(), CalendarCategory.USER);
     }
 
     public List<Long> findCalendarIdList(long userId) {
@@ -56,7 +57,7 @@ public class UserCalendarService implements CalendarService {
 
     public void checkCalendarAdminUser(long calendarId, long userId) {
         calendarInfoRepository.findByIdAndAdminId(calendarId, userId).orElseThrow(
-                () -> new EntityNotFoundException("권한이 없습니다.")
+                () -> new EntityNotFoundException("You do not have permission.")
         );
     }
 

@@ -32,12 +32,12 @@ public class GroupUserEntity {
     @Column(name = "role", nullable = false)
     private GroupAuthority role;
 
+    @Column
+    private String color = "#3788d8";
+
     public void setColor(String color) {
         this.color = color;
     }
-
-    @Column
-    private String color;
 
     public void setUserNickname(String userNickname) {
         this.userNickname = userNickname;
@@ -60,6 +60,6 @@ public class GroupUserEntity {
         this.userNickname = groupUserDto.getUserNickname();
         this.userId = groupUserDto.getUserId();
         this.role = groupUserDto.getRole();
-        this.color = color;
+        this.color = groupUserDto.getColor();
     }
 }

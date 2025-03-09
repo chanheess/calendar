@@ -42,7 +42,7 @@ public class CalendarUtility {
         }
 
         if(checkCount == 2) {
-            throw new CalendarAuthenticationException("권한이 없습니다.");
+            throw new CalendarAuthenticationException("You do not have permission.");
         }
     }
 

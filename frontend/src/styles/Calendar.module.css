@@ -36,3 +36,12 @@
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
+
+:global(.fc-event:hover){
+  cursor: pointer;
+}
+
+:global(.fc-daygrid-day-frame:hover) {
+  transition: opacity 0.3s ease;
+  background-color: rgba(0, 0, 0, 0.02);
+}

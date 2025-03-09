@@ -58,7 +58,7 @@ public class GroupCalendarService implements CalendarService {
     @Override
     public CalendarColorDto changeColor(long userId, CalendarColorDto calendarColorDto) {
         GroupUserEntity groupUser = groupUserService.updateGroupColor(userId, calendarColorDto.getCalendarId(), calendarColorDto.getColor());
-        return new CalendarColorDto(groupUser.getGroupId(), groupUser.getColor());
+        return new CalendarColorDto(groupUser.getGroupId(), groupUser.getColor(), CalendarCategory.GROUP);
     }
 
     public List<CalendarInfoDto.Response> findGroup(String title) {

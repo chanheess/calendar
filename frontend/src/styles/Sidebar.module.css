@@ -75,14 +75,21 @@
 .calendarItem button {
   flex: 1;
   padding: 0px;
-  font-size: 10px;
+  font-size: 18px;
   margin-left: 10px;
   opacity: 0; /* 기본적으로 숨김 */
   transition: opacity 0.3s ease;
 }
 
-.calendarItem button:hover {
-  opacity: 1; /* 마우스 오버 시 나타남 */
+.calendarItem:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+  transition: left 0.3s ease-in-out;
+  cursor: pointer;
+  border-radius: 8px;
+}
+
+.calendarItem:hover button{
+  opacity: 1;
 }
 
 .emptyMessage {
@@ -103,3 +110,4 @@
     z-index: 1;
   }
 }
+
