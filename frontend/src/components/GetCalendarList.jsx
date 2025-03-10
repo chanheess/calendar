@@ -14,6 +14,10 @@ const GetCalendarList = async (category) => {
 
     return calendarMap;
   } catch (error) {
+    if (error.status === 401) {
+      window.location.href = "/auth/login";
+    }
+
     console.error("Error fetching calendars for category:", category, error);
     return {};
   }
