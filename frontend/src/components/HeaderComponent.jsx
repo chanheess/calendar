@@ -4,10 +4,8 @@ import Nickname from "./Nickname";
 import axios from "axios";
 import styles from "styles/Header.module.css";
 import Button from "./Button";
-import { getToken, deleteToken } from "firebase/messaging";
-import { messaging } from "../firebase";
+import { getFirebaseToken } from "components/FirebaseToken";
 import LoadingOverlay from "components/LoadingOverlay";
-
 
 const HeaderComponent = ({ mode, onSidebarToggle }) => {
   const [notifications, setNotifications] = useState([]);
@@ -37,6 +35,10 @@ const HeaderComponent = ({ mode, onSidebarToggle }) => {
       });
       setNotifications(response.data || []);
     } catch (error) {
+      if (error.status === 401) {
+        window.location.href = "/auth/login";
+      }
+
       console.error("Error fetching notifications:", error);
     }
   }
@@ -66,35 +68,17 @@ const HeaderComponent = ({ mode, onSidebarToggle }) => {
   const handleLogout = async () => {
     try {
       setIsLoading(true); // 로딩 시작
-      // FCM 토큰을 가져옴
-      const token = await getToken(messaging, {
-        vapidKey:
-          "BOOYYhMRpzdRL1n3Nnwm8jAhu1be-_tiMQKpCRPzBs4hXY85KB4yX9kR65__1hOB43Uj7ixfhHyPPSYA1NsNBSI",
-      });
+      const token = await getFirebaseToken();
 
-      // 로그아웃 API 호출은 백그라운드에서 실행 (실패해도 바로 리다이렉트)
-      axios.post(`/auth/logout/${token}`, {}, { withCredentials: true })
-        .catch((error) => {
-          console.error("Logout API failed:", error);
-        });
-
-      // FCM 토큰 삭제 작업도 백그라운드에서 실행
       if (token) {
-        deleteToken(messaging, token)
-          .then(() => localStorage.removeItem("fcmToken"))
-          .catch((error) => {
-            console.error("deleteToken failed:", error);
-          });
+        await axios.post(`/auth/logout/${token}`, {}, { withCredentials: true });
+      } else {
+        await axios.post(`/auth/logout`, {}, { withCredentials: true });
       }
 
-      // 바로 로그인 페이지로 이동
       navigate("/auth/login");
     } catch (error) {
-      if (error.response) {
-        alert("Error: " + (error.response.data.message || error.response.data));
-      } else {
-        alert("Error: " + error.message);
-      }
+      console.error("Logout error:", error);
     } finally {
       setIsLoading(false); // 로딩 종료
     }

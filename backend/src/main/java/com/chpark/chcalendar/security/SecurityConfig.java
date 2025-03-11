@@ -66,8 +66,6 @@ public class SecurityConfig {
                     .authenticationEntryPoint((request, response, authException) -> {
                         if (request.getRequestURI().startsWith("/api/")) {
                             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
-                        } else {
-                            response.sendRedirect("/auth/login");
                         }
                     })
                 )
