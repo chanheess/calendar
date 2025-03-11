@@ -61,6 +61,20 @@ public class UserController {
         return ResponseEntity.ok().body("Logged out successfully");
     }
 
+    @PostMapping("/auth/logout")
+    public ResponseEntity<String> logoutUser(HttpServletResponse response) {
+        // jwtToken 쿠키 삭제
+        ResponseCookie cookie = ResponseCookie.from("jwtToken", null)
+                .httpOnly(true)
+                .secure(true)
+                .path("/")
+                .maxAge(0)  // 만료 시간 0으로 설정하여 쿠키 삭제
+                .build();
+        response.addHeader("Set-Cookie", cookie.toString());
+
+        return ResponseEntity.ok().body("Logged out successfully");
+    }
+
     @GetMapping("/auth/check/{fcmToken}")
     public ResponseEntity<Boolean> checkLogin(@PathVariable("fcmToken") String fcmToken,
                                               HttpServletRequest request) {
@@ -70,6 +84,17 @@ public class UserController {
             return ResponseEntity.ok(true);
         } else {
             firebaseService.deleteToken(fcmToken);
+            return ResponseEntity.ok(false);
+        }
+    }
+
+    @GetMapping("/auth/check")
+    public ResponseEntity<Boolean> checkLogin(HttpServletRequest request) {
+        String token = jwtTokenProvider.resolveToken(request);
+
+        if (token != null && jwtTokenProvider.validateToken(token)) {
+            return ResponseEntity.ok(true);
+        } else {
             return ResponseEntity.ok(false);
         }
     }

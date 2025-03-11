@@ -4,10 +4,8 @@ import Nickname from "./Nickname";
 import axios from "axios";
 import styles from "styles/Header.module.css";
 import Button from "./Button";
-import { getToken, deleteToken } from "firebase/messaging";
-import { messaging } from "../firebase";
+import { getFirebaseToken } from "components/FirebaseToken";
 import LoadingOverlay from "components/LoadingOverlay";
-
 
 const HeaderComponent = ({ mode, onSidebarToggle }) => {
   const [notifications, setNotifications] = useState([]);
@@ -70,41 +68,17 @@ const HeaderComponent = ({ mode, onSidebarToggle }) => {
   const handleLogout = async () => {
     try {
       setIsLoading(true); // 로딩 시작
-      let token = null;
-
-      if (Notification.permission === "granted") {
-        try {
-          token = await getToken(messaging, {
-            vapidKey:
-              "BOOYYhMRpzdRL1n3Nnwm8jAhu1be-_tiMQKpCRPzBs4hXY85KB4yX9kR65__1hOB43Uj7ixfhHyPPSYA1NsNBSI",
-          });
-        } catch (error) {
-          console.warn("FCM 토큰을 가져오지 못했습니다:", error);
-        }
-      } else {
-        console.warn("알림 권한이 거부되었으므로 토큰 요청을 건너뜁니다.");
-      }
+      const token = await getFirebaseToken();
 
       if (token) {
         await axios.post(`/auth/logout/${token}`, {}, { withCredentials: true });
-        try {
-          await deleteToken(messaging, token);
-          localStorage.removeItem("fcmToken");
-        } catch (error) {
-          console.error("토큰 삭제 중 오류 발생:", error);
-        }
       } else {
-        await axios.post(`/auth/logout/`, {}, { withCredentials: true });
+        await axios.post(`/auth/logout`, {}, { withCredentials: true });
       }
 
       navigate("/auth/login");
     } catch (error) {
       console.error("Logout error:", error);
-      if (error.response) {
-        alert("Error: " + (error.response.data.message || error.response.data));
-      } else {
-        alert("Error: " + error.message);
-      }
     } finally {
       setIsLoading(false); // 로딩 종료
     }

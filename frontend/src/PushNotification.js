@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { getToken, deleteToken, onMessage } from "firebase/messaging";
+import { onMessage } from "firebase/messaging";
 import { messaging } from "./firebase";
 import axios from "axios";
 import styles from "styles/PushNotification.module.css";
+import { getFirebaseToken } from "components/FirebaseToken";
 
 const PushNotification = () => {
   const [notifications, setNotifications] = useState([]);
@@ -10,26 +11,10 @@ const PushNotification = () => {
   useEffect(() => {
     const requestToken = async () => {
       try {
-        const permission = await Notification.requestPermission();
-        if (permission === "granted") {
-          let token = localStorage.getItem("fcmToken");
-          if (!token) {
-            token = await getToken(messaging, {
-              vapidKey: "BOOYYhMRpzdRL1n3Nnwm8jAhu1be-_tiMQKpCRPzBs4hXY85KB4yX9kR65__1hOB43Uj7ixfhHyPPSYA1NsNBSI"
-            });
-            if (token) {
-              localStorage.setItem("fcmToken", token);
-              await axios.post(`/notifications/token/${token}`);
-            }
-          }
-        } else {
-          // 권한 거부 시 기존 토큰 삭제
-          const token = localStorage.getItem("fcmToken");
-          if (token) {
-            await axios.delete(`/notifications/token/${token}`);
-            await deleteToken(messaging, token);
-            localStorage.removeItem("fcmToken");
-          }
+        const token = await getFirebaseToken();
+
+        if (token) {
+          await axios.post(`/notifications/token/${token}`);
         }
       } catch (err) {
         console.error("Error getting FCM token:", err);
