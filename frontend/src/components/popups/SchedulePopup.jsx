@@ -247,7 +247,6 @@ const SchedulePopup = ({ isOpen, mode, eventDetails, onClose, selectedCalendarLi
   const handleSave = async () => {
     try {
       if (mode === "create") {
-        console.log(getScheduleData());
         await axios.post("/schedules", getScheduleData(), {
             withCredentials: true,
             headers: { "Content-Type": "application/json" },
