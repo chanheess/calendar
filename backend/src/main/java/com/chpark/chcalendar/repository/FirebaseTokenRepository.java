@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface FirebaseTokenRepository extends JpaRepository<FirebaseTokenEntity, Long> {
@@ -20,5 +21,7 @@ public interface FirebaseTokenRepository extends JpaRepository<FirebaseTokenEnti
     @Transactional
     @Query("DELETE FROM FirebaseTokenEntity f WHERE f.token = :token")
     int deleteByToken(@Param("token") String token);
+
+    Optional<FirebaseTokenEntity> findByUserIdAndToken(long userId, String token);
 
 }

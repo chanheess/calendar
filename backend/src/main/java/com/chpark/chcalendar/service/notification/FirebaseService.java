@@ -94,12 +94,11 @@ public class FirebaseService {
     }
 
     public void saveToken(long userId, String token) {
-        if (!userRepository.existsById(userId)) {
-            throw new EntityNotFoundException("User not found.");
+        if (firebaseTokenRepository.findByUserIdAndToken(userId, token).isPresent()) {
+            return;
         }
 
         FirebaseTokenEntity tokenEntity = new FirebaseTokenEntity(userId, token);
-
         firebaseTokenRepository.save(tokenEntity);
     }
 

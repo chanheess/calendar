@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { onMessage } from "firebase/messaging";
 import { messaging } from "./firebase";
 import axios from "axios";
@@ -7,12 +7,18 @@ import { getFirebaseToken } from "components/FirebaseToken";
 
 const PushNotification = () => {
   const [notifications, setNotifications] = useState([]);
+  const tokenRequested = useRef(false); // 토큰 요청 여부를 저장하는 ref
 
   useEffect(() => {
     const requestToken = async () => {
+      // 이미 토큰 요청한 경우 중복 실행 방지
+      if (tokenRequested.current) return;
+      tokenRequested.current = true;
+
+      await Notification.requestPermission();
+
       try {
         const token = await getFirebaseToken();
-
         if (token) {
           await axios.post(`/notifications/token/${token}`);
         }
