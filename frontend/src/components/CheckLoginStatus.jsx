@@ -1,8 +1,6 @@
 import { useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { getToken, deleteToken } from "firebase/messaging";
-import { messaging } from "../firebase";
 import { getFirebaseToken } from "components/FirebaseToken";
 
 

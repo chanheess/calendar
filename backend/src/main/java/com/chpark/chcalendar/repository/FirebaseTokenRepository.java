@@ -23,5 +23,6 @@ public interface FirebaseTokenRepository extends JpaRepository<FirebaseTokenEnti
     int deleteByToken(@Param("token") String token);
 
     Optional<FirebaseTokenEntity> findByUserIdAndToken(long userId, String token);
+    Optional<FirebaseTokenEntity> findByUserIdAndPlatform(long userId, String platform);
 
 }

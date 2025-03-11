@@ -1,5 +1,6 @@
 package com.chpark.chcalendar.controller;
 
+import com.chpark.chcalendar.dto.FirebaseTokenDto;
 import com.chpark.chcalendar.security.JwtTokenProvider;
 import com.chpark.chcalendar.service.notification.FirebaseService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -17,13 +18,13 @@ public class FirebaseController {
     private final JwtTokenProvider jwtTokenProvider;
     private final FirebaseService firebaseService;
 
-    @PostMapping("/notifications/token/{fcmToken}")
-    public ResponseEntity<String> subscribe(@NotNull @PathVariable("fcmToken") String fcmToken,
+    @PostMapping("/notifications/token")
+    public ResponseEntity<String> subscribe(@RequestBody FirebaseTokenDto firebaseToken,
                                             HttpServletRequest request) {
         String token = jwtTokenProvider.resolveToken(request);
         long userId = jwtTokenProvider.getUserIdFromToken(token);
 
-        firebaseService.saveToken(userId, fcmToken);
+        firebaseService.saveToken(userId, firebaseToken);
 
         return ResponseEntity.ok("Subscription successful");
     }

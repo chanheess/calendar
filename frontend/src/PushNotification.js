@@ -4,6 +4,7 @@ import { messaging } from "./firebase";
 import axios from "axios";
 import styles from "styles/PushNotification.module.css";
 import { getFirebaseToken } from "components/FirebaseToken";
+import platform from 'platform';
 
 const PushNotification = () => {
   const [notifications, setNotifications] = useState([]);
@@ -19,8 +20,14 @@ const PushNotification = () => {
 
       try {
         const token = await getFirebaseToken();
+        // platform을 사용하려면 미리 platform 라이브러리를 import 하거나, navigator.userAgent를 사용할 수 있습니다.
+        const platformId = (platform.os?.family || 'Unknown OS') + " " + (platform.name || 'Unknown Browser');
+
         if (token) {
-          await axios.post(`/notifications/token/${token}`);
+          await axios.post("/notifications/token", {
+            firebaseToken: token,
+            platformId: platformId,
+          });
         }
       } catch (err) {
         console.error("Error getting FCM token:", err);

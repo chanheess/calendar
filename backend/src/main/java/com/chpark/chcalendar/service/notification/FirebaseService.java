@@ -1,10 +1,9 @@
 package com.chpark.chcalendar.service.notification;
 
+import com.chpark.chcalendar.dto.FirebaseTokenDto;
 import com.chpark.chcalendar.entity.FirebaseTokenEntity;
 import com.chpark.chcalendar.repository.FirebaseTokenRepository;
-import com.chpark.chcalendar.repository.user.UserRepository;
 import com.google.firebase.messaging.FirebaseMessagingException;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.quartz.SchedulerException;
 import org.springframework.stereotype.Service;
@@ -12,13 +11,13 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @RequiredArgsConstructor
 @Service
 public class FirebaseService {
 
     private final FirebaseTokenRepository firebaseTokenRepository;
-    private final UserRepository userRepository;
     private final QuartzSchedulerService quartzSchedulerService;
 
     @Transactional
@@ -32,8 +31,9 @@ public class FirebaseService {
         fcmTokenList.forEach(fcmToken -> {
             try {
                 quartzSchedulerService.createFcmPushNotification(
-                        jobId + fcmToken.getToken(),
+                        jobId,
                         fcmToken.getToken(),
+                        getUserPlatformKey(fcmToken),
                         title,
                         body,
                         url,
@@ -93,13 +93,30 @@ public class FirebaseService {
         }
     }
 
-    public void saveToken(long userId, String token) {
-        if (firebaseTokenRepository.findByUserIdAndToken(userId, token).isPresent()) {
-            return;
-        }
+    @Transactional
+    public void saveToken(long userId, FirebaseTokenDto firebaseToken) {
+        Optional<FirebaseTokenEntity> firebaseTokenEntity = firebaseTokenRepository.findByUserIdAndPlatform(userId, firebaseToken.getPlatformId());
 
-        FirebaseTokenEntity tokenEntity = new FirebaseTokenEntity(userId, token);
-        firebaseTokenRepository.save(tokenEntity);
+        if (firebaseTokenEntity.isPresent()) {
+            try {
+                if (firebaseTokenEntity.get().getToken().equals(firebaseToken.getFirebaseToken())) {
+                    return;
+                }
+
+                firebaseTokenEntity.get().setToken(firebaseToken.getFirebaseToken());
+                firebaseTokenRepository.save(firebaseTokenEntity.get());
+
+                quartzSchedulerService.changeTokenInPushNotification(
+                        getUserPlatformKey(firebaseTokenEntity.get()), firebaseTokenEntity.get().getToken());
+            } catch (SchedulerException ignored) {
+
+            }
+
+        } else {
+            FirebaseTokenEntity tokenEntity = new FirebaseTokenEntity(
+                    userId, firebaseToken.getFirebaseToken(), firebaseToken.getPlatformId());
+            firebaseTokenRepository.save(tokenEntity);
+        }
     }
 
     @Transactional
@@ -110,5 +127,9 @@ public class FirebaseService {
     @Transactional
     public void deleteToken(String token) {
         firebaseTokenRepository.deleteByToken(token);
+    }
+
+    public String getUserPlatformKey(FirebaseTokenEntity firebaseToken) {
+        return firebaseToken.getUserId() + "-" + firebaseToken.getPlatform();
     }
 }
