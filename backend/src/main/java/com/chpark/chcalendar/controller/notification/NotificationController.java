@@ -1,6 +1,7 @@
 package com.chpark.chcalendar.controller.notification;
 
 import com.chpark.chcalendar.dto.notification.NotificationDto;
+import com.chpark.chcalendar.enumClass.NotificationCategory;
 import com.chpark.chcalendar.security.JwtTokenProvider;
 import com.chpark.chcalendar.service.notification.NotificationService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -11,13 +12,14 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RequiredArgsConstructor
 @RequestMapping("/api")
 @RestController
 public class NotificationController {
 
-    private final NotificationService notificationService;
+    private final Map<NotificationCategory, NotificationService> notificationService;
     private final JwtTokenProvider jwtTokenProvider;
 
     @GetMapping("/notifications")
@@ -26,20 +28,22 @@ public class NotificationController {
         String token = jwtTokenProvider.resolveToken(request);
         long userId = jwtTokenProvider.getUserIdFromToken(token);
 
-        List<NotificationDto> notifications = notificationService.getNotifications(userId);
+        NotificationService notification =  notificationService.get(NotificationCategory.GROUP);
+        List<NotificationDto> notifications = notification.getNotifications(userId);
 
         return ResponseEntity.ok(notifications);
     }
 
     @PostMapping("/notifications/groups/{group-id}/invite")
-    public ResponseEntity<String> sendInviteNotification(@NotNull @PathVariable("group-id") Long groupId,
-                                                         @RequestParam(value = "nickname", required = false) String nickname,
-                                                         HttpServletRequest request) {
+    public ResponseEntity<String> sendGroupInviteNotification(@NotNull @PathVariable("group-id") Long groupId,
+                                                              @RequestParam(value = "nickname", required = false) String nickname,
+                                                              HttpServletRequest request) {
 
         String token = jwtTokenProvider.resolveToken(request);
         long userId = jwtTokenProvider.getUserIdFromToken(token);
 
-        notificationService.sendGroupInviteNotification(userId, groupId, nickname);
+        NotificationService notification =  notificationService.get(NotificationCategory.GROUP);
+        notification.sendInviteNotification(userId, groupId, nickname);
 
         return ResponseEntity.ok().build();
     }
@@ -51,7 +55,8 @@ public class NotificationController {
         String token = jwtTokenProvider.resolveToken(request);
         long userId = jwtTokenProvider.getUserIdFromToken(token);
 
-        notificationService.acceptNotificationByCategory(userId, notificationDto);
+        NotificationService notification =  notificationService.get(notificationDto.getCategory());
+        notification.acceptNotificationByCategory(userId, notificationDto);
 
         return ResponseEntity.ok("accepted.");
     }
@@ -63,7 +68,8 @@ public class NotificationController {
         String token = jwtTokenProvider.resolveToken(request);
         long userId = jwtTokenProvider.getUserIdFromToken(token);
 
-        notificationService.deleteNotification(userId, notificationDto);
+        NotificationService notification =  notificationService.get(notificationDto.getCategory());
+        notification.deleteNotification(userId, notificationDto);
 
         return ResponseEntity.ok().build();
     }

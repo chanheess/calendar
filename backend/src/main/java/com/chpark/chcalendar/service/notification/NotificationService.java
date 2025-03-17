@@ -21,12 +21,12 @@ import java.util.Set;
 @Service
 public class NotificationService {
 
-    private final NotificationRepository notificationRepository;
+    protected final NotificationRepository notificationRepository;
 
-    private final GroupUserService groupUserService;
-    private final UserService userService;
+    protected final GroupUserService groupUserService;
+    protected final UserService userService;
 
-    private final RedisTemplate<String, Object> redisTemplate;
+    protected final RedisTemplate<String, Object> redisTemplate;
 
 
     //알림 가져오기
@@ -50,7 +50,7 @@ public class NotificationService {
         return result;
     }
 
-    public void sendGroupInviteNotification(long userId, long groupId, String nickname) {
+    public void sendInviteNotification(long userId, long groupId, String nickname) {
 
         long inviteUserId = userService.findUserId(nickname);
 
@@ -77,23 +77,18 @@ public class NotificationService {
 
     @Transactional
     public void acceptNotificationByCategory(long userId, NotificationDto notificationDto) {
-
-        //TODO: 추후 리팩토링 할 것
-        switch (notificationDto.getCategory()) {
-            case SCHEDULE -> {
+        switch (notificationDto.getType()) {
+            case INFO -> {
             }
-            case GROUP -> {
-                switch (notificationDto.getType()) {
-                    case INFO -> {
-                    }
-                    case INVITE -> {
-                        String nickname = userService.findNickname(userId);
-                        groupUserService.addUser(userId, nickname, notificationDto.getCategoryId());
-                        this.deleteNotification(userId, notificationDto);
-                    }
-                }
+            case INVITE -> {
+                acceptInvite(userId, notificationDto);
             }
         }
+    }
+
+    @Transactional
+    public void acceptInvite(long userId, NotificationDto notificationDto) {
+        //자식 클래스에서 정의
     }
 
 }

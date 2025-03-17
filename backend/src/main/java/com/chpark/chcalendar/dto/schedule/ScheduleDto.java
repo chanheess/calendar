@@ -86,32 +86,34 @@ public class ScheduleDto {
     @Setter
     @NoArgsConstructor
     public static class Request {
-        //비교하기 쉽게 상속하지 않고 오브젝트로
         @NotNull(groups = ValidGroup.CreateGroup.class)
         private ScheduleDto scheduleDto;
         private Set<ScheduleNotificationDto> notificationDto = new HashSet<>();
         private ScheduleRepeatDto repeatDto;
+        private Set<ScheduleGroupDto> groupDto = new HashSet<>();
     }
 
     @Getter
     @Setter
     @NoArgsConstructor
     public static class Response {
-        //비교하기 쉽게 상속하지 않고 오브젝트로
         private ScheduleDto scheduleDto;
         private List<ScheduleNotificationDto> notificationDto;
         private ScheduleRepeatDto repeatDto;
+        private List<ScheduleGroupDto> groupDto;
 
-        public Response(ScheduleDto scheduleDto, List<ScheduleNotificationDto> notificationDto) {
+        public Response(ScheduleDto scheduleDto, List<ScheduleNotificationDto> notificationDto, List<ScheduleGroupDto> groupDto) {
             this.scheduleDto = scheduleDto;
             this.notificationDto = notificationDto;
             this.repeatDto = null;
+            this.groupDto = groupDto;
         }
 
-        public Response(ScheduleDto scheduleDto, List<ScheduleNotificationDto> notificationDto, ScheduleRepeatDto repeatDto) {
+        public Response(ScheduleDto scheduleDto, List<ScheduleNotificationDto> notificationDto, ScheduleRepeatDto repeatDto, List<ScheduleGroupDto> groupDto) {
             this.scheduleDto = scheduleDto;
             this.notificationDto = notificationDto;
             this.repeatDto = repeatDto;
+            this.groupDto = groupDto;
         }
     }
 

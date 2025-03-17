@@ -45,7 +45,7 @@ public class ScheduleRepeatService {
         }
 
         //반복 생성
-        ScheduleRepeatEntity repeatEntity = new ScheduleRepeatEntity(repeatDto);
+        ScheduleRepeatEntity repeatEntity = new ScheduleRepeatEntity(repeatDto, scheduleEntity.getId());
         ScheduleRepeatEntity createRepeatEntity = scheduleRepeatRepository.save(repeatEntity);
 
         //기준 일정의 데이터 반복 일정 적용
@@ -76,6 +76,14 @@ public class ScheduleRepeatService {
         return scheduleRepeatRepository.existsById(id);
     }
 
+
+    public boolean checkMasterSchedule(long repeatId, long scheduleId) {
+        ScheduleRepeatEntity repeatEntity = scheduleRepeatRepository.findById(repeatId).orElseThrow(
+                () -> new EntityNotFoundException("Repeat not found")
+        );
+
+        return repeatEntity.getMasterScheduleId() == scheduleId;
+    }
 
 
 
