@@ -5,6 +5,7 @@ import com.chpark.chcalendar.dto.schedule.ScheduleDto;
 import com.chpark.chcalendar.enumClass.ScheduleRepeatScope;
 import com.chpark.chcalendar.exception.ValidGroup;
 import com.chpark.chcalendar.security.JwtTokenProvider;
+import com.chpark.chcalendar.service.schedule.ScheduleGroupService;
 import com.chpark.chcalendar.service.schedule.ScheduleService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +19,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 
@@ -29,6 +29,7 @@ import java.util.Optional;
 public class ScheduleController {
 
     private final ScheduleService scheduleService;
+    private final ScheduleGroupService scheduleGroupService;
     private final JwtTokenProvider jwtTokenProvider;
 
     @GetMapping
@@ -133,19 +134,21 @@ public class ScheduleController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    @DeleteMapping("/{id}/calendars/{calendar-id}")
-    public ResponseEntity<String> deleteSchedule(@PathVariable("id") long id,
+    @DeleteMapping("/{schedule-id}/calendars/{calendar-id}")
+    public ResponseEntity<String> deleteSchedule(@PathVariable("schedule-id") long scheduleId,
                                                  @PathVariable("calendar-id") long calendarId,
                                                  HttpServletRequest request) {
         String token = jwtTokenProvider.resolveToken(request);
         long userId = jwtTokenProvider.getUserIdFromToken(token);
 
-        scheduleService.deleteById(id, calendarId, userId);
+        scheduleService.deleteById(scheduleId, calendarId, userId);
+        scheduleGroupService.deleteScheduleGroup(scheduleId);
+
         return new ResponseEntity<>("Schedule deleted successfully.", HttpStatus.OK);
     }
 
-    @DeleteMapping("/{id}/{delete-scope}/calendars/{calendar-id}")
-    public ResponseEntity<String> deleteRepeatSchedule(@PathVariable("id") long id,
+    @DeleteMapping("/{schedule-id}/{delete-scope}/calendars/{calendar-id}")
+    public ResponseEntity<String> deleteRepeatSchedule(@PathVariable("schedule-id") long scheduleId,
                                                        @PathVariable("delete-scope") String repeatStringScope,
                                                        @PathVariable("calendar-id") long calendarId,
                                                        HttpServletRequest request) {
@@ -157,14 +160,16 @@ public class ScheduleController {
         //삭제할 범위
         switch (scheduleRepeatScope){
             case CURRENT -> {
-                scheduleService.deleteCurrentOnlyRepeatSchedule(id, userId);
-                scheduleService.update(id, new ScheduleDto(), true, userId);
-                scheduleService.deleteById(id, calendarId, userId);
+                scheduleService.deleteCurrentOnlyRepeatSchedule(scheduleId, userId);
+                //repeat를 지워주기 위한 update
+                scheduleService.update(scheduleId, new ScheduleDto(), true, userId);
+                scheduleService.deleteById(scheduleId, calendarId, userId);
             }
             case FUTURE -> {
-                scheduleService.deleteFutureRepeatSchedules(id, userId);
-                scheduleService.update(id, new ScheduleDto(), true, userId);
-                scheduleService.deleteById(id, calendarId, userId);
+                scheduleService.deleteFutureRepeatSchedules(scheduleId, userId);
+                //repeat를 지워주기 위한 update
+                scheduleService.update(scheduleId, new ScheduleDto(), true, userId);
+                scheduleService.deleteById(scheduleId, calendarId, userId);
             }
         }
 

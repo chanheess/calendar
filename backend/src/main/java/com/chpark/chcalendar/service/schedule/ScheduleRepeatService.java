@@ -29,9 +29,8 @@ public class ScheduleRepeatService {
 
     @Transactional
     public ScheduleRepeatDto create(long scheduleId, ScheduleRepeatDto repeatDto, long userId) {
-
         if(repeatDto == null) {
-            throw new CustomException("repeat");
+            return new ScheduleRepeatDto();
         }
 
         //기준 일정 가져오기
@@ -77,7 +76,7 @@ public class ScheduleRepeatService {
     }
 
 
-    public boolean checkMasterSchedule(long repeatId, long scheduleId) {
+    public boolean isMasterSchedule(long repeatId, long scheduleId) {
         ScheduleRepeatEntity repeatEntity = scheduleRepeatRepository.findById(repeatId).orElseThrow(
                 () -> new EntityNotFoundException("Repeat not found")
         );

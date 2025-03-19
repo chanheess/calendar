@@ -69,7 +69,8 @@
 }
 
 .infoRow input[type="number"] {
-    max-width: 120px;
+    max-width: 130px;
+    min-width: 130px;
 }
 
 .infoRow textarea {

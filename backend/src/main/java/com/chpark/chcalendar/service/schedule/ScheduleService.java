@@ -8,6 +8,7 @@ import com.chpark.chcalendar.dto.schedule.ScheduleRepeatDto;
 import com.chpark.chcalendar.entity.schedule.ScheduleEntity;
 import com.chpark.chcalendar.entity.schedule.ScheduleRepeatEntity;
 import com.chpark.chcalendar.exception.CustomException;
+import com.chpark.chcalendar.exception.ScheduleException;
 import com.chpark.chcalendar.repository.schedule.ScheduleNotificationRepository;
 import com.chpark.chcalendar.repository.schedule.ScheduleRepeatRepository;
 import com.chpark.chcalendar.repository.schedule.ScheduleRepository;
@@ -41,6 +42,7 @@ public class ScheduleService {
 
     private final ScheduleRepeatService scheduleRepeatService;
     private final ScheduleNotificationService scheduleNotificationService;
+    private final ScheduleGroupService scheduleGroupService;
 
     private final GroupUserService groupUserService;
     private final UserCalendarService userCalendarService;
@@ -48,7 +50,7 @@ public class ScheduleService {
     @Transactional
     public ScheduleDto create(ScheduleDto scheduleDto, long userId) {
         this.validateScheduleDto(scheduleDto);
-        CalendarUtility.checkCalendarAuthority(userId, scheduleDto.getCalendarId(), groupUserService, userCalendarService);
+        CalendarUtility.checkCalendarAuthority(userId, userId, scheduleDto.getCalendarId(), null, groupUserService, userCalendarService, scheduleGroupService);
 
         //빈 제목일 경우 제목 없음으로 처리
         scheduleDto.setTitle(scheduleDto.getTitle().isEmpty() ? "Untitled" : scheduleDto.getTitle());
@@ -64,12 +66,8 @@ public class ScheduleService {
     public ScheduleDto.Response createByForm(ScheduleDto.Request scheduleDto, long userId) {
         ScheduleDto resultSchedule = this.create(scheduleDto.getScheduleDto(), userId);
         List<ScheduleNotificationDto> resultNotifications = scheduleNotificationService.create(userId, resultSchedule.getId(), scheduleDto.getNotificationDto().stream().toList());
-        ScheduleRepeatDto resultRepeat = null;
-        List<ScheduleGroupDto> groupSchedule = null;
-
-        if(scheduleDto.getRepeatDto() != null) {
-            resultRepeat = scheduleRepeatService.create(resultSchedule.getId(), scheduleDto.getRepeatDto(), userId);
-        }
+        ScheduleRepeatDto resultRepeat = scheduleRepeatService.create(resultSchedule.getId(), scheduleDto.getRepeatDto(), userId);
+        List<ScheduleGroupDto> groupSchedule = scheduleGroupService.createScheduleGroup(userId, resultSchedule.getId(), scheduleDto.getGroupDto(), true);
 
         return new ScheduleDto.Response(resultSchedule, resultNotifications, resultRepeat, groupSchedule);
     }
@@ -90,7 +88,7 @@ public class ScheduleService {
                 () -> new EntityNotFoundException("Schedule not found")
         );
 
-        CalendarUtility.checkCalendarAuthority(userId, schedule.getCalendarId(), groupUserService, userCalendarService);
+        CalendarUtility.checkCalendarAuthority(userId, schedule.getUserId(), schedule.getCalendarId(), schedule.getId(), groupUserService, userCalendarService, scheduleGroupService);
 
         if (scheduleDto.getTitle() != null) {
             schedule.setTitle(scheduleDto.getTitle().isEmpty() ? "Untitled" : scheduleDto.getTitle());
@@ -116,29 +114,36 @@ public class ScheduleService {
 
     @Transactional
     public ScheduleDto.Response updateSchedule(long scheduleId, boolean isRepeatChecked, ScheduleDto.Request scheduleDto, long userId) {
-        if(scheduleRepository.getRepeatId(scheduleId, userId).isPresent()) {
-            throw new CustomException("has repeat-id");
+
+        ScheduleEntity scheduleEntity = scheduleRepository.findById(scheduleId).orElseThrow(
+                () -> new ScheduleException("Not found schedule")
+        );
+
+        if (scheduleEntity.getRepeatId() != null) {
+            throw new ScheduleException("has repeat-id");
         }
 
         ScheduleDto updateDto = this.update(scheduleId, scheduleDto.getScheduleDto(), userId);
         List<ScheduleNotificationDto> updateNotificationDto = scheduleNotificationService.update(userId, scheduleId, scheduleDto.getNotificationDto().stream().toList());
         ScheduleRepeatDto updateRepeatDto = null;
-        List<ScheduleGroupDto> groupSchedule = null;
+        List<ScheduleGroupDto> groupScheduleDto = scheduleGroupService.updateScheduleGroup(userId, scheduleEntity.getUserId(), scheduleId, scheduleDto.getGroupDto().stream().toList());
 
-        if(isRepeatChecked){
+        if (isRepeatChecked){
             updateRepeatDto = scheduleRepeatService.create(scheduleId, scheduleDto.getRepeatDto(), userId);
         }
 
-        return new ScheduleDto.Response(updateDto, updateNotificationDto, groupSchedule);
+        return new ScheduleDto.Response(updateDto, updateNotificationDto, updateRepeatDto, groupScheduleDto);
     }
 
     @Transactional
     public ScheduleDto.Response updateRepeatSchedule(long scheduleId, boolean isRepeatChecked, ScheduleDto.Request scheduleDto, long userId) {
-        //TODO: 여기서 이전의 master schedule id로 일정 초대가 저장되어 있다면 지금의 scheduleId로 변경해줘야함
-
-        Long repeatId = scheduleRepository.getRepeatId(scheduleId, userId).orElseThrow(
-                () -> new EntityNotFoundException("not found repeat-id")
+        ScheduleEntity scheduleEntity = scheduleRepository.findById(scheduleId).orElseThrow(
+                () -> new ScheduleException("Not found schedule")
         );
+
+        if (scheduleEntity.getRepeatId() == null) {
+            throw new ScheduleException("Not repeat schedule");
+        }
 
         //반복 일정 삭제
         if(!isRepeatChecked) {
@@ -146,13 +151,13 @@ public class ScheduleService {
 
             ScheduleDto updateDto = this.update(scheduleId, scheduleDto.getScheduleDto(), true, userId);
             List<ScheduleNotificationDto> updateNotificationDto = scheduleNotificationService.update(userId, scheduleId, scheduleDto.getNotificationDto().stream().toList());
-            List<ScheduleGroupDto> groupSchedule = null;
+            List<ScheduleGroupDto> groupSchedule = scheduleDto.getGroupDto().stream().toList();
 
             return new ScheduleDto.Response(updateDto, updateNotificationDto, groupSchedule);
         }
 
         //반복 일정의 조건이 수정 되었을 때
-        if (scheduleRepeatService.isModified(repeatId, scheduleDto.getRepeatDto())){
+        if (scheduleRepeatService.isModified(scheduleEntity.getRepeatId(), scheduleDto.getRepeatDto())){
             //기존 반복 일정 삭제 -> 일정 및 알림 업데이트 -> 새로운 반복 일정 등록의 순서가 어긋나면 안 된다.
 
             //기존 반복 일정 삭제
@@ -164,7 +169,13 @@ public class ScheduleService {
 
             //새로운 반복 일정 등록
             ScheduleRepeatDto updateRepeatDto = scheduleRepeatService.create(scheduleId, scheduleDto.getRepeatDto(), userId);
-            List<ScheduleGroupDto> groupSchedule = null;
+
+            //그룹 일정 설정
+            List<ScheduleGroupDto> groupSchedule = scheduleGroupService.updateScheduleGroup(userId, scheduleEntity.getUserId(), scheduleId, scheduleDto.getGroupDto().stream().toList());
+
+            if (!scheduleRepeatService.isMasterSchedule(scheduleEntity.getRepeatId(), scheduleId)) {
+                groupSchedule = scheduleGroupService.createScheduleGroup(scheduleEntity.getUserId(), scheduleId, scheduleDto.getGroupDto(), true);
+            }
 
             return new ScheduleDto.Response(updateDto, updateNotificationDto, updateRepeatDto, groupSchedule);
         }
@@ -175,17 +186,23 @@ public class ScheduleService {
 
     @Transactional
     public ScheduleDto.Response updateRepeatCurrentOnlySchedule(long scheduleId, ScheduleDto.Request scheduleDto, long userId) {
-        //TODO: 여기서 이전의 master schedule id로 일정 초대가 저장되어 있다면 지금의 scheduleId로 변경해줘야함
+        ScheduleEntity scheduleEntity = scheduleRepository.findById(scheduleId).orElseThrow(
+                () -> new ScheduleException("Not found schedule")
+        );
 
-        if(scheduleRepository.getRepeatId(scheduleId, userId).isEmpty()) {
-            throw new EntityNotFoundException("not found repeat-id");
+        if (scheduleEntity.getRepeatId() == null) {
+            throw new ScheduleException("Not repeat schedule");
         }
 
         this.deleteCurrentOnlyRepeatSchedule(scheduleId, userId);
 
         ScheduleDto resultSchedule = this.update(scheduleId, scheduleDto.getScheduleDto(), true, userId);
         List<ScheduleNotificationDto> resultNotification = scheduleNotificationService.update(userId, scheduleId, scheduleDto.getNotificationDto().stream().toList());
-        List<ScheduleGroupDto> groupSchedule = null;
+        List<ScheduleGroupDto> groupSchedule = scheduleGroupService.updateScheduleGroup(userId, scheduleEntity.getUserId(), scheduleId, scheduleDto.getGroupDto().stream().toList());
+
+        if (!scheduleRepeatService.isMasterSchedule(scheduleEntity.getRepeatId(), scheduleId)) {
+            groupSchedule = scheduleGroupService.createScheduleGroup(scheduleEntity.getUserId(), scheduleId, scheduleDto.getGroupDto(), true);
+        }
 
         return new ScheduleDto.Response(resultSchedule, resultNotification, groupSchedule);
     }
@@ -230,18 +247,22 @@ public class ScheduleService {
         ScheduleDto resultSchedule = new ScheduleDto(standardSchedule);
         List<ScheduleNotificationDto> resultNotification = scheduleNotificationService.update(userId, scheduleId, scheduleDto.getNotificationDto().stream().toList());
         ScheduleRepeatDto resultRepeat = new ScheduleRepeatDto(scheduleRepeatEntity);
-        List<ScheduleGroupDto> groupSchedule = null;
+        List<ScheduleGroupDto> groupSchedule = scheduleDto.getGroupDto().stream().toList();
 
         return new ScheduleDto.Response(resultSchedule, resultNotification, resultRepeat, groupSchedule);
     }
 
     @Transactional
     public void deleteById(long scheduleId, long calendarId, long userId) {
-        if(scheduleRepository.getRepeatId(scheduleId, userId).isPresent()) {
+        ScheduleEntity schedule = scheduleRepository.findById(scheduleId).orElseThrow(
+            () -> new ScheduleException("Not found schedule")
+        );
+
+        if (schedule.getRepeatId() != null) {
             throw new CustomException("has repeat-id");
         }
 
-        CalendarUtility.checkCalendarAuthority(userId, calendarId, groupUserService, userCalendarService);
+        CalendarUtility.checkCalendarAuthority(userId, schedule.getUserId(), calendarId, schedule.getId(), groupUserService, userCalendarService, scheduleGroupService);
 
         try {
             scheduleNotificationRepository.deleteByScheduleId(scheduleId);
@@ -262,6 +283,7 @@ public class ScheduleService {
             //자신을 제외한 반복 일정이 없다면 반복 일정을 삭제해준다.
             if (scheduleRepository.isLastRemainingRepeatSchedule(standardSchedule.getRepeatId())) {
                 scheduleRepeatRepository.deleteById(standardSchedule.getRepeatId());
+                scheduleGroupService.deleteScheduleGroup(scheduleId);
                 return;
             }
 
@@ -294,6 +316,7 @@ public class ScheduleService {
 
         if (scheduleRepository.isLastRemainingRepeatSchedule(standardSchedule.getRepeatId())) {
             scheduleRepeatRepository.deleteById(standardSchedule.getRepeatId());
+            scheduleGroupService.deleteScheduleGroup(scheduleId);
         }
     }
 
