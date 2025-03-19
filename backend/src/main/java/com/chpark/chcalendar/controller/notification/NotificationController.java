@@ -1,6 +1,8 @@
 package com.chpark.chcalendar.controller.notification;
 
 import com.chpark.chcalendar.dto.notification.NotificationDto;
+import com.chpark.chcalendar.dto.notification.NotificationScheduleDto;
+import com.chpark.chcalendar.dto.schedule.ScheduleGroupDto;
 import com.chpark.chcalendar.enumClass.NotificationCategory;
 import com.chpark.chcalendar.security.JwtTokenProvider;
 import com.chpark.chcalendar.service.notification.NotificationService;
@@ -43,7 +45,21 @@ public class NotificationController {
         long userId = jwtTokenProvider.getUserIdFromToken(token);
 
         NotificationService notification =  notificationService.get(NotificationCategory.GROUP);
-        notification.sendInviteNotification(userId, groupId, nickname);
+        notification.sendInviteNotification(userId, groupId, NotificationCategory.GROUP, nickname);
+
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/notifications/schedules/{scheduleId}/invite")
+    public ResponseEntity<String> sendScheduleInviteNotification(@NotNull @PathVariable("scheduleId") Long scheduleId,
+                                                                 @RequestBody NotificationScheduleDto NotificationScheduleList,
+                                                                 HttpServletRequest request) {
+
+        String token = jwtTokenProvider.resolveToken(request);
+        long userId = jwtTokenProvider.getUserIdFromToken(token);
+
+        NotificationService notification =  notificationService.get(NotificationCategory.SCHEDULE);
+        notification.sendInviteNotification(userId, scheduleId, NotificationScheduleList, NotificationCategory.GROUP);
 
         return ResponseEntity.ok().build();
     }

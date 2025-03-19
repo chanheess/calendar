@@ -21,18 +21,18 @@ public class ScheduleGroupService {
     private final ScheduleGroupRepository scheduleGroupRepository;
 
     @Transactional
-    public List<ScheduleGroupDto> createScheduleGroup(long userId, long scheduleId, Set<ScheduleGroupDto> scheduleGroupList, boolean addAdmin) {
+    public List<ScheduleGroupDto> createScheduleGroup(long userId, long scheduleId, Set<ScheduleGroupDto> scheduleGroupList, boolean isFirstCreate) {
         if (scheduleGroupList.isEmpty()) {
             return new ArrayList<>();
         }
 
-        if (addAdmin) {
+        List<ScheduleGroupEntity> scheduleGroupEntityList = ScheduleGroupEntity
+                .fromScheduleGroupDtoList(scheduleId, scheduleGroupList.stream().toList());
+
+        if (isFirstCreate) {
             ScheduleGroupDto scheduleGroupDto = new ScheduleGroupDto(FileAuthority.ADMIN, InvitationStatus.ACCEPTED, userId);
             scheduleGroupList.add(scheduleGroupDto);
         }
-
-        List<ScheduleGroupEntity> scheduleGroupEntityList = ScheduleGroupEntity
-                .fromScheduleGroupDtoList(scheduleId, scheduleGroupList.stream().toList());
 
         return ScheduleGroupDto.fromScheduleGroupEntityList(scheduleGroupRepository.saveAll(scheduleGroupEntityList));
 

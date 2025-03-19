@@ -1,6 +1,7 @@
 package com.chpark.chcalendar.service.notification;
 
 import com.chpark.chcalendar.dto.notification.NotificationDto;
+import com.chpark.chcalendar.dto.notification.NotificationScheduleDto;
 import com.chpark.chcalendar.entity.GroupUserEntity;
 import com.chpark.chcalendar.entity.NotificationEntity;
 import com.chpark.chcalendar.enumClass.NotificationCategory;
@@ -28,6 +29,8 @@ public class NotificationService {
 
     protected final RedisTemplate<String, Object> redisTemplate;
 
+    protected String messageFrom;
+
 
     //알림 가져오기
     @Transactional
@@ -50,17 +53,17 @@ public class NotificationService {
         return result;
     }
 
-    public void sendInviteNotification(long userId, long groupId, String nickname) {
+    public void sendInviteNotification(long userId, long groupId, NotificationCategory category, String nickname) {
 
         long inviteUserId = userService.findUserId(nickname);
 
         GroupUserEntity userInfo = groupUserService.checkGroupUserAuthority(userId, groupId);
         groupUserService.checkGroupUserExists(groupId, inviteUserId);
 
-        String message = userInfo.getGroupTitle() + "캘린더에서 " + nickname + "님을 초대합니다.";
+        String message = userInfo.getGroupTitle() + messageFrom + nickname + "님을 초대합니다.";
         NotificationEntity entity = new NotificationEntity(
                 inviteUserId,
-                NotificationCategory.GROUP,
+                category,
                 groupId,
                 NotificationType.INVITE,
                 0L,
@@ -68,6 +71,11 @@ public class NotificationService {
                 2592000L);
 
         notificationRepository.save(entity);
+    }
+
+    @Transactional
+    public void sendInviteNotification(long userId, long scheduleId, NotificationScheduleDto notificationScheduleList, NotificationCategory category) {
+        //자식 클래스에서 정의
     }
 
     public void deleteNotification(long userId, NotificationDto notificationDto) {

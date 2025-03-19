@@ -1,6 +1,7 @@
 package com.chpark.chcalendar.service.notification;
 
 import com.chpark.chcalendar.dto.notification.NotificationDto;
+import com.chpark.chcalendar.dto.notification.NotificationScheduleDto;
 import com.chpark.chcalendar.entity.GroupUserEntity;
 import com.chpark.chcalendar.entity.NotificationEntity;
 import com.chpark.chcalendar.enumClass.NotificationCategory;
@@ -13,11 +14,14 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 public class NotificationScheduleService extends NotificationService {
 
     public NotificationScheduleService(NotificationRepository notificationRepository, GroupUserService groupUserService, UserService userService, RedisTemplate<String, Object> redisTemplate, ScheduleGroupService scheduleGroupService) {
         super(notificationRepository, groupUserService, userService, redisTemplate);
+        messageFrom = "일정에서 ";
     }
 
     @Transactional
@@ -26,36 +30,26 @@ public class NotificationScheduleService extends NotificationService {
         deleteNotification(userId, notificationDto);
     }
 
-    //알림 발송 기능 추가해주기
-//    public void sendInviteNotification(long userId, groupId, ) {
-//        //발송 정보?
-//        //메시지 그룹 카테고리 유저아이디 캘린더 아이디
-//
-//        //스케쥴 그룹을 추가하기 위한 정보가 필요하다?
-//        //
-//
-//    }
-
-
-
-    public void sendInviteNotification(long userId, long groupId, String nickname) {
-
-        long inviteUserId = userService.findUserId(nickname);
+    @Transactional
+    public void sendInviteNotification(long userId, long scheduleId, NotificationScheduleDto notificationSchedule, NotificationCategory category) {
+        long groupId = notificationSchedule.getGroupId();
 
         GroupUserEntity userInfo = groupUserService.checkGroupUserAuthority(userId, groupId);
-        groupUserService.checkGroupUserExists(groupId, inviteUserId);
+        notificationSchedule.getScheduleGroupDto().forEach((nickname, scheduleGroupDto) -> {
+            groupUserService.checkGroupUserExists(groupId, scheduleGroupDto.getUserId());
 
-        String message = userInfo.getGroupTitle() + "캘린더에서 " + nickname + "님을 초대합니다.";
-        NotificationEntity entity = new NotificationEntity(
-                inviteUserId,
-                NotificationCategory.GROUP,
-                groupId,
-                NotificationType.INVITE,
-                0L,
-                message,
-                2592000L);
+            String message = userInfo.getGroupTitle() + messageFrom + nickname + "님을 초대합니다.";
+            NotificationEntity entity = new NotificationEntity(
+                    scheduleGroupDto.getUserId(),
+                    category,
+                    scheduleId,
+                    NotificationType.INVITE,
+                    0L,
+                    message,
+                    2592000L);
 
-        notificationRepository.save(entity);
+            notificationRepository.save(entity);
+        });
     }
 
 }

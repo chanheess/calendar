@@ -14,6 +14,7 @@ public class NotificationGroupService extends NotificationService {
 
     public NotificationGroupService(NotificationRepository notificationRepository, GroupUserService groupUserService, UserService userService, RedisTemplate<String, Object> redisTemplate) {
         super(notificationRepository, groupUserService, userService, redisTemplate);
+        messageFrom = "캘린더에서 ";
     }
 
     @Transactional

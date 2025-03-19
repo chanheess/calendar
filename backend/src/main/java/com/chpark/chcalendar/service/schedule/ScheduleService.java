@@ -174,7 +174,7 @@ public class ScheduleService {
             List<ScheduleGroupDto> groupSchedule = scheduleGroupService.updateScheduleGroup(userId, scheduleEntity.getUserId(), scheduleId, scheduleDto.getGroupDto().stream().toList());
 
             if (!scheduleRepeatService.isMasterSchedule(scheduleEntity.getRepeatId(), scheduleId)) {
-                groupSchedule = scheduleGroupService.createScheduleGroup(scheduleEntity.getUserId(), scheduleId, scheduleDto.getGroupDto(), true);
+                groupSchedule = scheduleGroupService.createScheduleGroup(updateDto.getUserId(), scheduleId, scheduleDto.getGroupDto(), false);
             }
 
             return new ScheduleDto.Response(updateDto, updateNotificationDto, updateRepeatDto, groupSchedule);
@@ -201,7 +201,7 @@ public class ScheduleService {
         List<ScheduleGroupDto> groupSchedule = scheduleGroupService.updateScheduleGroup(userId, scheduleEntity.getUserId(), scheduleId, scheduleDto.getGroupDto().stream().toList());
 
         if (!scheduleRepeatService.isMasterSchedule(scheduleEntity.getRepeatId(), scheduleId)) {
-            groupSchedule = scheduleGroupService.createScheduleGroup(scheduleEntity.getUserId(), scheduleId, scheduleDto.getGroupDto(), true);
+            groupSchedule = scheduleGroupService.createScheduleGroup(resultSchedule.getUserId(), scheduleId, scheduleDto.getGroupDto(), false);
         }
 
         return new ScheduleDto.Response(resultSchedule, resultNotification, groupSchedule);
