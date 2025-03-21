@@ -2,7 +2,6 @@ package com.chpark.chcalendar.controller.notification;
 
 import com.chpark.chcalendar.dto.notification.NotificationDto;
 import com.chpark.chcalendar.dto.notification.NotificationScheduleDto;
-import com.chpark.chcalendar.dto.schedule.ScheduleGroupDto;
 import com.chpark.chcalendar.enumClass.NotificationCategory;
 import com.chpark.chcalendar.security.JwtTokenProvider;
 import com.chpark.chcalendar.service.notification.NotificationService;

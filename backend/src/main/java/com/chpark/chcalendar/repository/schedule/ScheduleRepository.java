@@ -23,16 +23,20 @@ public interface ScheduleRepository extends JpaRepository<ScheduleEntity, Long> 
     List<ScheduleEntity> findSchedulesByCalendarId(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end, @Param("calendarId") Long calendarId);
 
     @Query("""
-            SELECT s
-              FROM ScheduleEntity s
-             WHERE s.calendarId IN :calendarIds
-               AND s.startAt <= :end
-               AND s.endAt >= :start
-               AND (s.startAt > :cursorStartAt
-                    OR (s.startAt = :cursorStartAt AND s.id > :cursorId))
-          ORDER BY s.startAt ASC, s.id ASC
-          """)
-    List<ScheduleEntity> findSchedulesByCalendarId(
+    SELECT DISTINCT s
+          FROM ScheduleEntity s
+          LEFT JOIN ScheduleGroupEntity sg
+                 ON s.id = sg.scheduleId
+         WHERE (s.userId = :userId OR sg.userId = :userId)
+           AND s.calendarId IN :calendarIds
+           AND s.startAt <= :end
+           AND s.endAt >= :start
+           AND (s.startAt > :cursorStartAt
+                OR (s.startAt = :cursorStartAt AND s.id > :cursorId))
+      ORDER BY s.startAt ASC, s.id ASC
+    """)
+    List<ScheduleEntity> findSchedulesByCalendarIdAndUser(
+            @Param("userId") Long userId,
             @Param("calendarIds") List<Long> calendarIds,
             @Param("start") LocalDateTime start,
             @Param("end") LocalDateTime end,

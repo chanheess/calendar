@@ -11,6 +11,11 @@
   transition: opacity 0.3s ease-in-out;
 }
 
+.button.verySmall {
+  padding: 0px;
+  font-size: 12px;
+}
+
 .button.small {
   padding: 5px 10px;
   font-size: 14px;

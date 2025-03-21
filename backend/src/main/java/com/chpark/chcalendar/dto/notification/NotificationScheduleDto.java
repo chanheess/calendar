@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.util.Map;
+import java.util.List;
 
 @Getter
 @NoArgsConstructor
@@ -13,8 +13,7 @@ public class NotificationScheduleDto {
 
     long groupId;
 
-    //string: nickname
     @NotNull
-    Map<String, ScheduleGroupDto> scheduleGroupDto;
+    List<ScheduleGroupDto> scheduleGroupDto;
 
 }

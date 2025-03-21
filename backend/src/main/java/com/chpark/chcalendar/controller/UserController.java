@@ -115,6 +115,14 @@ public class UserController {
         return ResponseEntity.ok().body(userService.findUserInfo(userId));
     }
 
+    @GetMapping("/user/id")
+    public ResponseEntity<Long> getUserId(HttpServletRequest request) {
+        String token = jwtTokenProvider.resolveToken(request);
+        long userId = jwtTokenProvider.getUserIdFromToken(token);
+
+        return ResponseEntity.ok().body(userId);
+    }
+
     @PatchMapping("/user/info")
     public ResponseEntity<String> updateUserInfo(@RequestBody UserDto.UserInfo userInfo, HttpServletRequest request) {
         String token = jwtTokenProvider.resolveToken(request);

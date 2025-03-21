@@ -67,7 +67,7 @@ public class ScheduleService {
         ScheduleDto resultSchedule = this.create(scheduleDto.getScheduleDto(), userId);
         List<ScheduleNotificationDto> resultNotifications = scheduleNotificationService.create(userId, resultSchedule.getId(), scheduleDto.getNotificationDto().stream().toList());
         ScheduleRepeatDto resultRepeat = scheduleRepeatService.create(resultSchedule.getId(), scheduleDto.getRepeatDto(), userId);
-        List<ScheduleGroupDto> groupSchedule = scheduleGroupService.createScheduleGroup(userId, resultSchedule.getId(), scheduleDto.getGroupDto(), true);
+        List<ScheduleGroupDto> groupSchedule = scheduleGroupService.createScheduleGroup(resultSchedule.getId(), scheduleDto.getGroupDto());
 
         return new ScheduleDto.Response(resultSchedule, resultNotifications, resultRepeat, groupSchedule);
     }
@@ -108,6 +108,9 @@ public class ScheduleService {
         if (isRepeat) {
             schedule.setRepeatId(null);
         }
+
+        this.validateScheduleDto(scheduleDto);
+        schedule.setCalendarId(scheduleDto.getCalendarId());
 
         return new ScheduleDto(scheduleRepository.save(schedule));
     }
@@ -174,7 +177,7 @@ public class ScheduleService {
             List<ScheduleGroupDto> groupSchedule = scheduleGroupService.updateScheduleGroup(userId, scheduleEntity.getUserId(), scheduleId, scheduleDto.getGroupDto().stream().toList());
 
             if (!scheduleRepeatService.isMasterSchedule(scheduleEntity.getRepeatId(), scheduleId)) {
-                groupSchedule = scheduleGroupService.createScheduleGroup(updateDto.getUserId(), scheduleId, scheduleDto.getGroupDto(), false);
+                groupSchedule = scheduleGroupService.createScheduleGroup(scheduleId, scheduleDto.getGroupDto());
             }
 
             return new ScheduleDto.Response(updateDto, updateNotificationDto, updateRepeatDto, groupSchedule);
@@ -201,7 +204,7 @@ public class ScheduleService {
         List<ScheduleGroupDto> groupSchedule = scheduleGroupService.updateScheduleGroup(userId, scheduleEntity.getUserId(), scheduleId, scheduleDto.getGroupDto().stream().toList());
 
         if (!scheduleRepeatService.isMasterSchedule(scheduleEntity.getRepeatId(), scheduleId)) {
-            groupSchedule = scheduleGroupService.createScheduleGroup(resultSchedule.getUserId(), scheduleId, scheduleDto.getGroupDto(), false);
+            groupSchedule = scheduleGroupService.createScheduleGroup(scheduleId, scheduleDto.getGroupDto());
         }
 
         return new ScheduleDto.Response(resultSchedule, resultNotification, groupSchedule);
@@ -363,7 +366,7 @@ public class ScheduleService {
         List<Long> calendars = CalendarUtility.getUserCalendars(userId, groupUserService, userCalendarService);
 
         Pageable pageable = PageRequest.of(0, pageSize);
-        List<ScheduleEntity> events = scheduleRepository.findSchedulesByCalendarId(calendars, start, end, cursorTime, cursorId, pageable);
+        List<ScheduleEntity> events = scheduleRepository.findSchedulesByCalendarIdAndUser(userId, calendars, start, end, cursorTime, cursorId, pageable);
 
         List<ScheduleDto> dtos = events.stream()
                 .map(ScheduleDto::fromScheduleEntity)

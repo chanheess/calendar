@@ -14,8 +14,6 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-
 @Service
 public class NotificationScheduleService extends NotificationService {
 
@@ -35,10 +33,10 @@ public class NotificationScheduleService extends NotificationService {
         long groupId = notificationSchedule.getGroupId();
 
         GroupUserEntity userInfo = groupUserService.checkGroupUserAuthority(userId, groupId);
-        notificationSchedule.getScheduleGroupDto().forEach((nickname, scheduleGroupDto) -> {
+        notificationSchedule.getScheduleGroupDto().forEach(scheduleGroupDto -> {
             groupUserService.checkGroupUserExists(groupId, scheduleGroupDto.getUserId());
 
-            String message = userInfo.getGroupTitle() + messageFrom + nickname + "님을 초대합니다.";
+            String message = userInfo.getGroupTitle() + messageFrom + scheduleGroupDto.getUserNickname() + "님을 초대합니다.";
             NotificationEntity entity = new NotificationEntity(
                     scheduleGroupDto.getUserId(),
                     category,

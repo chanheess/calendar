@@ -12,7 +12,10 @@ import SchedulePopup from "./popups/SchedulePopup";
 import LoadingOverlay from "components/LoadingOverlay";
 
 const CalendarComponent = ({ selectedCalendarList }) => {
-  // 팝업 / 스케줄 팝업 상태
+  // 현재 사용자 id 상태 추가
+  const [currentUserId, setCurrentUserId] = useState(null);
+
+  // 팝업 / 스케줄 팝업 상태 등 기존 상태들...
   const [popupVisible, setPopupVisible] = useState(false);
   const [popupData, setPopupData] = useState([]);
   const [popupTitle, setPopupTitle] = useState("");
@@ -21,23 +24,35 @@ const CalendarComponent = ({ selectedCalendarList }) => {
   const [schedulePopupMode, setSchedulePopupMode] = useState("create");
   const [schedulePopupData, setSchedulePopupData] = useState(null);
 
-  // 이벤트 / 로딩 / "더보기" 상태
-  const [fetchEvents, setFetchEvents] = useState([]);   // FullCalendar에 표시할 최종 이벤트
+  const [fetchEvents, setFetchEvents] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [autoLoadComplete, setAutoLoadComplete] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
 
-  // 캐시 / 커서 / 이전 범위 / 중복 fetch 방지
   const eventCacheRef = useRef([]);
   const cursorTimeRef = useRef("");
   const cursorIdRef = useRef(null);
   const prevStartRef = useRef(null);
   const prevEndRef = useRef(null);
-  const isFetchingRef = useRef(false); // 중복 fetch 방지
+  const isFetchingRef = useRef(false);
   const calendarRef = useRef(null);
 
   const pageSize = 1000;
   const maxLoops = 10;
+
+  // GET /user/id 호출해서 현재 사용자 id 저장
+  useEffect(() => {
+    axios.get("/user/id", {
+      withCredentials: true,
+      headers: { "Content-Type": "application/json" }
+    })
+      .then(response => {
+        setCurrentUserId(response.data);
+      })
+      .catch(error => {
+        console.error("Error fetching user id:", error);
+      });
+  }, []);
 
   const loadEvents = useCallback(async (startDateObj, endDateObj, firstLoad) => {
     if (!selectedCalendarList || Object.keys(selectedCalendarList).length === 0) {
@@ -122,10 +137,7 @@ const CalendarComponent = ({ selectedCalendarList }) => {
     }
   }, [selectedCalendarList, pageSize, maxLoops]);
 
-
-  // selectedCalendarList 변경 시 캐시/상태 초기화
   useEffect(() => {
-    // 캐시 및 커서, 이전 범위, "더보기" 상태 모두 리셋
     eventCacheRef.current = [];
     cursorTimeRef.current = "";
     cursorIdRef.current = null;
@@ -134,7 +146,6 @@ const CalendarComponent = ({ selectedCalendarList }) => {
     setFetchEvents([]);
     setAutoLoadComplete(false);
 
-    // 이미 Calendar가 마운트되어 있다면, 현재 뷰 범위로 재로드
     if (calendarRef.current) {
       const calApi = calendarRef.current.getApi();
       const v = calApi.view;
@@ -142,7 +153,6 @@ const CalendarComponent = ({ selectedCalendarList }) => {
         loadEvents(v.activeStart, v.activeEnd, true);
       }
     }
-
   }, [selectedCalendarList, refreshKey, loadEvents]);
 
   const handleDatesSet = (arg) => {
@@ -159,16 +169,12 @@ const CalendarComponent = ({ selectedCalendarList }) => {
       setFetchEvents([]);
       setAutoLoadComplete(false);
 
-      // 새로운 범위 기록
       prevStartRef.current = start;
       prevEndRef.current = end;
 
-      // 해당 범위 일정 자동 로드
       loadEvents(start, end, true);
     }
   };
-
-
 
   const handleLoadMore = async () => {
     if (!prevStartRef.current) {
@@ -349,6 +355,7 @@ const CalendarComponent = ({ selectedCalendarList }) => {
           eventDetails={schedulePopupData}
           onClose={closeAllPopups}
           selectedCalendarList={selectedCalendarList}
+          currentUserId={currentUserId} // 전달
         />
       )}
     </div>

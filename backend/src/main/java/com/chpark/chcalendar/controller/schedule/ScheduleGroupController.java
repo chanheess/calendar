@@ -28,11 +28,11 @@ public class ScheduleGroupController {
         return ResponseEntity.ok(scheduleGroupService.getScheduleGroupUserList(userId, scheduleId));
     }
 
-    @PutMapping("/schedules/{scheduleId}/group")
+    @PatchMapping("/schedules/{scheduleId}/group")
     public ResponseEntity<ScheduleGroupDto> updateScheduleGroup(@PathVariable("scheduleId") long scheduleId,
                                                                 @RequestBody ScheduleGroupDto requestGroup) {
 
-        return ResponseEntity.ok(scheduleGroupService.updateScheduleGroup(scheduleId, requestGroup));
+        return ResponseEntity.ok(scheduleGroupService.updateStatus(scheduleId, requestGroup));
     }
 
 }

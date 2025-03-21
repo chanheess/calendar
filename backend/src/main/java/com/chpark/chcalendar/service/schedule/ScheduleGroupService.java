@@ -1,11 +1,13 @@
 package com.chpark.chcalendar.service.schedule;
 
 import com.chpark.chcalendar.dto.schedule.ScheduleGroupDto;
+import com.chpark.chcalendar.entity.schedule.ScheduleEntity;
 import com.chpark.chcalendar.entity.schedule.ScheduleGroupEntity;
 import com.chpark.chcalendar.enumClass.FileAuthority;
-import com.chpark.chcalendar.enumClass.InvitationStatus;
 import com.chpark.chcalendar.exception.ScheduleException;
 import com.chpark.chcalendar.repository.schedule.ScheduleGroupRepository;
+import com.chpark.chcalendar.repository.schedule.ScheduleRepository;
+import com.chpark.chcalendar.service.user.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,9 +21,10 @@ import java.util.stream.Collectors;
 public class ScheduleGroupService {
 
     private final ScheduleGroupRepository scheduleGroupRepository;
+    private final ScheduleRepository scheduleRepository;
 
     @Transactional
-    public List<ScheduleGroupDto> createScheduleGroup(long userId, long scheduleId, Set<ScheduleGroupDto> scheduleGroupList, boolean isFirstCreate) {
+    public List<ScheduleGroupDto> createScheduleGroup(long scheduleId, Set<ScheduleGroupDto> scheduleGroupList) {
         if (scheduleGroupList.isEmpty()) {
             return new ArrayList<>();
         }
@@ -29,26 +32,24 @@ public class ScheduleGroupService {
         List<ScheduleGroupEntity> scheduleGroupEntityList = ScheduleGroupEntity
                 .fromScheduleGroupDtoList(scheduleId, scheduleGroupList.stream().toList());
 
-        if (isFirstCreate) {
-            ScheduleGroupDto scheduleGroupDto = new ScheduleGroupDto(FileAuthority.ADMIN, InvitationStatus.ACCEPTED, userId);
-            scheduleGroupList.add(scheduleGroupDto);
-        }
-
         return ScheduleGroupDto.fromScheduleGroupEntityList(scheduleGroupRepository.saveAll(scheduleGroupEntityList));
-
     }
 
     @Transactional
     public List<ScheduleGroupDto> getScheduleGroupUserList(long userId, long scheduleId) {
-
-        ScheduleGroupEntity scheduleGroupEntity = scheduleGroupRepository.findByScheduleIdAndUserId(scheduleId, userId).orElseThrow(
-                () -> new ScheduleException("User not invited to the event.")
+        Optional<ScheduleGroupEntity> scheduleGroupEntity = scheduleGroupRepository.findByScheduleIdAndUserId(scheduleId, userId);
+        ScheduleEntity scheduleEntity = scheduleRepository.findById(scheduleId).orElseThrow(
+                () -> new ScheduleException("Not found schedule")
         );
+
+        if (scheduleEntity.getUserId() != userId && scheduleGroupEntity.isEmpty()) {
+            return new ArrayList<>();
+        }
 
         List<ScheduleGroupEntity> scheduleGroupEntityList = scheduleGroupRepository.findByScheduleId(scheduleId);
         List<ScheduleGroupDto> result = null;
 
-        if (scheduleGroupEntity.getAuthority() == FileAuthority.ADMIN) {
+        if (scheduleEntity.getUserId() == userId || scheduleGroupEntity.get().getAuthority() == FileAuthority.ADMIN) {
             result = ScheduleGroupDto.fromScheduleGroupEntityList(scheduleGroupEntityList);
         } else {
             result = ScheduleGroupDto.fromUnauthorizedUserEntityList(scheduleGroupEntityList);
@@ -60,12 +61,14 @@ public class ScheduleGroupService {
     @Transactional
     public List<ScheduleGroupDto> updateScheduleGroup(long userId, long createdUserId, long scheduleId, List<ScheduleGroupDto> requestNewGroupList) {
 
-        ScheduleGroupEntity targetUserInfo = scheduleGroupRepository.findByScheduleIdAndUserId(scheduleId, userId).orElseThrow(
-                () -> new ScheduleException("User not invited to the event.")
-        );
+        Optional<ScheduleGroupEntity> targetUserInfo = scheduleGroupRepository.findByScheduleIdAndUserId(scheduleId, userId);
+
+        if (targetUserInfo.isEmpty()) {
+            return createScheduleGroup(scheduleId, new HashSet<>(requestNewGroupList));
+        }
 
         if (userId == createdUserId ||
-            targetUserInfo.getAuthority() == FileAuthority.ADMIN) {
+            targetUserInfo.get().getAuthority() == FileAuthority.ADMIN) {
             List<ScheduleGroupEntity> currentGroupList = scheduleGroupRepository.findByScheduleId(scheduleId);
 
             // DTO 목록에서 ID가 있는 항목들을 Map으로 만듭니다.
@@ -88,14 +91,7 @@ public class ScheduleGroupService {
             //없는 것은 생성
             List<ScheduleGroupEntity> newList = requestNewGroupList.stream()
                     .filter(dto -> dto.getId() == null)
-                    .map(dto -> {
-                        ScheduleGroupEntity newEntity = new ScheduleGroupEntity();
-                        newEntity.setScheduleId(scheduleId);
-                        newEntity.setUserId(dto.getUserId());
-                        newEntity.setStatus(dto.getStatus());
-                        newEntity.setAuthority(dto.getAuthority());
-                        return newEntity;
-                    })
+                    .map(dto -> new ScheduleGroupEntity(scheduleId, dto))
                     .collect(Collectors.toList());
             if (!newList.isEmpty()) {
                 scheduleGroupRepository.saveAll(newList);
@@ -110,9 +106,13 @@ public class ScheduleGroupService {
     }
 
     @Transactional
-    public ScheduleGroupDto updateScheduleGroup(long scheduleId, ScheduleGroupDto requestNewGroup) {
-        ScheduleGroupEntity scheduleGroupEntity = new ScheduleGroupEntity(scheduleId, requestNewGroup);
-        scheduleGroupEntity = scheduleGroupRepository.save(scheduleGroupEntity);
+    public ScheduleGroupDto updateStatus(long scheduleId, ScheduleGroupDto requestNewGroup) {
+        ScheduleGroupEntity scheduleGroupEntity = scheduleGroupRepository.findByScheduleIdAndUserId(scheduleId, requestNewGroup.getUserId()).orElseThrow(
+                () -> new ScheduleException("Not found user")
+        );
+
+        scheduleGroupEntity.setStatus(requestNewGroup.getStatus());
+        scheduleGroupRepository.save(scheduleGroupEntity);
 
         return new ScheduleGroupDto(scheduleGroupEntity);
     }
