@@ -240,7 +240,6 @@ import RepeatPopup from "./RepeatPopup";
 
       // create 모드인 경우
       if (mode === "create") {
-        setShowGroupUsers(true);
         const mergedUsers = allUsers.map((user) => ({
           ...user,
           selected: false,
@@ -254,7 +253,6 @@ import RepeatPopup from "./RepeatPopup";
 
       // edit 모드인데 invitedUsers가 없다면
       if (mode === "edit" && invitedUsers.length === 0) {
-        setShowGroupUsers(true);
         const fallbackUsers = allUsers.map((user) => ({
           ...user,
           selected: false,
