@@ -24,6 +24,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.swing.text.html.Option;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -257,15 +258,17 @@ public class ScheduleService {
 
     @Transactional
     public void deleteById(long scheduleId, long calendarId, long userId) {
-        ScheduleEntity schedule = scheduleRepository.findById(scheduleId).orElseThrow(
-            () -> new ScheduleException("Not found schedule")
-        );
+        Optional<ScheduleEntity> schedule = scheduleRepository.findById(scheduleId);
 
-        if (schedule.getRepeatId() != null) {
+        if (schedule.isEmpty()) {
+            return;
+        }
+
+        if (schedule.get().getRepeatId() != null) {
             throw new CustomException("has repeat-id");
         }
 
-        CalendarUtility.checkCalendarAuthority(userId, schedule.getUserId(), calendarId, schedule.getId(), groupUserService, userCalendarService, scheduleGroupService);
+        CalendarUtility.checkCalendarAuthority(userId, schedule.get().getUserId(), calendarId, schedule.get().getId(), groupUserService, userCalendarService, scheduleGroupService);
 
         try {
             scheduleNotificationRepository.deleteByScheduleId(scheduleId);
