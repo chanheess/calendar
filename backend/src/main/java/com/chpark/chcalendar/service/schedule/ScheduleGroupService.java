@@ -97,6 +97,7 @@ public class ScheduleGroupService {
                     entity.setStatus(dto.getStatus());
                     scheduleGroupRepository.save(entity);
                 } else {
+                    notificationScheduleService.deleteScheduleNotification(userId, scheduleDto.getId());
                     scheduleGroupRepository.delete(entity);
                 }
             }
@@ -149,11 +150,12 @@ public class ScheduleGroupService {
     @Transactional
     public void deleteScheduleGroup(long scheduleId) {
         scheduleGroupRepository.deleteByScheduleId(scheduleId);
+        deleteScheduleNotification(scheduleId);
     }
 
     @Transactional
     public void deleteScheduleNotification(long scheduleId) {
-        notificationScheduleService.deleteScheduleNotification(scheduleId);
+        notificationScheduleService.deleteScheduleNotifications(scheduleId);
     }
 
 }

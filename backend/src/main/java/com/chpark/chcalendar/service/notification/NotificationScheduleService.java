@@ -85,10 +85,17 @@ public class NotificationScheduleService extends NotificationService {
     }
 
     @Transactional
-    public void deleteScheduleNotification(long scheduleId) {
+    public void deleteScheduleNotifications(long scheduleId) {
         String pattern = "user:*:" + NotificationCategory.SCHEDULE + ":" + scheduleId + ":" + NotificationType.INVITE + ":*";
         notificationRepository.deletePatten(pattern);
     }
+
+    @Transactional
+    public void deleteScheduleNotification(long userId, long scheduleId) {
+        String pattern = "user:" + userId + ":" + NotificationCategory.SCHEDULE + ":" + scheduleId + ":" + NotificationType.INVITE + ":*";
+        notificationRepository.deletePatten(pattern);
+    }
+
 
 
 }
