@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import styles from "styles/Popup.module.css";
 import Button from "components/Button";
 import Toggle from "components/Toggle";
@@ -130,11 +130,8 @@ import RepeatPopup from "./RepeatPopup";
   const [isRepeatEnabled, setIsRepeatEnabled] = useState(false);
   const [groupUserList, setGroupUserList] = useState([]);
   const [showGroupUsers, setShowGroupUsers] = useState(false);
-  const [selectAll, setSelectAll] = useState(false);
   const [repeatPopupVisible, setRepeatPopupVisible] = useState(false);
   const [repeatPopupMode, setRepeatPopupMode] = useState("");
-  const [sortConfig, setSortConfig] = useState({ key: null, direction: "asc" });
-  const [isGroupFetched, setIsGroupFetched] = useState(false);
   const [participationStatus, setParticipationStatus] = useState(null);
 
   const currentUserPermission =
@@ -211,45 +208,39 @@ import RepeatPopup from "./RepeatPopup";
     loadEventDetails();
   }, [isOpen, mode, eventDetails, selectedCalendarList]);
 
-  // 그룹 사용자 로드
-  useEffect(() => {
-    if (
-      isOpen &&
-      selectedCalendarList[scheduleData.calendarId] &&
-      selectedCalendarList[scheduleData.calendarId].category === "GROUP"
-    ) {
-      loadGroupUsers();
-    }
-  }, [isOpen, mode, scheduleData.id, selectedCalendarList, scheduleData.calendarId]);
-
-  const loadGroupUsers = async () => {
+  const loadGroupUsers = useCallback(async () => {
     if (
       !selectedCalendarList[scheduleData.calendarId] ||
       selectedCalendarList[scheduleData.calendarId].category !== "GROUP"
     ) {
       return;
     }
-
     try {
-      // 그룹 내 전체 사용자
-      const allUsersResponse = await axios.get(`/groups/${scheduleData.calendarId}/users`, {
-        withCredentials: true,
-        headers: { "Content-Type": "application/json" },
-      });
+      // 그룹 내 전체 사용자 가져오기
+      const allUsersResponse = await axios.get(
+        `/groups/${scheduleData.calendarId}/users`,
+        {
+          withCredentials: true,
+          headers: { "Content-Type": "application/json" },
+        }
+      );
       const allUsers = allUsersResponse.data;
 
       let invitedUsers = [];
       if (mode === "edit") {
-        // 이미 초대된 사용자 목록
-        const scheduleGroupResponse = await axios.get(`/schedules/${scheduleData.id}/group`, {
-          withCredentials: true,
-          headers: { "Content-Type": "application/json" },
-        });
+        const scheduleGroupResponse = await axios.get(
+          `/schedules/${scheduleData.id}/group`,
+          {
+            withCredentials: true,
+            headers: { "Content-Type": "application/json" },
+          }
+        );
         invitedUsers = scheduleGroupResponse.data;
       }
 
-      // create 모드이면 무조건 Available/Selected 모두 보이도록
+      // create 모드인 경우
       if (mode === "create") {
+        setShowGroupUsers(true);
         const mergedUsers = allUsers.map((user) => ({
           ...user,
           selected: false,
@@ -258,13 +249,12 @@ import RepeatPopup from "./RepeatPopup";
           userNickname: user.userNickname || "",
         }));
         setGroupUserList(mergedUsers);
-        setIsGroupFetched(false);
         return;
       }
 
-      // edit 모드인데 invitedUsers가 아예 없으면 create처럼 처리
+      // edit 모드인데 invitedUsers가 없다면
       if (mode === "edit" && invitedUsers.length === 0) {
-        setIsGroupFetched(false);
+        setShowGroupUsers(true);
         const fallbackUsers = allUsers.map((user) => ({
           ...user,
           selected: false,
@@ -276,7 +266,7 @@ import RepeatPopup from "./RepeatPopup";
         return;
       }
 
-      // 그 외 (edit 모드 + invitedUsers 있음)
+      // edit 모드이며 invitedUsers가 있는 경우
       const mergedUsers = allUsers.map((user) => {
         const invited = invitedUsers.find((u) => u.userId === user.userId);
         if (user.userId === currentUserId) {
@@ -293,12 +283,22 @@ import RepeatPopup from "./RepeatPopup";
 
       setGroupUserList(mergedUsers);
       setShowGroupUsers(invitedUsers.length > 0 ? true : canManageGroup);
-      setIsGroupFetched(invitedUsers.length > 0);
     } catch (error) {
       console.error("Error loading group users:", error);
       setShowGroupUsers(false);
     }
-  };
+  }, [selectedCalendarList, scheduleData.calendarId, scheduleData.id, mode, currentUserId, canManageGroup]);
+
+  // 그룹 사용자 로드
+  useEffect(() => {
+    if (
+      isOpen &&
+      selectedCalendarList[scheduleData.calendarId] &&
+      selectedCalendarList[scheduleData.calendarId].category === "GROUP"
+    ) {
+      loadGroupUsers();
+    }
+  }, [isOpen, mode, scheduleData.id, selectedCalendarList, scheduleData.calendarId, loadGroupUsers]);
 
   // 일정/알림/반복 DTO 생성
   const getScheduleData = () => {
@@ -496,14 +496,6 @@ import RepeatPopup from "./RepeatPopup";
     setScheduleData((prev) => ({ ...prev, [field]: value }));
   };
 
-  // 그룹 사용자 SelectAll / 개별 선택 / 권한 변경 / 삭제
-  const handleSelectAll = () => {
-    const newSelectAll = !selectAll;
-    setSelectAll(newSelectAll);
-    setGroupUserList((prevList) =>
-      prevList.map((user) => ({ ...user, selected: newSelectAll }))
-    );
-  };
   const handleIndividualSelect = (index, isSelected) => {
     setGroupUserList((prevList) => {
       const newList = [...prevList];
@@ -526,10 +518,6 @@ import RepeatPopup from "./RepeatPopup";
     });
   };
 
-  // create 모드이거나 (edit 모드이면서 관리 가능한 경우)에만 Available/Selected 모두 표시
-  const availableUsers = (mode === "create" || canManageGroup)
-    ? groupUserList.filter((user) => !user.selected)
-    : [];
   const selectedUsers = groupUserList.filter((user) => user.selected);
 
   return (
