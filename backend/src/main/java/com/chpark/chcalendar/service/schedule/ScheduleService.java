@@ -67,7 +67,7 @@ public class ScheduleService {
         ScheduleDto resultSchedule = this.create(scheduleDto.getScheduleDto(), userId);
         List<ScheduleNotificationDto> resultNotifications = scheduleNotificationService.create(userId, resultSchedule.getId(), scheduleDto.getNotificationDto().stream().toList());
         ScheduleRepeatDto resultRepeat = scheduleRepeatService.create(resultSchedule.getId(), scheduleDto.getRepeatDto(), userId);
-        List<ScheduleGroupDto> groupSchedule = scheduleGroupService.createScheduleGroup(resultSchedule.getId(), scheduleDto.getGroupDto());
+        List<ScheduleGroupDto> groupSchedule = scheduleGroupService.createScheduleGroup(resultSchedule, scheduleDto.getGroupDto());
 
         return new ScheduleDto.Response(resultSchedule, resultNotifications, resultRepeat, groupSchedule);
     }
@@ -129,7 +129,7 @@ public class ScheduleService {
         ScheduleDto updateDto = this.update(scheduleId, scheduleDto.getScheduleDto(), userId);
         List<ScheduleNotificationDto> updateNotificationDto = scheduleNotificationService.update(userId, scheduleId, scheduleDto.getNotificationDto().stream().toList());
         ScheduleRepeatDto updateRepeatDto = null;
-        List<ScheduleGroupDto> groupScheduleDto = scheduleGroupService.updateScheduleGroup(userId, scheduleEntity.getUserId(), scheduleId, scheduleDto.getGroupDto().stream().toList());
+        List<ScheduleGroupDto> groupScheduleDto = scheduleGroupService.updateScheduleGroup(userId, updateDto, scheduleDto.getGroupDto().stream().toList());
 
         if (isRepeatChecked){
             updateRepeatDto = scheduleRepeatService.create(scheduleId, scheduleDto.getRepeatDto(), userId);
@@ -174,10 +174,10 @@ public class ScheduleService {
             ScheduleRepeatDto updateRepeatDto = scheduleRepeatService.create(scheduleId, scheduleDto.getRepeatDto(), userId);
 
             //그룹 일정 설정
-            List<ScheduleGroupDto> groupSchedule = scheduleGroupService.updateScheduleGroup(userId, scheduleEntity.getUserId(), scheduleId, scheduleDto.getGroupDto().stream().toList());
+            List<ScheduleGroupDto> groupSchedule = scheduleGroupService.updateScheduleGroup(userId, updateDto, scheduleDto.getGroupDto().stream().toList());
 
             if (!scheduleRepeatService.isMasterSchedule(scheduleEntity.getRepeatId(), scheduleId)) {
-                groupSchedule = scheduleGroupService.createScheduleGroup(scheduleId, scheduleDto.getGroupDto());
+                groupSchedule = scheduleGroupService.createScheduleGroup(updateDto, scheduleDto.getGroupDto());
             }
 
             return new ScheduleDto.Response(updateDto, updateNotificationDto, updateRepeatDto, groupSchedule);
@@ -199,15 +199,15 @@ public class ScheduleService {
 
         this.deleteCurrentOnlyRepeatSchedule(scheduleId, userId);
 
-        ScheduleDto resultSchedule = this.update(scheduleId, scheduleDto.getScheduleDto(), true, userId);
+        ScheduleDto updateDto = this.update(scheduleId, scheduleDto.getScheduleDto(), true, userId);
         List<ScheduleNotificationDto> resultNotification = scheduleNotificationService.update(userId, scheduleId, scheduleDto.getNotificationDto().stream().toList());
-        List<ScheduleGroupDto> groupSchedule = scheduleGroupService.updateScheduleGroup(userId, scheduleEntity.getUserId(), scheduleId, scheduleDto.getGroupDto().stream().toList());
+        List<ScheduleGroupDto> groupSchedule = scheduleGroupService.updateScheduleGroup(userId, updateDto, scheduleDto.getGroupDto().stream().toList());
 
         if (!scheduleRepeatService.isMasterSchedule(scheduleEntity.getRepeatId(), scheduleId)) {
-            groupSchedule = scheduleGroupService.createScheduleGroup(scheduleId, scheduleDto.getGroupDto());
+            groupSchedule = scheduleGroupService.createScheduleGroup(updateDto, scheduleDto.getGroupDto());
         }
 
-        return new ScheduleDto.Response(resultSchedule, resultNotification, groupSchedule);
+        return new ScheduleDto.Response(updateDto, resultNotification, groupSchedule);
     }
 
     @Transactional

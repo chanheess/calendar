@@ -1,13 +1,16 @@
 package com.chpark.chcalendar.service.schedule;
 
+import com.chpark.chcalendar.dto.notification.NotificationScheduleDto;
+import com.chpark.chcalendar.dto.schedule.ScheduleDto;
 import com.chpark.chcalendar.dto.schedule.ScheduleGroupDto;
 import com.chpark.chcalendar.entity.schedule.ScheduleEntity;
 import com.chpark.chcalendar.entity.schedule.ScheduleGroupEntity;
 import com.chpark.chcalendar.enumClass.FileAuthority;
+import com.chpark.chcalendar.enumClass.NotificationCategory;
 import com.chpark.chcalendar.exception.ScheduleException;
 import com.chpark.chcalendar.repository.schedule.ScheduleGroupRepository;
 import com.chpark.chcalendar.repository.schedule.ScheduleRepository;
-import com.chpark.chcalendar.service.user.UserService;
+import com.chpark.chcalendar.service.notification.NotificationScheduleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,17 +25,27 @@ public class ScheduleGroupService {
 
     private final ScheduleGroupRepository scheduleGroupRepository;
     private final ScheduleRepository scheduleRepository;
+    private final NotificationScheduleService scheduleService;
 
     @Transactional
-    public List<ScheduleGroupDto> createScheduleGroup(long scheduleId, Set<ScheduleGroupDto> scheduleGroupList) {
+    public List<ScheduleGroupDto> createScheduleGroup(ScheduleDto scheduleDto, Set<ScheduleGroupDto> scheduleGroupList) {
         if (scheduleGroupList.isEmpty()) {
             return new ArrayList<>();
         }
 
         List<ScheduleGroupEntity> scheduleGroupEntityList = ScheduleGroupEntity
-                .fromScheduleGroupDtoList(scheduleId, scheduleGroupList.stream().toList());
+                .fromScheduleGroupDtoList(scheduleDto.getId(), scheduleGroupList.stream().toList());
+        scheduleGroupRepository.saveAll(scheduleGroupEntityList);
 
-        return ScheduleGroupDto.fromScheduleGroupEntityList(scheduleGroupRepository.saveAll(scheduleGroupEntityList));
+        //알림 보내기
+        scheduleService.sendInviteNotification(
+                scheduleDto.getUserId(),
+                scheduleDto.getId(),
+                new NotificationScheduleDto(scheduleDto.getCalendarId(), scheduleGroupList.stream().toList()),
+                NotificationCategory.SCHEDULE
+        );
+
+        return ScheduleGroupDto.fromScheduleGroupEntityList(scheduleGroupEntityList);
     }
 
     @Transactional
@@ -59,17 +72,17 @@ public class ScheduleGroupService {
     }
 
     @Transactional
-    public List<ScheduleGroupDto> updateScheduleGroup(long userId, long createdUserId, long scheduleId, List<ScheduleGroupDto> requestNewGroupList) {
+    public List<ScheduleGroupDto> updateScheduleGroup(long userId, ScheduleDto scheduleDto, List<ScheduleGroupDto> requestNewGroupList) {
 
-        Optional<ScheduleGroupEntity> targetUserInfo = scheduleGroupRepository.findByScheduleIdAndUserId(scheduleId, userId);
+        Optional<ScheduleGroupEntity> targetUserInfo = scheduleGroupRepository.findByScheduleIdAndUserId(scheduleDto.getId(), userId);
 
         if (targetUserInfo.isEmpty()) {
-            return createScheduleGroup(scheduleId, new HashSet<>(requestNewGroupList));
+            return createScheduleGroup(scheduleDto, new HashSet<>(requestNewGroupList));
         }
 
-        if (userId == createdUserId ||
+        if (userId == scheduleDto.getUserId() ||
             targetUserInfo.get().getAuthority() == FileAuthority.ADMIN) {
-            List<ScheduleGroupEntity> currentGroupList = scheduleGroupRepository.findByScheduleId(scheduleId);
+            List<ScheduleGroupEntity> currentGroupList = scheduleGroupRepository.findByScheduleId(scheduleDto.getId());
 
             // DTO 목록에서 ID가 있는 항목들을 Map으로 만듭니다.
             Map<Long, ScheduleGroupDto> dtoMap = requestNewGroupList.stream()
@@ -91,14 +104,14 @@ public class ScheduleGroupService {
             //없는 것은 생성
             List<ScheduleGroupEntity> newList = requestNewGroupList.stream()
                     .filter(dto -> dto.getId() == null)
-                    .map(dto -> new ScheduleGroupEntity(scheduleId, dto))
+                    .map(dto -> new ScheduleGroupEntity(scheduleDto.getId(), dto))
                     .collect(Collectors.toList());
             if (!newList.isEmpty()) {
                 scheduleGroupRepository.saveAll(newList);
             }
 
             // 최종적으로 업데이트된 전체 그룹 목록을 반환합니다.
-            List<ScheduleGroupEntity> updatedList = scheduleGroupRepository.findByScheduleId(scheduleId);
+            List<ScheduleGroupEntity> updatedList = scheduleGroupRepository.findByScheduleId(scheduleDto.getId());
             return ScheduleGroupDto.fromScheduleGroupEntityList(updatedList);
         }
 

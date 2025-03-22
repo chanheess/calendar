@@ -49,20 +49,6 @@ public class NotificationController {
         return ResponseEntity.ok().build();
     }
 
-    @PostMapping("/notifications/schedules/{scheduleId}/invite")
-    public ResponseEntity<String> sendScheduleInviteNotification(@NotNull @PathVariable("scheduleId") Long scheduleId,
-                                                                 @RequestBody NotificationScheduleDto NotificationScheduleList,
-                                                                 HttpServletRequest request) {
-
-        String token = jwtTokenProvider.resolveToken(request);
-        long userId = jwtTokenProvider.getUserIdFromToken(token);
-
-        NotificationService notification =  notificationService.get(NotificationCategory.SCHEDULE);
-        notification.sendInviteNotification(userId, scheduleId, NotificationScheduleList, NotificationCategory.GROUP);
-
-        return ResponseEntity.ok().build();
-    }
-
     @PostMapping("/notifications/accept")
     public ResponseEntity<String> acceptNotification(@Validated @RequestBody NotificationDto notificationDto,
                                                               HttpServletRequest request) {

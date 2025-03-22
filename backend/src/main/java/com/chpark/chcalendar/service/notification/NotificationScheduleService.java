@@ -7,7 +7,6 @@ import com.chpark.chcalendar.entity.NotificationEntity;
 import com.chpark.chcalendar.enumClass.NotificationCategory;
 import com.chpark.chcalendar.enumClass.NotificationType;
 import com.chpark.chcalendar.repository.NotificationRepository;
-import com.chpark.chcalendar.service.schedule.ScheduleGroupService;
 import com.chpark.chcalendar.service.user.GroupUserService;
 import com.chpark.chcalendar.service.user.UserService;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -17,7 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class NotificationScheduleService extends NotificationService {
 
-    public NotificationScheduleService(NotificationRepository notificationRepository, GroupUserService groupUserService, UserService userService, RedisTemplate<String, Object> redisTemplate, ScheduleGroupService scheduleGroupService) {
+    public NotificationScheduleService(NotificationRepository notificationRepository, GroupUserService groupUserService, UserService userService, RedisTemplate<String, Object> redisTemplate) {
         super(notificationRepository, groupUserService, userService, redisTemplate);
         messageFrom = "일정에서 ";
     }
@@ -32,7 +31,7 @@ public class NotificationScheduleService extends NotificationService {
     public void sendInviteNotification(long userId, long scheduleId, NotificationScheduleDto notificationSchedule, NotificationCategory category) {
         long groupId = notificationSchedule.getGroupId();
 
-        GroupUserEntity userInfo = groupUserService.checkGroupUserAuthority(userId, groupId);
+        GroupUserEntity userInfo = groupUserService.getGroupUser(userId, groupId);
         notificationSchedule.getScheduleGroupDto().forEach(scheduleGroupDto -> {
             groupUserService.checkGroupUserExists(groupId, scheduleGroupDto.getUserId());
 
