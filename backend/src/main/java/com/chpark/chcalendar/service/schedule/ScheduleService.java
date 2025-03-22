@@ -270,6 +270,7 @@ public class ScheduleService {
         try {
             scheduleNotificationRepository.deleteByScheduleId(scheduleId);
             scheduleRepository.deleteByIdAndUserId(scheduleId, userId);
+            scheduleGroupService.deleteScheduleNotification(scheduleId);
         } catch (EmptyResultDataAccessException e) {
             throw new EntityNotFoundException("Schedule not found with schedule-id: " + scheduleId);
         }

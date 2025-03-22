@@ -1,7 +1,6 @@
 package com.chpark.chcalendar.controller.notification;
 
 import com.chpark.chcalendar.dto.notification.NotificationDto;
-import com.chpark.chcalendar.dto.notification.NotificationScheduleDto;
 import com.chpark.chcalendar.enumClass.NotificationCategory;
 import com.chpark.chcalendar.security.JwtTokenProvider;
 import com.chpark.chcalendar.service.notification.NotificationService;
@@ -70,9 +69,22 @@ public class NotificationController {
         long userId = jwtTokenProvider.getUserIdFromToken(token);
 
         NotificationService notification =  notificationService.get(notificationDto.getCategory());
-        notification.deleteNotification(userId, notificationDto);
+        notification.rejectNotificationByCategory(userId, notificationDto);
 
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/notifications/maybe")
+    public ResponseEntity<String> maybeNotification(@Validated @RequestBody NotificationDto notificationDto,
+                                                     HttpServletRequest request) {
+
+        String token = jwtTokenProvider.resolveToken(request);
+        long userId = jwtTokenProvider.getUserIdFromToken(token);
+
+        NotificationService notification =  notificationService.get(notificationDto.getCategory());
+        notification.pendingNotificationByCategory(userId, notificationDto);
+
+        return ResponseEntity.ok("accepted.");
     }
 
 

@@ -18,10 +18,17 @@ public class NotificationGroupService extends NotificationService {
     }
 
     @Transactional
+    @Override
     public void acceptInvite(long userId, NotificationDto notificationDto) {
         String nickname = userService.findNickname(userId);
         groupUserService.addUser(userId, nickname, notificationDto.getCategoryId());
         deleteNotification(userId, notificationDto);
+    }
+
+    @Transactional
+    @Override
+    public void rejectInvite(long userId, NotificationDto notificationDto) {
+        super.rejectInvite(userId, notificationDto);
     }
 
 }

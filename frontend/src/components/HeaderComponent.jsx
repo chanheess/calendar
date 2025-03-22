@@ -44,10 +44,30 @@ const HeaderComponent = ({ mode, onSidebarToggle }) => {
   }
 
   const handleNotificationAction = async (notification, action) => {
-    const url = `/notifications/${action}`;
+    let url = "";
+    let method = "";
+
+    switch (action) {
+      case "accept":
+        url = "/notifications/accept";
+        method = "POST";
+        break;
+      case "reject":
+        url = "/notifications/reject";
+        method = "DELETE";
+        break;
+      case "maybe":
+        url = "/notifications/maybe";
+        method = "POST";
+        break;
+      default:
+        console.error(`Unknown action: ${action}`);
+        return;
+    }
+
     try {
       const response = await axios({
-        method: action === "accept" ? "POST" : "DELETE",
+        method,
         url,
         data: notification,
         withCredentials: true,
@@ -55,13 +75,13 @@ const HeaderComponent = ({ mode, onSidebarToggle }) => {
       });
 
       if (response.status === 200) {
-        alert(`알림 ${action === "accept" ? "수락" : "거절"} 완료`);
-        fetchNotifications();
+        alert(`알림 ${action} 처리 완료`);
+        fetchNotifications(); // 다시 목록 불러오기
       } else {
         alert("요청 처리 중 문제가 발생했습니다.");
       }
     } catch (error) {
-      console.error(`Error processing notification:`, error);
+      console.error("Error processing notification:", error);
     }
   };
 
@@ -159,30 +179,39 @@ const HeaderComponent = ({ mode, onSidebarToggle }) => {
                     <li key={index} className={styles.notificationItem}>
                       <div className={styles.infoRow}>
                         <p>{notification.message}</p>
-                        {notification.type === "INVITE" && (
-                          <div className={styles.infoRow}>
+                        <div className={styles.infoRow}>
+                          <Button
+                            variant="green"
+                            size="small"
+                            onClick={() => handleNotificationAction(notification, "accept")}
+                          >
+                            Yes
+                          </Button>
+                          <Button
+                            variant="logout"
+                            size="small"
+                            onClick={() => handleNotificationAction(notification, "reject")}
+                          >
+                            No
+                          </Button>
+                          {notification.category === "SCHEDULE" && (
                             <Button
-                              variant="green"
+                              variant="secondary"
                               size="small"
-                              onClick={() => handleNotificationAction(notification, "accept")}
+                              onClick={() => handleNotificationAction(notification, "maybe")}
                             >
-                              수락
+                              Maybe
                             </Button>
-                            <Button
-                              variant="logout"
-                              size="small"
-                              onClick={() => handleNotificationAction(notification, "reject")}
-                            >
-                              거절
-                            </Button>
-                          </div>
-                        )}
+                          )}
+                        </div>
+
+
                       </div> {/* <div className={styles.infoRow}> */}
                     </li>
                   ))}
                 </ul>
               ) : (
-                <p className={styles.noNotifications}>알림이 없습니다.</p>
+                <p className={styles.noNotifications}>No notifications.</p>
               )}
               <div className={styles.dropdownFooter}/>
             </div>

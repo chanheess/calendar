@@ -25,7 +25,7 @@ public class ScheduleGroupService {
 
     private final ScheduleGroupRepository scheduleGroupRepository;
     private final ScheduleRepository scheduleRepository;
-    private final NotificationScheduleService scheduleService;
+    private final NotificationScheduleService notificationScheduleService;
 
     @Transactional
     public List<ScheduleGroupDto> createScheduleGroup(ScheduleDto scheduleDto, Set<ScheduleGroupDto> scheduleGroupList) {
@@ -38,7 +38,7 @@ public class ScheduleGroupService {
         scheduleGroupRepository.saveAll(scheduleGroupEntityList);
 
         //알림 보내기
-        scheduleService.sendInviteNotification(
+        notificationScheduleService.sendInviteNotification(
                 scheduleDto.getUserId(),
                 scheduleDto.getId(),
                 new NotificationScheduleDto(scheduleDto.getCalendarId(), scheduleGroupList.stream().toList()),
@@ -149,6 +149,11 @@ public class ScheduleGroupService {
     @Transactional
     public void deleteScheduleGroup(long scheduleId) {
         scheduleGroupRepository.deleteByScheduleId(scheduleId);
+    }
+
+    @Transactional
+    public void deleteScheduleNotification(long scheduleId) {
+        notificationScheduleService.deleteScheduleNotification(scheduleId);
     }
 
 }

@@ -95,7 +95,39 @@ public class NotificationService {
     }
 
     @Transactional
+    public void rejectNotificationByCategory(long userId, NotificationDto notificationDto) {
+        switch (notificationDto.getType()) {
+            case INFO -> {
+            }
+            case INVITE -> {
+                rejectInvite(userId, notificationDto);
+            }
+        }
+    }
+
+    @Transactional
+    public void pendingNotificationByCategory(long userId, NotificationDto notificationDto) {
+        switch (notificationDto.getType()) {
+            case INFO -> {
+            }
+            case INVITE -> {
+                pendingInvite(userId, notificationDto);
+            }
+        }
+    }
+
+    @Transactional
     public void acceptInvite(long userId, NotificationDto notificationDto) {
+        //자식 클래스에서 정의
+    }
+
+    @Transactional
+    public void rejectInvite(long userId, NotificationDto notificationDto) {
+        deleteNotification(userId, notificationDto);
+    }
+
+    @Transactional
+    public void pendingInvite(long userId, NotificationDto notificationDto) {
         //자식 클래스에서 정의
     }
 

@@ -5,11 +5,13 @@ import com.chpark.chcalendar.enumClass.FileAuthority;
 import com.chpark.chcalendar.enumClass.InvitationStatus;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Getter
+@Setter
 @NoArgsConstructor
 public class ScheduleGroupDto {
 

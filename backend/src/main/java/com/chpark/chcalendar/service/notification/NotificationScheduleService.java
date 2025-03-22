@@ -4,9 +4,13 @@ import com.chpark.chcalendar.dto.notification.NotificationDto;
 import com.chpark.chcalendar.dto.notification.NotificationScheduleDto;
 import com.chpark.chcalendar.entity.GroupUserEntity;
 import com.chpark.chcalendar.entity.NotificationEntity;
+import com.chpark.chcalendar.entity.schedule.ScheduleGroupEntity;
+import com.chpark.chcalendar.enumClass.InvitationStatus;
 import com.chpark.chcalendar.enumClass.NotificationCategory;
 import com.chpark.chcalendar.enumClass.NotificationType;
+import com.chpark.chcalendar.exception.ScheduleException;
 import com.chpark.chcalendar.repository.NotificationRepository;
+import com.chpark.chcalendar.repository.schedule.ScheduleGroupRepository;
 import com.chpark.chcalendar.service.user.GroupUserService;
 import com.chpark.chcalendar.service.user.UserService;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -16,14 +20,33 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class NotificationScheduleService extends NotificationService {
 
-    public NotificationScheduleService(NotificationRepository notificationRepository, GroupUserService groupUserService, UserService userService, RedisTemplate<String, Object> redisTemplate) {
+    //순환 참조를 해결하기 위해 어쩔 수 없이 repository 사용
+    private final ScheduleGroupRepository scheduleGroupRepository;
+
+    public NotificationScheduleService(NotificationRepository notificationRepository, GroupUserService groupUserService, UserService userService, RedisTemplate<String, Object> redisTemplate, ScheduleGroupRepository scheduleGroupRepository) {
         super(notificationRepository, groupUserService, userService, redisTemplate);
         messageFrom = "일정에서 ";
+        this.scheduleGroupRepository = scheduleGroupRepository;
     }
 
     @Transactional
+    @Override
+    public void rejectInvite(long userId, NotificationDto notificationDto) {
+        updateScheduleGroup(userId, notificationDto.getCategoryId(), InvitationStatus.DECLINED);
+        deleteNotification(userId, notificationDto);
+    }
+
+    @Transactional
+    @Override
+    public void pendingInvite(long userId, NotificationDto notificationDto) {
+        updateScheduleGroup(userId, notificationDto.getCategoryId(), InvitationStatus.PENDING);
+        deleteNotification(userId, notificationDto);
+    }
+
+    @Transactional
+    @Override
     public void acceptInvite(long userId, NotificationDto notificationDto) {
-        //일정에 대한 인원을 추가해줘야함
+        updateScheduleGroup(userId, notificationDto.getCategoryId(), InvitationStatus.ACCEPTED);
         deleteNotification(userId, notificationDto);
     }
 
@@ -48,5 +71,24 @@ public class NotificationScheduleService extends NotificationService {
             notificationRepository.save(entity);
         });
     }
+
+
+    @Transactional
+    public void updateScheduleGroup(long userId, long categoryId, InvitationStatus status) {
+        ScheduleGroupEntity scheduleGroupEntity = scheduleGroupRepository
+                .findByScheduleIdAndUserId(categoryId, userId)
+                .orElseThrow(() -> new ScheduleException("Not found user")
+                );
+
+        scheduleGroupEntity.setStatus(status);
+        scheduleGroupRepository.save(scheduleGroupEntity);
+    }
+
+    @Transactional
+    public void deleteScheduleNotification(long scheduleId) {
+        String pattern = "user:*:" + NotificationCategory.SCHEDULE + ":" + scheduleId + ":" + NotificationType.INVITE + ":*";
+        notificationRepository.deletePatten(pattern);
+    }
+
 
 }
