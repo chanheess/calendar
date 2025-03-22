@@ -1,6 +1,7 @@
 package com.chpark.chcalendar.service.notification;
 
 import com.chpark.chcalendar.dto.notification.NotificationDto;
+import com.chpark.chcalendar.dto.notification.NotificationScheduleDto;
 import com.chpark.chcalendar.entity.GroupUserEntity;
 import com.chpark.chcalendar.entity.NotificationEntity;
 import com.chpark.chcalendar.enumClass.NotificationCategory;
@@ -21,12 +22,14 @@ import java.util.Set;
 @Service
 public class NotificationService {
 
-    private final NotificationRepository notificationRepository;
+    protected final NotificationRepository notificationRepository;
 
-    private final GroupUserService groupUserService;
-    private final UserService userService;
+    protected final GroupUserService groupUserService;
+    protected final UserService userService;
 
-    private final RedisTemplate<String, Object> redisTemplate;
+    protected final RedisTemplate<String, Object> redisTemplate;
+
+    protected String messageFrom;
 
 
     //알림 가져오기
@@ -50,17 +53,17 @@ public class NotificationService {
         return result;
     }
 
-    public void sendGroupInviteNotification(long userId, long groupId, String nickname) {
+    public void sendInviteNotification(long userId, long groupId, NotificationCategory category, String nickname) {
 
         long inviteUserId = userService.findUserId(nickname);
 
         GroupUserEntity userInfo = groupUserService.checkGroupUserAuthority(userId, groupId);
         groupUserService.checkGroupUserExists(groupId, inviteUserId);
 
-        String message = userInfo.getGroupTitle() + "캘린더에서 " + nickname + "님을 초대합니다.";
+        String message = userInfo.getGroupTitle() + messageFrom + nickname + "님을 초대합니다.";
         NotificationEntity entity = new NotificationEntity(
                 inviteUserId,
-                NotificationCategory.GROUP,
+                category,
                 groupId,
                 NotificationType.INVITE,
                 0L,
@@ -70,6 +73,11 @@ public class NotificationService {
         notificationRepository.save(entity);
     }
 
+    @Transactional
+    public void sendInviteNotification(long userId, long scheduleId, NotificationScheduleDto notificationScheduleList, NotificationCategory category) {
+        //자식 클래스에서 정의
+    }
+
     public void deleteNotification(long userId, NotificationDto notificationDto) {
         NotificationEntity notification = new NotificationEntity(userId, notificationDto, 0L);
         notificationRepository.delete(notification.getKey());
@@ -77,23 +85,50 @@ public class NotificationService {
 
     @Transactional
     public void acceptNotificationByCategory(long userId, NotificationDto notificationDto) {
-
-        //TODO: 추후 리팩토링 할 것
-        switch (notificationDto.getCategory()) {
-            case SCHEDULE -> {
+        switch (notificationDto.getType()) {
+            case INFO -> {
             }
-            case GROUP -> {
-                switch (notificationDto.getType()) {
-                    case INFO -> {
-                    }
-                    case INVITE -> {
-                        String nickname = userService.findNickname(userId);
-                        groupUserService.addUser(userId, nickname, notificationDto.getCategoryId());
-                        this.deleteNotification(userId, notificationDto);
-                    }
-                }
+            case INVITE -> {
+                acceptInvite(userId, notificationDto);
             }
         }
+    }
+
+    @Transactional
+    public void rejectNotificationByCategory(long userId, NotificationDto notificationDto) {
+        switch (notificationDto.getType()) {
+            case INFO -> {
+            }
+            case INVITE -> {
+                rejectInvite(userId, notificationDto);
+            }
+        }
+    }
+
+    @Transactional
+    public void pendingNotificationByCategory(long userId, NotificationDto notificationDto) {
+        switch (notificationDto.getType()) {
+            case INFO -> {
+            }
+            case INVITE -> {
+                pendingInvite(userId, notificationDto);
+            }
+        }
+    }
+
+    @Transactional
+    public void acceptInvite(long userId, NotificationDto notificationDto) {
+        //자식 클래스에서 정의
+    }
+
+    @Transactional
+    public void rejectInvite(long userId, NotificationDto notificationDto) {
+        deleteNotification(userId, notificationDto);
+    }
+
+    @Transactional
+    public void pendingInvite(long userId, NotificationDto notificationDto) {
+        //자식 클래스에서 정의
     }
 
 }

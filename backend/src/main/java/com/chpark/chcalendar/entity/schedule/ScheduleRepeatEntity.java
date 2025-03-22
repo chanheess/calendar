@@ -31,10 +31,14 @@ public class ScheduleRepeatEntity {
     @Column(name = "end_at")
     private LocalDateTime endAt;
 
-    public ScheduleRepeatEntity(ScheduleRepeatDto repeatDto) {
+    @Column(name = "master_schedule_id")
+    private long masterScheduleId;
+
+    public ScheduleRepeatEntity(ScheduleRepeatDto repeatDto, long masterScheduleId) {
         this.repeatType = repeatDto.getRepeatType();
         this.repeatInterval = repeatDto.getRepeatInterval();
         this.endAt = repeatDto.getEndAt();
+        this.masterScheduleId = masterScheduleId;
     }
 
 }

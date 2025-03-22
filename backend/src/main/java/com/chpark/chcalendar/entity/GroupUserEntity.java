@@ -43,8 +43,6 @@ public class GroupUserEntity {
         this.userNickname = userNickname;
     }
 
-
-
     public GroupUserEntity(String groupTitle, Long groupId, String userNickname, Long userId, GroupAuthority role, String color) {
         this.groupTitle = groupTitle;
         this.groupId = groupId;

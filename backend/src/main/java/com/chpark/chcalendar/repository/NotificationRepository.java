@@ -45,4 +45,11 @@ public class NotificationRepository {
     public void delete(String key) {
         redisTemplate.delete(key);
     }
+
+    public void deletePatten(String pattern) {
+        Set<String> keysToDelete = scanKeys(pattern);
+        if (!keysToDelete.isEmpty()) {
+            redisTemplate.delete(keysToDelete);
+        }
+    }
 }
