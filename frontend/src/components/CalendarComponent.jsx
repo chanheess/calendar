@@ -263,6 +263,7 @@ const CalendarComponent = ({ selectedCalendarList }) => {
         key={refreshKey}
         ref={calendarRef}
         plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+        timeZone="Asia/Seoul"
         initialView="dayGridMonth"
         aspectRatio={1}
         height="99%"
