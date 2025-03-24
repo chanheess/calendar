@@ -56,7 +56,6 @@ public class NotificationScheduleService extends NotificationService {
 
         GroupUserEntity userInfo = groupUserService.getGroupUser(userId, groupId);
         notificationSchedule.getScheduleGroupDto().forEach(scheduleGroupDto -> {
-            groupUserService.checkGroupUserExists(groupId, scheduleGroupDto.getUserId());
 
             String message = userInfo.getGroupTitle() + messageFrom + scheduleGroupDto.getUserNickname() + "님을 초대합니다.";
             NotificationEntity entity = new NotificationEntity(

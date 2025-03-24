@@ -268,11 +268,12 @@ public class ScheduleService {
             throw new CustomException("has repeat-id");
         }
 
+        //그룹와 캘린더에 속했는지 확인
         CalendarUtility.checkCalendarAuthority(userId, schedule.get().getUserId(), calendarId, schedule.get().getId(), groupUserService, userCalendarService, scheduleGroupService);
 
         try {
             scheduleNotificationRepository.deleteByScheduleId(scheduleId);
-            scheduleRepository.deleteByIdAndUserId(scheduleId, userId);
+            scheduleRepository.deleteById(scheduleId);
             scheduleGroupService.deleteScheduleNotification(scheduleId);
         } catch (EmptyResultDataAccessException e) {
             throw new EntityNotFoundException("Schedule not found with schedule-id: " + scheduleId);

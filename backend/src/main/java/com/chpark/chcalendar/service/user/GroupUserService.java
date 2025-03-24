@@ -63,7 +63,7 @@ public class GroupUserService {
     }
 
     public void checkGroupUserExists(long userId, long groupId) {
-        if(groupUserRepository.findByUserIdAndGroupId(userId, groupId).isPresent()) {
+        if (groupUserRepository.findByUserIdAndGroupId(userId, groupId).isPresent()) {
             throw new IllegalArgumentException("The user is already registered.");
         }
     }
