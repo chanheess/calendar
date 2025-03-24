@@ -13,6 +13,8 @@ services:
       - "8080:8080"
     env_file:
       - .env
+    volumes:
+      - ${SERVICE_ACCOUNT_FILE}:${SERVICE_ACCOUNT_FILE}:ro
     depends_on:
       - redis
 
