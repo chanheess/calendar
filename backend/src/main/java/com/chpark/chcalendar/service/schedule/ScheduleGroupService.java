@@ -76,7 +76,7 @@ public class ScheduleGroupService {
 
         Optional<ScheduleGroupEntity> targetUserInfo = scheduleGroupRepository.findByScheduleIdAndUserId(scheduleDto.getId(), userId);
 
-        if (targetUserInfo.isEmpty()) {
+        if (userId != scheduleDto.getUserId() && targetUserInfo.isEmpty()) {
             return createScheduleGroup(scheduleDto, new HashSet<>(requestNewGroupList));
         }
 
