@@ -3,6 +3,8 @@ package com.chpark.chcalendar.service.notification;
 import com.chpark.chcalendar.job.FcmPushNotificationJob;
 import org.quartz.*;
 import org.quartz.impl.matchers.GroupMatcher;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,10 +20,15 @@ public class QuartzSchedulerService {
     @Autowired
     private Scheduler scheduler;
 
+    private static final Logger log = LoggerFactory.getLogger(QuartzSchedulerService.class);
+
     @Transactional
     public void createFcmPushNotification(String jobId, String fcmToken, String userPlatformKey,
                                           String title, String body, String url, LocalDateTime scheduledTime)
             throws SchedulerException {
+        log.info("Creating FCM Push Notification: jobId={}, userPlatformKey={}, scheduledTime={}",
+                jobId, userPlatformKey, scheduledTime);
+
         JobDataMap jobDataMap = new JobDataMap();
         jobDataMap.put("fcmToken", fcmToken);
         jobDataMap.put("userPlatformKey", userPlatformKey);
@@ -34,7 +41,8 @@ public class QuartzSchedulerService {
                 .usingJobData(jobDataMap)
                 .build();
 
-        Date triggerTime = Date.from(scheduledTime.atZone(ZoneId.systemDefault()).toInstant());
+        Date triggerTime = Date.from(scheduledTime.atZone(ZoneId.of("Asia/Seoul")).toInstant());
+        log.info("Trigger time set for: {}", triggerTime);
 
         Trigger trigger = TriggerBuilder.newTrigger()
                 .withIdentity(jobId, userPlatformKey)
@@ -43,6 +51,7 @@ public class QuartzSchedulerService {
                 .build();
 
         scheduler.scheduleJob(jobDetail, trigger);
+        log.info("Job scheduled successfully: jobId={}, triggerKey={}", jobId, trigger.getKey());
     }
 
     @Transactional
