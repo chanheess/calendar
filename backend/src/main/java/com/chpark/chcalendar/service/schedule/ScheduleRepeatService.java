@@ -76,15 +76,17 @@ public class ScheduleRepeatService {
     }
 
 
-    public boolean isMasterSchedule(long repeatId, long scheduleId) {
+    public boolean isMasterSchedule(Long repeatId, long scheduleId) {
+        if (repeatId == null) {
+            return false;
+        }
+
         ScheduleRepeatEntity repeatEntity = scheduleRepeatRepository.findById(repeatId).orElseThrow(
                 () -> new EntityNotFoundException("Repeat not found")
         );
 
         return repeatEntity.getMasterScheduleId() == scheduleId;
     }
-
-
 
 }
 
