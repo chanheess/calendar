@@ -110,7 +110,6 @@ public class ScheduleService {
             schedule.setRepeatId(null);
         }
 
-        this.validateScheduleDto(scheduleDto);
         schedule.setCalendarId(scheduleDto.getCalendarId());
 
         return new ScheduleDto(scheduleRepository.save(schedule));
