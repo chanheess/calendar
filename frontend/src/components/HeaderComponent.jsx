@@ -117,9 +117,9 @@ const HeaderComponent = ({ mode, onSidebarToggle }) => {
     return (
       <header className={styles.header}>
         {isLoading && <LoadingOverlay fullScreen={true} />}
-        <a href={process.env.REACT_APP_HOME_URL} className={styles.logo}>
+        <span className={styles.logo} onClick={handleHome}>
           chcalendar
-        </a>
+        </span>
 
         <div className={styles.rightSection}>
           <Nickname variant="" size="medium" />
@@ -136,17 +136,9 @@ const HeaderComponent = ({ mode, onSidebarToggle }) => {
     <header className={styles.header}>
       {isLoading && <LoadingOverlay fullScreen={true} />}
       <div className={styles.leftSection}>
-{/*         <Button */}
-{/*           variant="function" */}
-{/*           size="large" */}
-{/*           onClick={onSidebarToggle} */}
-{/*           aria-label="Toggle Sidebar" */}
-{/*         > */}
-{/*           ☰ */}
-{/*         </Button> */}
-        <a href={process.env.REACT_APP_HOME_URL} className={styles.logo}>
+        <span className={styles.logo} onClick={handleHome}>
           chcalendar
-        </a>
+        </span>
       </div>
 
       <div className={styles.rightSection}>
