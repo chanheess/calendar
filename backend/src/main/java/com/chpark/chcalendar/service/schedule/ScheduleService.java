@@ -24,7 +24,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.swing.text.html.Option;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -110,7 +109,6 @@ public class ScheduleService {
             schedule.setRepeatId(null);
         }
 
-        this.validateScheduleDto(scheduleDto);
         schedule.setCalendarId(scheduleDto.getCalendarId());
 
         return new ScheduleDto(scheduleRepository.save(schedule));
@@ -198,15 +196,19 @@ public class ScheduleService {
             throw new ScheduleException("Not repeat schedule");
         }
 
-        this.deleteCurrentOnlyRepeatSchedule(scheduleId, userId);
+        long repeatId = scheduleEntity.getRepeatId();
+        List<ScheduleGroupDto> groupSchedule = scheduleGroupService.updateScheduleGroup(userId, new ScheduleDto(scheduleEntity), scheduleDto.getGroupDto().stream().toList());
+        if (!scheduleRepeatService.isMasterSchedule(repeatId, scheduleId)) {
+            groupSchedule = scheduleGroupService.createScheduleGroup(new ScheduleDto(scheduleEntity), scheduleDto.getGroupDto());
+        }
+
+        this.deleteCurrentOnlyRepeatSchedule(scheduleId);
+        changeRepeatMasterScheduleId(userId, scheduleEntity);
 
         ScheduleDto updateDto = this.update(scheduleId, scheduleDto.getScheduleDto(), true, userId);
         List<ScheduleNotificationDto> resultNotification = scheduleNotificationService.update(userId, scheduleId, scheduleDto.getNotificationDto().stream().toList());
-        List<ScheduleGroupDto> groupSchedule = scheduleGroupService.updateScheduleGroup(userId, updateDto, scheduleDto.getGroupDto().stream().toList());
 
-        if (!scheduleRepeatService.isMasterSchedule(scheduleEntity.getRepeatId(), scheduleId)) {
-            groupSchedule = scheduleGroupService.createScheduleGroup(updateDto, scheduleDto.getGroupDto());
-        }
+
 
         return new ScheduleDto.Response(updateDto, resultNotification, groupSchedule);
     }
@@ -281,9 +283,9 @@ public class ScheduleService {
     }
 
     @Transactional
-    public void deleteCurrentOnlyRepeatSchedule(long scheduleId, long userId) {
+    public void deleteCurrentOnlyRepeatSchedule(long scheduleId) {
         //수정된 일정이 들어오니 수정전 일정으로 비교
-        ScheduleEntity standardSchedule = scheduleRepository.findByIdAndUserId(scheduleId, userId).orElseThrow(
+        ScheduleEntity standardSchedule = scheduleRepository.findById(scheduleId).orElseThrow(
                 () -> new EntityNotFoundException("Schedule not found with schedule-id: " + scheduleId)
         );
 
@@ -292,11 +294,7 @@ public class ScheduleService {
             if (scheduleRepository.isLastRemainingRepeatSchedule(standardSchedule.getRepeatId())) {
                 scheduleRepeatRepository.deleteById(standardSchedule.getRepeatId());
                 scheduleGroupService.deleteScheduleGroup(scheduleId);
-                return;
             }
-
-            //자신이 master 일정이라면 다음 일정이 master 일정을 하도록 변경한다.
-            changeRepeatMasterScheduleId(userId, standardSchedule);
         }
     }
 
@@ -406,14 +404,13 @@ public class ScheduleService {
 
     @Transactional
     public void changeRepeatMasterScheduleId(long userId, ScheduleEntity scheduleEntity) {
-        ScheduleRepeatEntity repeatEntity = scheduleRepeatRepository.findById(scheduleEntity.getRepeatId()).orElseThrow(
-                () -> new EntityNotFoundException("Repeat not found")
-        );
+        Optional<ScheduleRepeatEntity> repeatEntity = scheduleRepeatRepository.findById(scheduleEntity.getRepeatId());
 
         if (repeatEntity.getMasterScheduleId() == scheduleEntity.getId()) {
             //master 일정일 경우에 master schedule을 다음 일정에 이관 해준다.
             List<ScheduleEntity> scheduleList = scheduleRepository.findFutureRepeatSchedules(scheduleEntity.getRepeatId(), scheduleEntity.getStartAt(), userId);
 
+            //첫번째가 존재하면 적용
             for (ScheduleEntity schedule : scheduleList) {
                 repeatEntity.setMasterScheduleId(schedule.getId());
                 scheduleRepeatRepository.save(repeatEntity);
