@@ -5,10 +5,12 @@ import com.chpark.chcalendar.dto.schedule.ScheduleDto;
 import com.chpark.chcalendar.dto.schedule.ScheduleGroupDto;
 import com.chpark.chcalendar.entity.schedule.ScheduleEntity;
 import com.chpark.chcalendar.entity.schedule.ScheduleGroupEntity;
+import com.chpark.chcalendar.entity.schedule.ScheduleRepeatEntity;
 import com.chpark.chcalendar.enumClass.FileAuthority;
 import com.chpark.chcalendar.enumClass.NotificationCategory;
 import com.chpark.chcalendar.exception.ScheduleException;
 import com.chpark.chcalendar.repository.schedule.ScheduleGroupRepository;
+import com.chpark.chcalendar.repository.schedule.ScheduleRepeatRepository;
 import com.chpark.chcalendar.repository.schedule.ScheduleRepository;
 import com.chpark.chcalendar.service.notification.NotificationScheduleService;
 import lombok.RequiredArgsConstructor;
@@ -25,23 +27,24 @@ public class ScheduleGroupService {
 
     private final ScheduleGroupRepository scheduleGroupRepository;
     private final ScheduleRepository scheduleRepository;
+    private final ScheduleRepeatRepository scheduleRepeatRepository;
     private final NotificationScheduleService notificationScheduleService;
 
     @Transactional
-    public List<ScheduleGroupDto> createScheduleGroup(ScheduleDto scheduleDto, Set<ScheduleGroupDto> scheduleGroupList) {
+    public List<ScheduleGroupDto> createScheduleGroup(ScheduleDto scheduleDto, List<ScheduleGroupDto> scheduleGroupList) {
         if (scheduleGroupList.isEmpty()) {
             return new ArrayList<>();
         }
 
         List<ScheduleGroupEntity> scheduleGroupEntityList = ScheduleGroupEntity
-                .fromScheduleGroupDtoList(scheduleDto.getId(), scheduleGroupList.stream().toList());
+                .fromScheduleGroupDtoList(scheduleDto.getId(), scheduleGroupList);
         scheduleGroupRepository.saveAll(scheduleGroupEntityList);
 
         //알림 보내기
         notificationScheduleService.sendInviteNotification(
                 scheduleDto.getUserId(),
                 scheduleDto.getId(),
-                new NotificationScheduleDto(scheduleDto.getCalendarId(), scheduleGroupList.stream().toList()),
+                new NotificationScheduleDto(scheduleDto.getCalendarId(), scheduleGroupList),
                 NotificationCategory.SCHEDULE
         );
 
@@ -57,6 +60,14 @@ public class ScheduleGroupService {
 
         if (scheduleEntity.getUserId() != userId && scheduleGroupEntity.isEmpty()) {
             return new ArrayList<>();
+        }
+
+        //반복 일정에서의 가져오기
+        if (scheduleEntity.getRepeatId() != null) {
+            Optional<ScheduleRepeatEntity> scheduleRepeatEntity = scheduleRepeatRepository.findById(scheduleEntity.getRepeatId());
+            if (scheduleRepeatEntity.isPresent()) {
+                scheduleId = scheduleRepeatEntity.get().getMasterScheduleId();
+            }
         }
 
         List<ScheduleGroupEntity> scheduleGroupEntityList = scheduleGroupRepository.findByScheduleId(scheduleId);
@@ -77,7 +88,7 @@ public class ScheduleGroupService {
         Optional<ScheduleGroupEntity> targetUserInfo = scheduleGroupRepository.findByScheduleIdAndUserId(scheduleDto.getId(), userId);
 
         if (userId != scheduleDto.getUserId() && targetUserInfo.isEmpty()) {
-            return createScheduleGroup(scheduleDto, new HashSet<>(requestNewGroupList));
+            return createScheduleGroup(scheduleDto, requestNewGroupList);
         }
 
         if (userId == scheduleDto.getUserId() ||
@@ -129,6 +140,16 @@ public class ScheduleGroupService {
         scheduleGroupRepository.save(scheduleGroupEntity);
 
         return new ScheduleGroupDto(scheduleGroupEntity);
+    }
+
+    @Transactional
+    public void updateScheduleId(long scheduleId, long newScheduleId) {
+        List<ScheduleGroupEntity> scheduleGroupList = scheduleGroupRepository.findByScheduleId(scheduleId);
+
+        scheduleGroupList.forEach(group -> {
+            group.setScheduleId(newScheduleId);
+            scheduleGroupRepository.save(group);
+        });
     }
 
     //그룹 일정인지 판별이 우선, 그룹 일정이라면 권한 확인

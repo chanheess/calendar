@@ -160,12 +160,14 @@ public class ScheduleController {
         //삭제할 범위
         switch (scheduleRepeatScope){
             case CURRENT -> {
-                scheduleService.deleteCurrentOnlyRepeatSchedule(scheduleId, userId);
+                scheduleService.deleteScheduleGroupCurrentOnly(userId, scheduleId);
+                scheduleService.deleteCurrentOnlyRepeatSchedule(scheduleId);
                 //repeat를 지워주기 위한 update
                 scheduleService.update(scheduleId, new ScheduleDto(), true, userId);
                 scheduleService.deleteById(scheduleId, calendarId, userId);
             }
             case FUTURE -> {
+                scheduleService.deleteScheduleGroupCurrentAndFuture(scheduleId);
                 scheduleService.deleteFutureRepeatSchedules(scheduleId, userId);
                 //repeat를 지워주기 위한 update
                 scheduleService.update(scheduleId, new ScheduleDto(), true, userId);

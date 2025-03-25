@@ -74,10 +74,11 @@ public class NotificationScheduleService extends NotificationService {
 
     @Transactional
     public void updateScheduleGroup(long userId, long categoryId, InvitationStatus status) {
-        ScheduleGroupEntity scheduleGroupEntity = scheduleGroupRepository
-                .findByScheduleIdAndUserId(categoryId, userId)
-                .orElseThrow(() -> new ScheduleException("Not found user")
-                );
+        ScheduleGroupEntity scheduleGroupEntity = scheduleGroupRepository.findByScheduleIdAndUserId(categoryId, userId).orElse(null);
+
+        if (scheduleGroupEntity == null) {
+            return;
+        }
 
         scheduleGroupEntity.setStatus(status);
         scheduleGroupRepository.save(scheduleGroupEntity);
