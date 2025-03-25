@@ -136,9 +136,9 @@ const HeaderComponent = ({ mode, onSidebarToggle }) => {
     <header className={styles.header}>
       {isLoading && <LoadingOverlay fullScreen={true} />}
       <div className={styles.leftSection}>
-        <span className={styles.logo} onClick={handleHome}>
+        <a href={process.env.REACT_APP_HOME_URL} className={styles.logo}>
           chcalendar
-        </span>
+        </a>
       </div>
 
       <div className={styles.rightSection}>
