@@ -87,9 +87,6 @@ const AddCalendarPopup = ({ isOpen, onClose, onCalendarAdded }) => {
           <Button variant="primary" size="medium" onClick={handleCreateCalendar}>
             생성
           </Button>
-          <Button variant="logout" size="medium" onClick={onClose}>
-            닫기
-          </Button>
         </div>
       </div>
     </div>

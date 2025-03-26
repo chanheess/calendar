@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.Random;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -28,7 +30,22 @@ public class CalendarInfoEntity {
     private CalendarCategory category;
 
     @Column(nullable = false, length = 20)
-    private String color = "#3788d8";
+    private String color = generateRandomColor();
+
+    @PrePersist
+    public void prePersist() {
+        if (this.color == null || this.color.isEmpty()) {
+            this.color = generateRandomColor();
+        }
+    }
+
+    private String generateRandomColor() {
+        Random random = new Random();
+        int r = random.nextInt(256);
+        int g = random.nextInt(256);
+        int b = random.nextInt(256);
+        return String.format("#%02x%02x%02x", r, g, b);
+    }
 
     public CalendarInfoEntity(String title, long adminId, CalendarCategory category) {
         this.title = title;
