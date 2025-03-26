@@ -579,7 +579,7 @@ import RepeatPopup from "./RepeatPopup";
                 <div className={styles.infoRow}>
                   <label>설명:</label>
                   <textarea
-                    value={scheduleData.description}
+                    value={scheduleData.description || ""}
                     onChange={(e) => handleInputChange("description", e.target.value)}
                   />
                 </div>
