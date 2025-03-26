@@ -25,6 +25,17 @@ const PasswordResetPopup = ({ isOpen, onClose }) => {
     setIsPasswordMatch(isPasswordValid);
   }, [email, emailPattern, emailCode, password, confirmPassword]);
 
+  // Esc 키 눌렀을 때 팝업 닫기
+  useEffect(() => {
+    const handleEsc = (event) => {
+      if (event.key === "Escape") {
+        onClose();
+      }
+    };
+    window.addEventListener("keydown", handleEsc);
+    return () => window.removeEventListener("keydown", handleEsc);
+  }, [onClose]);
+
   useEffect(() => {
     if (timeLeft > 0 && isCodeVisible) {
       const timer = setInterval(() => {
@@ -100,8 +111,8 @@ const PasswordResetPopup = ({ isOpen, onClose }) => {
   };
 
   return (
-    <div className={styles.popupOverlay} style={{ zIndex: 1001 }}>
-      <div className={styles.popup}>
+    <div className={styles.popupOverlay} style={{ zIndex: 1001 }} onClick={onClose}>
+      <div className={styles.popup} onClick={(e) => e.stopPropagation()}>
         <div className={styles.popupHeader}>
           <h2>비밀번호 찾기</h2>
           <Button variant="close" size="" onClick={onClose}>×</Button>

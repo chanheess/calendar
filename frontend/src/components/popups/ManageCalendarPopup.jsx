@@ -18,6 +18,17 @@ const ManageCalendarPopup = ({
     setColor(calendarInfo.color || "#3788d8");
   }, [calendarInfo.color]);
 
+  // Esc 키 눌렀을 때 팝업 닫기
+  useEffect(() => {
+    const handleEsc = (event) => {
+      if (event.key === "Escape") {
+        onClose();
+      }
+    };
+    window.addEventListener("keydown", handleEsc);
+    return () => window.removeEventListener("keydown", handleEsc);
+  }, [onClose]);
+
   useEffect(() => {
     if (isOpen && calendarInfo.category === "GROUP" && calendarInfo.id) {
       loadUserList(calendarInfo.id);
@@ -99,8 +110,8 @@ const ManageCalendarPopup = ({
   if (!isOpen) return null;
 
   return (
-    <div className={styles.popupOverlay}>
-      <div className={styles.popup}>
+    <div className={styles.popupOverlay} onClick={onClose}>
+      <div className={styles.popup} onClick={(e) => e.stopPropagation()}>
         <div className={styles.popupHeader}>
           <h2>
             {calendarInfo.category === "GROUP"

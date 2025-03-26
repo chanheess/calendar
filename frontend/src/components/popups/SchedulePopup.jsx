@@ -109,6 +109,16 @@ import RepeatPopup from "./RepeatPopup";
     handleUpdatedSchedule, // 필요하다면 활용
     currentUserId,
   }) => {
+    useEffect(() => {
+      const handleEsc = (event) => {
+        if (event.key === "Escape") {
+          onClose();
+        }
+      };
+      window.addEventListener("keydown", handleEsc);
+      return () => window.removeEventListener("keydown", handleEsc);
+    }, [onClose]);
+
     const [scheduleData, setScheduleData] = useState({
       id: "",
       title: "",
@@ -532,8 +542,8 @@ import RepeatPopup from "./RepeatPopup";
         />
       )}
 
-      <div className={styles.popupOverlay}>
-        <div className={styles.popup}>
+      <div className={styles.popupOverlay} onClick={closePopup}>
+        <div className={styles.popup} onClick={(e) => e.stopPropagation()}>
           <div className={styles.popupHeader}>
             <h2>{mode === "edit" ? "Edit Schedule" : "Create Schedule"}</h2>
             <Button variant="close" size="" onClick={closePopup}>

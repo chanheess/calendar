@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import styles from "styles/Popup.module.css";
 import Button from "../Button"
 
@@ -11,6 +11,17 @@ const Popup = ({
   actions = [],
   ...props
 }) => {
+  // Esc 키 눌렀을 때 팝업 닫기
+  useEffect(() => {
+    const handleEsc = (event) => {
+      if (event.key === "Escape") {
+        onClose();
+      }
+    };
+    window.addEventListener("keydown", handleEsc);
+    return () => window.removeEventListener("keydown", handleEsc);
+  }, [onClose]);
+
   return (
     <div className={`${styles.popupOverlay} ${styles[size]}`} {...props}>
       <div className={styles.popup}>
