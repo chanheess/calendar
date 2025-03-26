@@ -111,3 +111,24 @@
   }
 }
 
+.dropdownMenu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  min-width: 120px;
+  z-index: 999;
+  position: relative;
+    display: inline-block;
+}
+.dropdownItem {
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.dropdownItem:hover {
+  background: #f2f2f2;
+}
+

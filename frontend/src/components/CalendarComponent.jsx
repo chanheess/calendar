@@ -3,23 +3,24 @@ import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
+import koLocale from "@fullcalendar/core/locales/ko"; // ★ 한글화 추가
 import axios from "axios";
 
 import styles from "styles/Calendar.module.css";
 import Popup from "./popups/Popup";
 import SchedulePopup from "./popups/SchedulePopup";
-
 import LoadingOverlay from "components/LoadingOverlay";
 
 const CalendarComponent = ({ selectedCalendarList }) => {
-  // 현재 사용자 id 상태 추가
+  // 현재 사용자 id 상태
   const [currentUserId, setCurrentUserId] = useState(null);
 
-  // 팝업 / 스케줄 팝업 상태 등 기존 상태들...
+  // 팝업 상태
   const [popupVisible, setPopupVisible] = useState(false);
   const [popupData, setPopupData] = useState([]);
   const [popupTitle, setPopupTitle] = useState("");
 
+  // 스케줄 팝업 상태
   const [schedulePopupVisible, setSchedulePopupVisible] = useState(false);
   const [schedulePopupMode, setSchedulePopupMode] = useState("create");
   const [schedulePopupData, setSchedulePopupData] = useState(null);
@@ -40,103 +41,129 @@ const CalendarComponent = ({ selectedCalendarList }) => {
   const pageSize = 1000;
   const maxLoops = 10;
 
-  // GET /user/id 호출해서 현재 사용자 id 저장
+  // 사용자 ID 가져오기
   useEffect(() => {
-    axios.get("/user/id", {
-      withCredentials: true,
-      headers: { "Content-Type": "application/json" }
-    })
-      .then(response => {
+    axios
+      .get("/user/id", {
+        withCredentials: true,
+        headers: { "Content-Type": "application/json" },
+      })
+      .then((response) => {
         setCurrentUserId(response.data);
       })
-      .catch(error => {
+      .catch((error) => {
         console.error("Error fetching user id:", error);
       });
   }, []);
 
-  const loadEvents = useCallback(async (startDateObj, endDateObj, firstLoad) => {
-    if (!selectedCalendarList || Object.keys(selectedCalendarList).length === 0) {
-      setFetchEvents([]);
-      return;
-    }
-    if (isFetchingRef.current) return;
-    isFetchingRef.current = true;
-    setIsLoading(true);
-
-    try {
-      const startStr = startDateObj.toISOString().split("T")[0];
-      const endStr = endDateObj.toISOString().split("T")[0];
-      let loopCount = 0;
-      let keepLoading = true;
-      const loopLimit = firstLoad ? maxLoops : 1;
-
-      while (keepLoading && loopCount < loopLimit) {
-        loopCount++;
-        const params = new URLSearchParams({
-          start: startStr,
-          end: endStr,
-          size: pageSize,
-        });
-        if (cursorTimeRef.current && cursorTimeRef.current !== "null" && cursorTimeRef.current !== "undefined") {
-          params.append("cursor-time", cursorTimeRef.current);
-        }
-        if (cursorIdRef.current !== null) {
-          params.append("cursor-id", cursorIdRef.current);
-        }
-        const res = await axios.get(`/schedules/date?${params.toString()}`, {
-          withCredentials: true,
-          headers: { "Content-Type": "application/json" },
-        });
-        const data = res.data;
-        if (data.nextCursor && data.nextCursor !== "null" && data.nextCursor !== "undefined") {
-          cursorTimeRef.current = data.nextCursor;
-        } else {
-          cursorTimeRef.current = "";
-        }
-        if (data.content && data.content.length > 0) {
-          const lastEvent = data.content[data.content.length - 1];
-          cursorIdRef.current = lastEvent.id;
-        } else {
-          cursorIdRef.current = null;
-        }
-        const newEvents = (data.content || []).map((evt) => ({
-          id: evt.id,
-          title: evt.title,
-          start: evt.startAt,
-          end: evt.endAt,
-          description: evt.description,
-          repeatId: evt.repeatId,
-          userId: evt.userId,
-          calendarId: evt.calendarId,
-          backgroundColor: selectedCalendarList[evt.calendarId]?.color || "#3788d8",
-        }));
-
-        const filtered = newEvents.filter(
-          (ev) => selectedCalendarList[ev.calendarId]
-        );
-
-        eventCacheRef.current.push(...filtered);
-        setFetchEvents([...eventCacheRef.current]);
-        if (filtered.length === 0) {
-          keepLoading = false;
-        }
-        if (!cursorTimeRef.current) {
-          keepLoading = false;
-        }
+  // 일정 불러오기
+  const loadEvents = useCallback(
+    async (startDateObj, endDateObj, firstLoad) => {
+      if (!selectedCalendarList || Object.keys(selectedCalendarList).length === 0) {
+        setFetchEvents([]);
+        return;
       }
-      if (firstLoad && loopCount >= maxLoops && cursorTimeRef.current) {
-        setAutoLoadComplete(true);
-      } else if (!cursorTimeRef.current) {
-        setAutoLoadComplete(false);
-      }
-    } catch (err) {
-      console.error("[loadEvents] error:", err);
-    } finally {
-      isFetchingRef.current = false;
-      setIsLoading(false);
-    }
-  }, [selectedCalendarList, pageSize, maxLoops]);
+      if (isFetchingRef.current) return;
 
+      isFetchingRef.current = true;
+      setIsLoading(true);
+
+      try {
+        const startStr = startDateObj.toISOString().split("T")[0];
+        const endStr = endDateObj.toISOString().split("T")[0];
+        let loopCount = 0;
+        let keepLoading = true;
+        const loopLimit = firstLoad ? maxLoops : 1;
+
+        while (keepLoading && loopCount < loopLimit) {
+          loopCount++;
+          const params = new URLSearchParams({
+            start: startStr,
+            end: endStr,
+            size: pageSize,
+          });
+          if (
+            cursorTimeRef.current &&
+            cursorTimeRef.current !== "null" &&
+            cursorTimeRef.current !== "undefined"
+          ) {
+            params.append("cursor-time", cursorTimeRef.current);
+          }
+          if (cursorIdRef.current !== null) {
+            params.append("cursor-id", cursorIdRef.current);
+          }
+
+          const res = await axios.get(`/schedules/date?${params.toString()}`, {
+            withCredentials: true,
+            headers: { "Content-Type": "application/json" },
+          });
+          const data = res.data;
+
+          // nextCursor 갱신
+          if (
+            data.nextCursor &&
+            data.nextCursor !== "null" &&
+            data.nextCursor !== "undefined"
+          ) {
+            cursorTimeRef.current = data.nextCursor;
+          } else {
+            cursorTimeRef.current = "";
+          }
+
+          // 마지막 이벤트 id를 cursorId로 사용
+          if (data.content && data.content.length > 0) {
+            const lastEvent = data.content[data.content.length - 1];
+            cursorIdRef.current = lastEvent.id;
+          } else {
+            cursorIdRef.current = null;
+          }
+
+          // 이벤트 매핑
+          const newEvents = (data.content || []).map((evt) => ({
+            id: evt.id,
+            title: evt.title,
+            start: evt.startAt,
+            end: evt.endAt,
+            description: evt.description,
+            repeatId: evt.repeatId,
+            userId: evt.userId,
+            calendarId: evt.calendarId,
+            backgroundColor: selectedCalendarList[evt.calendarId]?.color || "#3788d8",
+          }));
+
+          // 선택된 캘린더만 필터
+          const filtered = newEvents.filter(
+            (ev) => selectedCalendarList[ev.calendarId]
+          );
+
+          // 캐시에 누적
+          eventCacheRef.current.push(...filtered);
+          setFetchEvents([...eventCacheRef.current]);
+
+          if (filtered.length === 0) {
+            keepLoading = false;
+          }
+          if (!cursorTimeRef.current) {
+            keepLoading = false;
+          }
+        }
+
+        if (firstLoad && loopCount >= maxLoops && cursorTimeRef.current) {
+          setAutoLoadComplete(true);
+        } else if (!cursorTimeRef.current) {
+          setAutoLoadComplete(false);
+        }
+      } catch (err) {
+        console.error("[loadEvents] error:", err);
+      } finally {
+        isFetchingRef.current = false;
+        setIsLoading(false);
+      }
+    },
+    [selectedCalendarList]
+  );
+
+  // selectedCalendarList나 refreshKey가 바뀔 때 재로딩
   useEffect(() => {
     eventCacheRef.current = [];
     cursorTimeRef.current = "";
@@ -155,6 +182,7 @@ const CalendarComponent = ({ selectedCalendarList }) => {
     }
   }, [selectedCalendarList, refreshKey, loadEvents]);
 
+  // 날짜 범위가 바뀔 때마다 이벤트 재로딩
   const handleDatesSet = (arg) => {
     const { start, end } = arg;
     if (
@@ -176,6 +204,7 @@ const CalendarComponent = ({ selectedCalendarList }) => {
     }
   };
 
+  // "더보기" 버튼
   const handleLoadMore = async () => {
     if (!prevStartRef.current) {
       const calApi = calendarRef.current?.getApi();
@@ -190,23 +219,26 @@ const CalendarComponent = ({ selectedCalendarList }) => {
     }
 
     if (!cursorTimeRef.current) {
-      console.log("[handleLoadMore] cursor empty => no more data.");
+      console.log("[handleLoadMore] 더 이상 불러올 데이터가 없습니다.");
       return;
     }
 
     await loadEvents(prevStartRef.current, prevEndRef.current, false);
   };
 
+  // 날짜 클릭 → 새 일정 생성
   const dateClickEvent = (info) => {
     openCreatePopup(info.dateStr);
   };
 
+  // 이벤트 클릭 → 일정 편집
   const handleEventClick = (eventData) => {
     setSchedulePopupMode("edit");
     setSchedulePopupData(eventData);
     setSchedulePopupVisible(true);
   };
 
+  // 새 일정 생성 팝업 열기
   const openCreatePopup = (selectedDate) => {
     const now = new Date();
     const hh = now.getHours();
@@ -243,11 +275,11 @@ const CalendarComponent = ({ selectedCalendarList }) => {
     setSchedulePopupVisible(true);
   };
 
+  // 팝업/스케줄 팝업 닫기
   const closeAllPopups = (updated) => {
     if (updated && calendarRef.current) {
       setRefreshKey((prev) => prev + 1);
     }
-
     setPopupVisible(false);
     setPopupData([]);
     setPopupTitle("");
@@ -263,6 +295,7 @@ const CalendarComponent = ({ selectedCalendarList }) => {
         key={refreshKey}
         ref={calendarRef}
         plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+        locale={koLocale}
         timeZone="Asia/Seoul"
         initialView="dayGridMonth"
         aspectRatio={1}
@@ -272,6 +305,11 @@ const CalendarComponent = ({ selectedCalendarList }) => {
           left: `prev,next today${autoLoadComplete ? ",loadMore" : ""}`,
           center: "title",
           right: "dayGridMonth,timeGridWeek,timeGridDay",
+        }}
+        views={{
+          dayGridMonth: { buttonText: "월" },
+          timeGridWeek: { buttonText: "주" },
+          timeGridDay: { buttonText: "일" },
         }}
         customButtons={{
           loadMore: {
@@ -288,11 +326,15 @@ const CalendarComponent = ({ selectedCalendarList }) => {
             endAt: seg.event.endStr,
           }));
 
+          // 팝업 제목 (ex: "3월 10일")
           const formattedDate = arg.date
-              ? arg.date.toLocaleDateString("en-US", { month: "long", day: "numeric" })
-              : "";
+            ? arg.date.toLocaleDateString("ko-KR", {
+                month: "long",
+                day: "numeric",
+              })
+            : "";
 
-          setPopupTitle(`${formattedDate}`);
+          setPopupTitle(`${formattedDate} 일정`);
           setPopupData(customEvents);
           setPopupVisible(true);
 
@@ -314,20 +356,19 @@ const CalendarComponent = ({ selectedCalendarList }) => {
         fixedWeekCount={true}
       />
 
+      {/* 일정 목록 팝업 */}
       {popupVisible && (
         <Popup
           title={popupTitle}
           onClose={() => closeAllPopups(false)}
           actions={[
             {
-              label: "New Event",
+              label: "새 일정",
               variant: "green",
               size: "medium",
               onClick: () => {
-                const selectedDate = popupTitle.includes("Events on ")
-                  ? popupTitle.split("Events on ")[1]
-                  : new Date().toISOString().split("T")[0];
-                openCreatePopup(selectedDate);
+                const dateString = popupTitle.replace(" 일정", "");
+                openCreatePopup(new Date().toISOString().split("T")[0]);
               },
             },
           ]}
@@ -344,11 +385,12 @@ const CalendarComponent = ({ selectedCalendarList }) => {
               ))}
             </ul>
           ) : (
-            <p>No events available.</p>
+            <p>일정이 없습니다.</p>
           )}
         </Popup>
       )}
 
+      {/* 일정 생성/편집 팝업 */}
       {schedulePopupVisible && (
         <SchedulePopup
           isOpen={schedulePopupVisible}
@@ -356,7 +398,7 @@ const CalendarComponent = ({ selectedCalendarList }) => {
           eventDetails={schedulePopupData}
           onClose={closeAllPopups}
           selectedCalendarList={selectedCalendarList}
-          currentUserId={currentUserId} // 전달
+          currentUserId={currentUserId}
         />
       )}
     </div>

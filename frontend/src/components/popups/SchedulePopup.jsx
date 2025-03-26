@@ -362,10 +362,9 @@ import RepeatPopup from "./RepeatPopup";
         )
       );
       setParticipationStatus(newStatus);
-      alert("Participation status has been updated.");
+      alert("참여 여부가 정상적으로 반영되었습니다.");
     } catch (error) {
       console.error("Failed to update participation status:", error);
-      alert("Failed to update participation status.");
     }
   };
 
@@ -377,7 +376,7 @@ import RepeatPopup from "./RepeatPopup";
           withCredentials: true,
           headers: { "Content-Type": "application/json" },
         });
-        alert("Event created successfully!");
+        alert("일정이 추가되었습니다.");
         onClose(true);
       } else if (mode === "edit") {
         if (scheduleData.repeatId) {
@@ -391,7 +390,7 @@ import RepeatPopup from "./RepeatPopup";
               headers: { "Content-Type": "application/json" },
             }
           );
-          alert("Event updated successfully!");
+          alert("일정이 수정되었습니다.");
           onClose(true);
         }
       }
@@ -414,7 +413,7 @@ import RepeatPopup from "./RepeatPopup";
               withCredentials: true,
             }
           );
-          alert("Event deleted successfully!");
+          alert("일정이 삭제되었습니다.");
           onClose(true);
         }
       }
@@ -431,7 +430,7 @@ import RepeatPopup from "./RepeatPopup";
           withCredentials: true,
           headers: { "Content-Type": "application/json" },
         });
-        alert("Event updated successfully!");
+        alert("일정이 수정되었습니다.");
         onClose(true);
       }
     } catch (error) {
@@ -447,7 +446,7 @@ import RepeatPopup from "./RepeatPopup";
         await axios.delete(url, {
           withCredentials: true,
         });
-        alert("Event deleted successfully!");
+        alert("일정이 삭제되었습니다.");
         onClose(true);
       }
     } catch (error) {
@@ -528,6 +527,18 @@ import RepeatPopup from "./RepeatPopup";
 
   const selectedUsers = groupUserList.filter((user) => user.selected);
 
+  const getUserStatus = (status) => {
+    switch (status) {
+      case "ACCEPTED":
+        return "참여";
+      case "DECLINED":
+        return "불참";
+      case "PENDING":
+      default:
+        return "미정";
+    }
+  };
+
   return (
     <>
       {repeatPopupVisible && (
@@ -545,7 +556,7 @@ import RepeatPopup from "./RepeatPopup";
       <div className={styles.popupOverlay} onClick={closePopup}>
         <div className={styles.popup} onClick={(e) => e.stopPropagation()}>
           <div className={styles.popupHeader}>
-            <h2>{mode === "edit" ? "Edit Schedule" : "Create Schedule"}</h2>
+            <h2>{mode === "edit" ? "일정 수정" : "일정 생성"}</h2>
             <Button variant="close" size="" onClick={closePopup}>
               ×
             </Button>
@@ -559,7 +570,7 @@ import RepeatPopup from "./RepeatPopup";
               <form>
                 {/* 기본 일정 정보 */}
                 <div className={styles.infoRow}>
-                  <label>Title:</label>
+                  <label>제목:</label>
                   <input
                     type="text"
                     value={scheduleData.title}
@@ -567,14 +578,14 @@ import RepeatPopup from "./RepeatPopup";
                   />
                 </div>
                 <div className={styles.infoRow}>
-                  <label>Description:</label>
+                  <label>설명:</label>
                   <textarea
                     value={scheduleData.description}
                     onChange={(e) => handleInputChange("description", e.target.value)}
                   />
                 </div>
                 <div className={styles.infoRow}>
-                  <label>Start Time:</label>
+                  <label>시작 시간:</label>
                   <input
                     type="datetime-local"
                     value={scheduleData.startAt}
@@ -582,7 +593,7 @@ import RepeatPopup from "./RepeatPopup";
                   />
                 </div>
                 <div className={styles.infoRow}>
-                  <label>End Time:</label>
+                  <label>종료 시간:</label>
                   <input
                     type="datetime-local"
                     value={scheduleData.endAt}
@@ -590,7 +601,7 @@ import RepeatPopup from "./RepeatPopup";
                   />
                 </div>
                 <div className={styles.infoRow}>
-                  <label>Calendar:</label>
+                  <label>캘린더:</label>
                   <select
                     value={scheduleData.calendarId}
                     onChange={(e) => handleInputChange("calendarId", e.target.value)}
@@ -605,7 +616,7 @@ import RepeatPopup from "./RepeatPopup";
 
                 {/* 알림 설정 */}
                 <div className={styles.infoRow}>
-                  <label>Notifications:</label>
+                  <label>알림:</label>
                   <Toggle
                     checked={isNotificationEnabled}
                     onChange={() => setIsNotificationEnabled(!isNotificationEnabled)}
@@ -631,9 +642,9 @@ import RepeatPopup from "./RepeatPopup";
                           }
                           className={styles.notificationSelect}
                         >
-                          <option value="minutes">minutes</option>
-                          <option value="hours">hours</option>
-                          <option value="days">days</option>
+                          <option value="minutes">분</option>
+                          <option value="hours">시간</option>
+                          <option value="days">일</option>
                         </select>
                         <Button variant="close" size="" onClick={() => handleRemoveNotification(index)}>×</Button>
                       </div>
@@ -647,7 +658,7 @@ import RepeatPopup from "./RepeatPopup";
                           handleAddNotification();
                         }}
                       >
-                        Add Notification
+                        알림 추가
                       </Button>
                     </div>
                   </div>
@@ -655,7 +666,7 @@ import RepeatPopup from "./RepeatPopup";
 
                 {/* 반복 설정 */}
                 <div className={styles.infoRow}>
-                  <label>Repeat:</label>
+                  <label>반복 설정:</label>
                   <Toggle
                     checked={isRepeatEnabled}
                     onChange={() => setIsRepeatEnabled(!isRepeatEnabled)}
@@ -664,7 +675,7 @@ import RepeatPopup from "./RepeatPopup";
                 {isRepeatEnabled && (
                   <div>
                     <div className={styles.infoRow}>
-                      <label>Repeat Interval:</label>
+                      <label>반복 간격:</label>
                       <input
                         type="number"
                         value={scheduleData.repeatDetails.repeatInterval}
@@ -690,14 +701,14 @@ import RepeatPopup from "./RepeatPopup";
                           }))
                         }
                       >
-                        <option value="DAY">Day(s)</option>
-                        <option value="WEEK">Week(s)</option>
-                        <option value="MONTH">Month(s)</option>
-                        <option value="YEAR">Year(s)</option>
+                        <option value="DAY">일</option>
+                        <option value="WEEK">주</option>
+                        <option value="MONTH">월</option>
+                        <option value="YEAR">년</option>
                       </select>
                     </div>
                     <div className={styles.infoRow}>
-                      <label>End Time:</label>
+                      <label>반복 종료 일자:</label>
                       <input
                         type="datetime-local"
                         value={scheduleData.repeatDetails.endAt}
@@ -720,7 +731,7 @@ import RepeatPopup from "./RepeatPopup";
                   selectedCalendarList[scheduleData.calendarId].category === "GROUP" && (
                   <>
                     <div className={styles.infoRow}>
-                      <label>Group Users:</label>
+                      <label>일정 참석자 추가:</label>
                       <Toggle
                         checked={showGroupUsers}
                         onChange={() => {
@@ -742,10 +753,10 @@ import RepeatPopup from "./RepeatPopup";
                           <>
                             {/* 관리 가능(ADMIN/소유자) 또는 create 모드 → Available + Selected */}
                             <div style={{ marginBottom: "5px" }}>
-                              <div style={{ marginBottom: "5px" }}>Available Users:</div>
+                              <div style={{ marginBottom: "5px" }}>참석 가능 인원:</div>
                               <div className={styles.availableUsersContainer}>
                                 <table className={styles.userTable}>
-                                  <thead><tr><th>Select</th><th>Nickname</th></tr></thead>
+                                  <thead><tr><th>선택</th><th>닉네임</th></tr></thead>
                                   <tbody>
                                     {groupUserList.filter((user) => !user.selected).length > 0 ? (
                                       groupUserList
@@ -771,17 +782,17 @@ import RepeatPopup from "./RepeatPopup";
                                           </tr>
                                         ))
                                     ) : (
-                                      <tr><td colSpan="2">No available users</td></tr>
+                                      <tr><td colSpan="2">추가 가능한 사용자가 없습니다</td></tr>
                                     )}
                                   </tbody>
                                 </table>
                               </div>
                             </div>
                             <div style={{ marginTop: "10px" }}>
-                              <div style={{ marginBottom: "5px" }}>Selected Users:</div>
+                              <div style={{ marginBottom: "5px" }}>일정 참석자:</div>
                               <div className={styles.selectedUsersContainer}>
                                 <table className={styles.userTable}>
-                                  <thead><tr><th>Nickname</th><th>Permission</th><th>Status</th><th style={{ textAlign: "center" }}>x</th></tr></thead>
+                                  <thead><tr><th>닉네임</th><th>권한</th><th>상태</th><th style={{ textAlign: "center" }}>x</th></tr></thead>
                                   <tbody>
                                     {groupUserList.filter((user) => user.selected).map((user, index) => (
                                       <tr key={user.id || index}>
@@ -797,12 +808,12 @@ import RepeatPopup from "./RepeatPopup";
                                             }
                                             disabled={isReadOnly || currentUserId === user.userId}
                                           >
-                                            <option value="READ">READ</option>
-                                            <option value="WRITE">WRITE</option>
-                                            <option value="ADMIN">ADMIN</option>
+                                            <option value="READ">읽기</option>
+                                            <option value="WRITE">일정 수정</option>
+                                            <option value="ADMIN">관리자</option>
                                           </select>
                                         </td>
-                                        <td>{user.status || "PENDING"}</td>
+                                        <td>{getUserStatus(user.status)}</td>
                                         <td>
                                           <Button
                                             variant="close"
@@ -829,15 +840,15 @@ import RepeatPopup from "./RepeatPopup";
                           <>
                             {/* READ/WRITE인 경우 Selected만 */}
                             <div style={{ marginTop: "10px" }}>
-                              <div style={{ marginBottom: "5px" }}>Selected Users:</div>
+                              <div style={{ marginBottom: "5px" }}>일정 참석자:</div>
                               <div className={styles.selectedUsersContainer}>
                                 <table className={styles.userTable}>
-                                  <thead><tr><th>Nickname</th><th>Status</th></tr></thead>
+                                  <thead><tr><th>닉네임</th><th>상태</th></tr></thead>
                                   <tbody>
                                     {groupUserList.filter((user) => user.selected).map((user, index) => (
                                       <tr key={user.id || index}>
                                         <td>{user.userNickname}</td>
-                                        <td>{user.status || "PENDING"}</td>
+                                        <td>{getUserStatus(user.status)}</td>
                                       </tr>
                                     ))}
                                   </tbody>
@@ -861,14 +872,14 @@ import RepeatPopup from "./RepeatPopup";
               user.status !== "Not selected"
           ) && (
             <div className={styles.googleFooter}>
-              <span style={{ marginRight: "8px" }}>Participation:</span>
+              <span style={{ marginRight: "8px" }}>참여 여부:</span>
               <button
                 className={`${styles.googleButton} ${
                   participationStatus === "ACCEPTED" ? styles.activeGoogleButton : ""
                 }`}
                 onClick={() => handleParticipation("ACCEPTED")}
               >
-                Yes
+                예
               </button>
               <button
                 className={`${styles.googleButton} ${
@@ -876,7 +887,7 @@ import RepeatPopup from "./RepeatPopup";
                 }`}
                 onClick={() => handleParticipation("DECLINED")}
               >
-                No
+                아니오
               </button>
               <button
                 className={`${styles.googleButton} ${
@@ -884,7 +895,7 @@ import RepeatPopup from "./RepeatPopup";
                 }`}
                 onClick={() => handleParticipation("PENDING")}
               >
-                Maybe
+                미정
               </button>
             </div>
           )}
@@ -893,11 +904,11 @@ import RepeatPopup from "./RepeatPopup";
           {!isReadOnly && (
             <div className={styles.popupFooter}>
               <Button variant="green" size="medium" onClick={handleSave} type="button">
-                Save
+                저장
               </Button>
               {mode === "edit" && (
                 <Button variant="logout" size="medium" onClick={handleDelete} type="button">
-                  Delete
+                  삭제
                 </Button>
               )}
             </div>

@@ -51,7 +51,7 @@ const LoginPage = () => {
       />
     )}
     <div className={styles.formContainer}>
-      <h2>Sign in</h2>
+      <h2>로그인</h2>
       <form onSubmit={handleSubmit}>
         <input
           type="email"
@@ -73,11 +73,11 @@ const LoginPage = () => {
           className={styles.input}
         />
         <Button variant="green" size="medium" margin="top" type="submit">
-          Sign in
+          로그인
         </Button>
       </form>
       <Button variant="blue" size="medium" margin="top" onClick={() => navigate("/auth/register")}>
-        Sign up
+        회원가입
       </Button>
       <small onClick={() => setPasswordResetPopupVisible(true)}>비밀번호 찾기</small>
       {errorMessage && <div className={styles.error}>{errorMessage}</div>}

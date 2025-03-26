@@ -73,7 +73,7 @@ const RepeatPopup = ({ isOpen, onClose, mode, scheduleId, calendarId, repeatChec
 
         <div className={styles.popupFooter}>
           <Button variant="green" size="medium" onClick={handleConfirm} type="button">
-            Save
+            저장
           </Button>
         </div>
       </div>
