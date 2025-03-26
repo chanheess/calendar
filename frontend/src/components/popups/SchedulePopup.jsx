@@ -106,7 +106,6 @@ import RepeatPopup from "./RepeatPopup";
     eventDetails,
     onClose,
     selectedCalendarList,
-    handleUpdatedSchedule, // 필요하다면 활용
     currentUserId,
   }) => {
     useEffect(() => {

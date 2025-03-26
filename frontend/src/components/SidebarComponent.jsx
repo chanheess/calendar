@@ -1,16 +1,19 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import styles from "styles/Sidebar.module.css";
 import Button from "./Button";
 import CalendarList from "./CalendarList";
 import getCalendarList from "./GetCalendarList";
 import AddCalendarPopup from "./popups/AddCalendarPopup";
 import ManageCalendarPopup from "./popups/ManageCalendarPopup";
+import SchedulePopup from "./popups/SchedulePopup";
 
 const SidebarComponent = ({
   isOpen,
   onClose,
   selectedCalendarList,
   onCalendarChange,
+  userId,
+  refreshSchedules, // LayoutComponent에서 전달받은 캘린더 새로고침 콜백
 }) => {
   const [myCalendars, setMyCalendars] = useState({});
   const [groupCalendars, setGroupCalendars] = useState({});
@@ -25,13 +28,15 @@ const SidebarComponent = ({
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
 
-  // 바깥 영역 클릭 감지
+  // SchedulePopup 상태 추가
+  const [schedulePopupVisible, setSchedulePopupVisible] = useState(false);
+  const [schedulePopupMode, setSchedulePopupMode] = useState("create");
+  const [schedulePopupData, setSchedulePopupData] = useState(null);
+
+  // 바깥 영역 클릭 감지하여 드롭다운 닫기
   useEffect(() => {
     function handleClickOutside(e) {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(e.target)
-      ) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
         setDropdownOpen(false);
       }
     }
@@ -41,7 +46,7 @@ const SidebarComponent = ({
     };
   }, []);
 
-  // --- 초기 로딩: USER / GROUP 캘린더 불러오기 ---
+  // 캘린더 데이터 로딩
   useEffect(() => {
     const fetchAllCalendars = async () => {
       try {
@@ -78,7 +83,7 @@ const SidebarComponent = ({
     fetchAllCalendars();
   }, [onCalendarChange]);
 
-  // 체크박스 선택 (캘린더 보이기/숨기기)
+  // 캘린더 선택 토글
   const handleCalendarSelection = (id, checked) => {
     const allCalendars = { ...myCalendars, ...groupCalendars };
     if (allCalendars[id]) {
@@ -96,11 +101,7 @@ const SidebarComponent = ({
       category: type,
       isSelected: true,
     };
-    const allCalendars = {
-      ...myCalendars,
-      ...groupCalendars,
-      [newCalendar.id]: calendarObj,
-    };
+    const allCalendars = { ...myCalendars, ...groupCalendars, [newCalendar.id]: calendarObj };
 
     if (type === "USER") {
       setMyCalendars((prev) => ({ ...prev, [newCalendar.id]: calendarObj }));
@@ -110,47 +111,58 @@ const SidebarComponent = ({
     onCalendarChange(allCalendars);
   };
 
-  // --- (2) 일정 생성 로직(예시) ---
-  // 실제 일정 생성 팝업이나 로직을 연결
+  // "일정" 드롭다운 항목 클릭 시: 오늘 날짜 기준으로 SchedulePopup 생성 (일정 생성 팝업 열기)
   const handleCreateSchedule = () => {
-    alert("일정(이벤트) 생성 로직을 여기서 실행하세요!");
-    // 예: openSchedulePopup();
-    // 또는 라우팅, etc...
-    // ...
+    const now = new Date();
+    const hh = now.getHours();
+    const mm = now.getMinutes();
+    const startAt = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hh, mm);
+    const endAt = new Date(startAt.getTime() + 60 * 60 * 1000);
+    const fmt = (d) => {
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, "0");
+      const dd = String(d.getDate()).padStart(2, "0");
+      const h = String(d.getHours()).padStart(2, "0");
+      const min = String(d.getMinutes()).padStart(2, "0");
+      return `${y}-${m}-${dd}T${h}:${min}`;
+    };
+
+    setSchedulePopupData({
+      startAt: fmt(startAt),
+      endAt: fmt(endAt),
+      title: "",
+      description: "",
+      calendarId: "", // 사용자가 선택하도록 비워둠
+    });
+    setSchedulePopupMode("create");
+    setSchedulePopupVisible(true);
     setDropdownOpen(false);
   };
 
-  // 캘린더 추가 팝업 열기
   const openAddCalendarPopup = () => {
     setAddCalendarPopupVisible(true);
     setDropdownOpen(false);
   };
 
-  // 캘린더 관리 팝업 열기
   const openManageCalendarPopup = (calendar, sectionId) => {
     setManagePopupVisible(true);
     setManagePopupCalendar({ ...calendar, category: sectionId });
   };
 
-  // 팝업 닫기
   function handleClose() {
     setAddCalendarPopupVisible(false);
     setManagePopupVisible(false);
   }
 
-  // 전체 캘린더
+  // 전체 캘린더 목록
   const calendarsArray = Object.entries(selectedCalendarList || {}).map(
     ([id, data]) => ({
       id,
       ...data,
     })
   );
-  const userCalendarsArray = calendarsArray.filter(
-    (cal) => cal.category === "USER"
-  );
-  const groupCalendarsArray = calendarsArray.filter(
-    (cal) => cal.category === "GROUP"
-  );
+  const userCalendarsArray = calendarsArray.filter((cal) => cal.category === "USER");
+  const groupCalendarsArray = calendarsArray.filter((cal) => cal.category === "GROUP");
 
   return (
     <>
@@ -168,6 +180,21 @@ const SidebarComponent = ({
           calendarInfo={managePopupCalendar}
           selectedCalendarList={selectedCalendarList}
           onCalendarChange={onCalendarChange}
+        />
+      )}
+      {schedulePopupVisible && (
+        <SchedulePopup
+          isOpen={schedulePopupVisible}
+          mode={schedulePopupMode}
+          eventDetails={schedulePopupData}
+          onClose={(updated) => {
+            setSchedulePopupVisible(false);
+            if (updated && typeof refreshSchedules === "function") {
+              refreshSchedules();
+            }
+          }}
+          selectedCalendarList={selectedCalendarList}
+          currentUserId={userId}
         />
       )}
 
@@ -195,19 +222,12 @@ const SidebarComponent = ({
           >
             +
           </Button>
-
           {dropdownOpen && (
             <div className={styles.dropdownMenu}>
-              <div
-                className={styles.dropdownItem}
-                onClick={handleCreateSchedule}
-              >
+              <div className={styles.dropdownItem} onClick={handleCreateSchedule}>
                 일정
               </div>
-              <div
-                className={styles.dropdownItem}
-                onClick={openAddCalendarPopup}
-              >
+              <div className={styles.dropdownItem} onClick={openAddCalendarPopup}>
                 캘린더
               </div>
             </div>
