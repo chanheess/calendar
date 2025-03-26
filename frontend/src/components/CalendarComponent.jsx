@@ -48,6 +48,7 @@ const CalendarComponent = ({ selectedCalendarList, refreshKey, refreshSchedules 
       });
   }, []);
 
+  // 일정 불러오기
   const loadEvents = useCallback(async (startDateObj, endDateObj, firstLoad) => {
     if (!selectedCalendarList || Object.keys(selectedCalendarList).length === 0) {
       setFetchEvents([]);
@@ -124,6 +125,7 @@ const CalendarComponent = ({ selectedCalendarList, refreshKey, refreshSchedules 
     }
   }, [selectedCalendarList]);
 
+  // selectedCalendarList나 refreshKey가 바뀔 때 재로딩
   useEffect(() => {
     eventCacheRef.current = [];
     cursorTimeRef.current = "";
@@ -227,10 +229,20 @@ const CalendarComponent = ({ selectedCalendarList, refreshKey, refreshSchedules 
     setPopupTitle("");
     setSchedulePopupVisible(false);
     setSchedulePopupData(null);
-
     if (updated && typeof refreshSchedules === "function") {
       refreshSchedules();
     }
+  };
+
+  // helper 함수: 시작/종료 시간을 "2025년 3월 19일, 오후 9:00 ~ 2025년 3월 28일, 오후 10:00" 형식으로 포맷팅
+  const formatScheduleDate = (startAt, endAt) => {
+    const start = new Date(startAt);
+    const end = new Date(endAt);
+    const startDate = start.toLocaleDateString("ko-KR", { year: "numeric", month: "long", day: "numeric" });
+    const startTime = start.toLocaleTimeString("ko-KR", { hour: "numeric", minute: "2-digit" });
+    const endDate = end.toLocaleDateString("ko-KR", { year: "numeric", month: "long", day: "numeric" });
+    const endTime = end.toLocaleTimeString("ko-KR", { hour: "numeric", minute: "2-digit" });
+    return `${startDate}, ${startTime} ~ ${endDate}, ${endTime}`;
   };
 
   return (
@@ -299,7 +311,7 @@ const CalendarComponent = ({ selectedCalendarList, refreshKey, refreshSchedules 
           onClose={() => closeAllPopups(false)}
           actions={[
             {
-              label: "새 일정",
+              label: "일정 추가",
               variant: "green",
               size: "medium",
               onClick: () => {
@@ -312,11 +324,17 @@ const CalendarComponent = ({ selectedCalendarList, refreshKey, refreshSchedules 
           {popupData.length > 0 ? (
             <ul>
               {popupData.map((ev, idx) => (
-                <li key={idx} onClick={() => handleEventClick(ev)}>
-                  <strong>{ev.title}</strong>
-                  <p>
-                    {ev.startAt} - {ev.endAt}
-                  </p>
+                <li key={idx} onClick={() => handleEventClick(ev)} style={{ marginBottom: "12px", cursor: "pointer" }}>
+                  <div style={{ display: "flex", alignItems: "center", marginBottom: "4px" }}>
+                    <div style={{ width: "10px", height: "10px", borderRadius: "50%", backgroundColor: selectedCalendarList[ev.calendarId]?.color || "#3788d8", marginRight: "8px" }}></div>
+                    <strong>{ev.title}</strong>
+                  </div>
+                  <div style={{ fontSize: "13px", color: "#555" }}>
+                    {selectedCalendarList[ev.calendarId]?.title}
+                  </div>
+                  <div style={{ fontSize: "13px", color: "#555" }}>
+                    {formatScheduleDate(ev.startAt, ev.endAt)}
+                  </div>
                 </li>
               ))}
             </ul>
