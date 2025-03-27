@@ -42,10 +42,14 @@
 }
 
 :global(.fc-daygrid-day-frame) {
-  border-radius: 8px;
   transition: background-color 0.2s ease-in-out;
 }
 
 :global(.fc-daygrid-day-frame:hover) {
   background-color: rgba(0, 0, 0, 0.03);
+}
+
+:global(.fc-v-event) {
+  border: 0px;
+  padding: 2px;
 }

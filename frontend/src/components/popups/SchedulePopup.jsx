@@ -4,101 +4,16 @@ import Button from "components/Button";
 import Toggle from "components/Toggle";
 import axios from "axios";
 import RepeatPopup from "./RepeatPopup";
+import {
+  fetchScheduleNotifications,
+  fetchRepeatDetails,
+  convertDTOToNotifications,
+  convertNotificationsToDTO,
+  formatRepeatDetails,
+  formatDateTime,
+  getScheduleGroupList,
+} from "components/ScheduleUtility";
 
-  async function fetchScheduleNotifications(eventId) {
-    try {
-      const response = await axios.get(`/schedules/${eventId}/notifications`, {
-        withCredentials: true,
-        headers: { "Content-Type": "application/json" },
-      });
-      return response.data;
-    } catch (error) {
-      console.error("Error fetching schedule notifications:", error);
-      return null;
-    }
-  }
-
-  async function fetchRepeatDetails(repeatId) {
-    if (!repeatId) return null;
-    try {
-      const response = await axios.get(`/repeats/${repeatId}`, {
-        withCredentials: true,
-        headers: { "Content-Type": "application/json" },
-      });
-      return response.data;
-    } catch (error) {
-      console.error("Error fetching repeat details:", error);
-      return null;
-    }
-  }
-
-  function convertDTOToNotifications(notifications, startAt) {
-    return notifications.map((notification) => {
-      const startDate = new Date(startAt);
-      const notificationDate = new Date(notification.notificationAt);
-      const diffInMillis = startDate - notificationDate;
-      const diffInMinutes = Math.floor(diffInMillis / (1000 * 60));
-      const diffInHours = Math.floor(diffInMillis / (1000 * 60 * 60));
-      const diffInDays = Math.floor(diffInMillis / (1000 * 60 * 60 * 24));
-
-      if (diffInDays > 0) {
-        return { unit: "days", time: diffInDays };
-      } else if (diffInHours > 0) {
-        return { unit: "hours", time: diffInHours };
-      } else {
-        return { unit: "minutes", time: diffInMinutes };
-      }
-    });
-  }
-
-  function convertNotificationsToDTO(notifications, startAt) {
-    return notifications.map((notification) => {
-      const { time, unit } = notification;
-      let notificationAt = new Date(startAt);
-      switch (unit) {
-        case "minutes":
-          notificationAt.setMinutes(notificationAt.getMinutes() - time);
-          break;
-        case "hours":
-          notificationAt.setHours(notificationAt.getHours() - time);
-          break;
-        case "days":
-          notificationAt.setDate(notificationAt.getDate() - time);
-          break;
-        case "weeks":
-          notificationAt.setDate(notificationAt.getDate() - time * 7);
-          break;
-        case "months":
-          notificationAt.setMonth(notificationAt.getMonth() - time);
-          break;
-        case "years":
-          notificationAt.setFullYear(notificationAt.getFullYear() - time);
-          break;
-        default:
-          console.warn("Unknown time unit:", unit);
-      }
-      return { notificationAt: formatDateTime(notificationAt) };
-    });
-  }
-
-  function formatRepeatDetails(repeatDetails) {
-    // isRepeatEnabled는 외부에서 체크 후 호출
-    if (!repeatDetails) return null;
-    return {
-      repeatInterval: repeatDetails.repeatInterval,
-      repeatType: repeatDetails.repeatType,
-      endAt: repeatDetails.endAt ? new Date(repeatDetails.endAt).toISOString() : null,
-    };
-  }
-
-  function formatDateTime(date) {
-    const year = date.getFullYear();
-    const month = ("0" + (date.getMonth() + 1)).slice(-2);
-    const day = ("0" + date.getDate()).slice(-2);
-    const hours = ("0" + date.getHours()).slice(-2);
-    const minutes = ("0" + date.getMinutes()).slice(-2);
-    return `${year}-${month}-${day}T${hours}:${minutes}`;
-  }
 
   const SchedulePopup = ({
     isOpen,
@@ -237,14 +152,7 @@ import RepeatPopup from "./RepeatPopup";
 
       let invitedUsers = [];
       if (mode === "edit") {
-        const scheduleGroupResponse = await axios.get(
-          `/schedules/${scheduleData.id}/group`,
-          {
-            withCredentials: true,
-            headers: { "Content-Type": "application/json" },
-          }
-        );
-        invitedUsers = scheduleGroupResponse.data;
+        invitedUsers = await getScheduleGroupList(scheduleData.id);
       }
 
       // create 모드인 경우
