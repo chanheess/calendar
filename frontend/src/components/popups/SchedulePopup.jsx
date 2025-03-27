@@ -10,7 +10,6 @@ import {
   convertDTOToNotifications,
   convertNotificationsToDTO,
   formatRepeatDetails,
-  formatDateTime,
   getScheduleGroupList,
 } from "components/ScheduleUtility";
 
