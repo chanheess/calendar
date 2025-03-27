@@ -34,7 +34,7 @@ const ProfilePage = () => {
     }
 
     try {
-      const response = await axios.patch("/user/info",
+      await axios.patch("/user/info",
         { nickname },
         {
           headers: {
