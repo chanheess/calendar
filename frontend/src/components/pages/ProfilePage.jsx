@@ -23,13 +23,13 @@ const ProfilePage = () => {
       setNickname(response.data.nickname);
     } catch (error) {
       console.error("Failed to fetch user info:", error);
-      alert("Failed to fetch user info. Please try again.");
+      alert("사용자 정보를 가져오지 못했습니다. 다시 시도해주세요.");
     }
   };
 
   const handleNicknameChange = async () => {
     if (!nickname.trim()) {
-      alert("Nickname cannot be empty!");
+      alert("닉네임을 입력해주세요.");
       return;
     }
 
@@ -44,7 +44,7 @@ const ProfilePage = () => {
         }
       );
 
-      alert(response.data);
+      alert("닉네임이 변경되었습니다.");
       setIsNicknameChanged(false); // 변경 상태 초기화
       fetchUserInfo(); // 사용자 정보 새로 가져오기
     } catch (error) {
@@ -54,7 +54,7 @@ const ProfilePage = () => {
 
   const handlePasswordChange = async () => {
     if (newPassword !== confirmPassword) {
-      alert("Passwords do not match!");
+      alert("비밀번호가 일치하지 않습니다.");
       return;
     }
 
@@ -64,7 +64,7 @@ const ProfilePage = () => {
         { currentPassword, newPassword },
         { headers: { "Content-Type": "application/json" }, withCredentials: true }
       );
-      alert("Password updated successfully!");
+      alert("비밀번호가 성공적으로 변경되었습니다.");
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
@@ -84,16 +84,16 @@ const ProfilePage = () => {
       <HeaderComponent mode="profile" />
 
       <div className={styles.formContainer}>
-        <h2>Edit Profile</h2>
+        <h2>프로필 수정</h2>
 
         <form>
           <div className={styles.infoRow}>
-            <label>Email:</label>
+            <label>이메일:</label>
             <span id="email" className={styles.email}>{email}</span>
           </div>
 
           <div className={styles.infoRow}>
-            <label htmlFor="nickname">Nickname:</label>
+            <label htmlFor="nickname">닉네임:</label>
             <input
               type="text"
               id="nickname"
@@ -107,48 +107,48 @@ const ProfilePage = () => {
               onClick={handleNicknameChange}
               disabled={!isNicknameChanged}
             >
-              Rename
+              변경
             </Button>
           </div>
 
           <div className={styles.infoRow}>
-            <label htmlFor="currentPassword">Current Password:</label>
+            <label htmlFor="currentPassword">현재 비밀번호:</label>
             <input
               type="password"
               id="currentPassword"
               value={currentPassword}
               onChange={(e) => setCurrentPassword(e.target.value)}
-              placeholder="Enter current password"
+              placeholder="현재 비밀번호를 입력하세요."
               autoComplete="off"
             />
           </div>
 
           <div className={styles.infoRow}>
-            <label htmlFor="newPassword">New Password:</label>
+            <label htmlFor="newPassword">새 비밀번호:</label>
             <input
               type="password"
               id="newPassword"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              placeholder="Enter new password"
+              placeholder="새 비밀번호를 입력하세요."
               autoComplete="off"
             />
           </div>
 
           <div className={styles.infoRow}>
-            <label htmlFor="confirmPassword">Confirm Password:</label>
+            <label htmlFor="confirmPassword">비밀번호 확인:</label>
             <input
               type="password"
               id="confirmPassword"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder="Confirm new password"
+              placeholder="비밀번호를 확인하세요."
               autoComplete="off"
             />
           </div>
           <div className={styles.passwordText}>
             <small>
-              Use 8-20 characters with letters, numbers and symbols.<br/>
+              영문, 숫자, 특수문자를 포함하여 8~20자의 비밀번호를 사용하세요.<br/>
             </small>
           </div>
           <Button
@@ -157,7 +157,7 @@ const ProfilePage = () => {
             size="medium"
             onClick={handlePasswordChange}
           >
-            Change Password
+            비밀번호 변경
           </Button>
         </form>
       </div>

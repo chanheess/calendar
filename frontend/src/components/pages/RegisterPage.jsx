@@ -74,10 +74,10 @@ const RegisterPage = () => {
 
   return (
     <div className={styles.formContainer}>
-      <h2>Sign up</h2>
+      <h2>회원가입</h2>
       <form onSubmit={handleSubmit}>
         <div className={styles.infoRow}>
-          <label htmlFor="email">Email:</label>
+          <label htmlFor="email">이메일:</label>
           <input
             type="email"
             id="email"
@@ -93,60 +93,60 @@ const RegisterPage = () => {
             onClick={handleEmailVerification}
             disabled={!isEmailValid}
           >
-            Verify
+            인증
           </Button>
         </div>
         <div className={styles.infoRow}>
-          <label htmlFor="email-verification">Email code:</label>
+          <label htmlFor="email-verification">인증 코드:</label>
           <input
             type="text"
             id="email-verification"
             value={emailCode}
             onChange={(e) => setEmailCode(e.target.value)}
-            placeholder="Enter your verification code"
+            placeholder="인증 코드를 입력하세요."
             required
           />
         </div>
         <div className={styles.infoRow}>
-          <label htmlFor="password">Password:</label>
+          <label htmlFor="password">비밀번호:</label>
           <input
             type="password"
             id="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="Enter your password"
+            placeholder="비밀번호를 입력하세요."
             autoComplete="new-password"
             required
           />
         </div>
         <div className={styles.infoRow}>
-          <label htmlFor="confirmPassword">Confirm Password:</label>
+          <label htmlFor="confirmPassword">비밀번호 확인:</label>
           <input
             type="password"
             id="confirmPassword"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
-            placeholder="Confirm your password"
+            placeholder="비밀번호를 다시 입력하세요."
             autoComplete="new-password"
             required
           />
         </div>
         <div className={styles.passwordText}>
           <small>
-            Use 8-20 characters with letters, numbers and symbols.<br/>
+            영문, 숫자, 특수문자를 포함하여 8~20자의 비밀번호를 사용하세요.<br/>
           </small>
           {!isPasswordMatch && (
-            <small className={styles.passwordError}>Passwords do not match</small>
+            <small className={styles.passwordError}>비밀번호가 일치하지 않습니다.</small>
           )}
         </div>
         <div className={styles.infoRow}>
-          <label htmlFor="nickname">Nickname:</label>
+          <label htmlFor="nickname">닉네임:</label>
           <input
             type="text"
             id="nickname"
             value={nickname}
             onChange={(e) => setNickname(e.target.value)}
-            placeholder="Enter your nickname"
+            placeholder="닉네임을 입력하세요."
             required
           />
         </div>
@@ -157,7 +157,7 @@ const RegisterPage = () => {
           margin="top"
           disabled={!isSubmitEnabled}
         >
-          Sign Up
+          회원가입
         </Button>
         <Button
           type="button"
@@ -166,7 +166,7 @@ const RegisterPage = () => {
           margin="top"
           onClick={() => (navigate("/auth/login"))}
         >
-          Back
+          돌아가기
         </Button>
       </form>
     </div>

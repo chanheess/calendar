@@ -1,9 +1,19 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import styles from "styles/Popup.module.css";
 import Button from "components/Button";
 
 const RepeatPopup = ({ isOpen, onClose, mode, scheduleId, calendarId, repeatCheck, onConfirm }) => {
   const [selectedOption, setSelectedOption] = useState("single");
+
+  useEffect(() => {
+    const handleEsc = (event) => {
+      if (event.key === "Escape") {
+        onClose();
+      }
+    };
+    window.addEventListener("keydown", handleEsc);
+    return () => window.removeEventListener("keydown", handleEsc);
+  }, [onClose]);
 
   if (!isOpen) return null;
 
@@ -29,8 +39,8 @@ const RepeatPopup = ({ isOpen, onClose, mode, scheduleId, calendarId, repeatChec
   };
 
   return (
-    <div className={styles.popupOverlay} style={{ zIndex: 1001 }}>
-      <div className={styles.popup}>
+    <div className={styles.popupOverlay} style={{ zIndex: 1001 }} onClick={onClose}>
+      <div className={styles.popup} onClick={(e) => e.stopPropagation()}>
         <div className={styles.popupHeader}>
           <h2>반복 일정 수정</h2>
           <Button variant="close" size="" onClick={onClose}>×</Button>
@@ -63,7 +73,7 @@ const RepeatPopup = ({ isOpen, onClose, mode, scheduleId, calendarId, repeatChec
 
         <div className={styles.popupFooter}>
           <Button variant="green" size="medium" onClick={handleConfirm} type="button">
-            Save
+            저장
           </Button>
         </div>
       </div>
