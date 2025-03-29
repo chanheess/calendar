@@ -137,7 +137,7 @@ const PasswordResetPopup = ({ isOpen, onClose }) => {
                   disabled={!isEmailValid || isCodeVisible}
                   type="button"
                 >
-                  Send
+                  전송
                 </Button>
               </div>
             </>
