@@ -85,12 +85,14 @@ const SidebarComponent = ({
 
   // 캘린더 선택 토글
   const handleCalendarSelection = (id, checked) => {
-    const allCalendars = { ...myCalendars, ...groupCalendars };
-    if (allCalendars[id]) {
-      const updatedCalendar = { ...allCalendars[id], isSelected: checked };
-      const updatedList = { ...allCalendars, [id]: updatedCalendar };
-      onCalendarChange(updatedList);
-    }
+    const updatedList = {
+      ...selectedCalendarList,
+      [id]: {
+        ...selectedCalendarList[id],
+        isSelected: checked,
+      },
+    };
+    onCalendarChange(updatedList);
   };
 
   // 새 캘린더 추가

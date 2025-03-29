@@ -96,8 +96,6 @@ export function convertNotificationsToDTO(notifications, startAt) {
 export function formatRepeatDetails(repeatDetails) {
   if (!repeatDetails) return null;
 
-  console.log(repeatDetails.endAt);
-  console.log(formatDateTime(new Date(repeatDetails.endAt)));
   return {
     repeatInterval: repeatDetails.repeatInterval,
     repeatType: repeatDetails.repeatType,

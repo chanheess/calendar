@@ -25,7 +25,6 @@ const CalendarComponent = ({ selectedCalendarList, refreshKey, refreshSchedules 
   const [popupVisible, setPopupVisible] = useState(false);
   const [popupTitle, setPopupTitle] = useState("");
   const [popupData, setPopupData] = useState([]);
-  // ⬇️ We'll store the actual Date object here
   const [popupSelectedDate, setPopupSelectedDate] = useState(null);
 
   // 스케줄 팝업 상태
@@ -124,7 +123,9 @@ const CalendarComponent = ({ selectedCalendarList, refreshKey, refreshSchedules 
             calendarId: evt.calendarId,
             backgroundColor: selectedCalendarList[evt.calendarId]?.color || "#3788d8",
           }));
-          const filtered = newEvents.filter((ev) => selectedCalendarList[ev.calendarId]);
+          const filtered = newEvents.filter(
+            (ev) => selectedCalendarList[ev.calendarId] && selectedCalendarList[ev.calendarId].isSelected
+          );
           eventCacheRef.current.push(...filtered);
           setFetchEvents([...eventCacheRef.current]);
 
@@ -157,7 +158,6 @@ const CalendarComponent = ({ selectedCalendarList, refreshKey, refreshSchedules 
     prevEndRef.current = null;
     setFetchEvents([]);
     setAutoLoadComplete(false);
-
     if (calendarRef.current) {
       const calApi = calendarRef.current.getApi();
       const v = calApi.view;
