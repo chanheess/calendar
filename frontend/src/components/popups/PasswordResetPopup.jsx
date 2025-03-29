@@ -66,7 +66,7 @@ const PasswordResetPopup = ({ isOpen, onClose }) => {
     e.preventDefault();
 
     if (password !== confirmPassword) {
-      alert("Passwords do not match!");
+      alert("비밀번호가 일치하지 않습니다!");
       return;
     }
 
@@ -146,54 +146,54 @@ const PasswordResetPopup = ({ isOpen, onClose }) => {
             <>
             <form onSubmit={handlePasswordChange}>
               <div className={styles.infoRow}>
-                <label htmlFor="email">Email:</label>
+                <label htmlFor="email">이메일:</label>
                 <p>{formatEmail(email)}</p>
               </div>
               <div className={styles.infoRow}>
-                <label htmlFor="email-verification">Email code:</label>
+                <label htmlFor="email-verification">인증 코드:</label>
                 <input
                   type="text"
                   id="email-verification"
                   value={emailCode}
                   onChange={(e) => setEmailCode(e.target.value)}
-                  placeholder={`Enter verification code (${formatTime(timeLeft)})`} // 타이머와 함께 표시
+                  placeholder={`인증 코드를 입력하세요 (${formatTime(timeLeft)})`} // 타이머와 함께 표시
                   required
                   autoComplete="off"
                   disabled={isCodeExpired} // 코드 만료되면 비활성화
                 />
               </div>
               <div className={styles.infoRow}>
-                <label htmlFor="password">Password:</label>
+                <label htmlFor="password">비밀번호:</label>
                 <input
                   type="password"
                   id="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter new password"
+                  placeholder="새 비밀번호를 입력해주세요."
                   autoComplete="new-password"
                   required
                 />
               </div>
               <div className={styles.infoRow}>
-                <label htmlFor="confirmPassword">Confirm Password:</label>
+                <label htmlFor="confirmPassword">비밀번호 확인:</label>
                 <input
                   type="password"
                   id="confirmPassword"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="Confirm new password"
+                  placeholder="비밀번호를 다시 입력하세요."
                   autoComplete="new-password"
                   required
                 />
               </div>
               <div className={styles.passwordText}>
                 <small>
-                  Use 8-20 characters with letters, numbers, and symbols.<br/>
+                  문자, 숫자, 기호를 포함한 8-20자의 비밀번호를 사용하세요.<br/>
                 </small>
                 {!isPasswordMatch && (
-                  <small className={styles.passwordError}>Passwords do not match<br/></small>
+                  <small className={styles.passwordError}>비밀번호가 일치하지 않습니다.<br/></small>
                 )}
-                {isCodeExpired && <small className={styles.passwordError}>The code has expired. Please request a new one.</small>}
+                {isCodeExpired && <small className={styles.passwordError}>인증 코드 유효기간이 만료되었습니다. 새 코드를 요청하세요.</small>}
               </div>
               <div className={styles.infoRow}>
                 <Button
@@ -201,13 +201,13 @@ const PasswordResetPopup = ({ isOpen, onClose }) => {
                   type="summit"
                   disabled={isCodeExpired} // 코드 만료되면 비활성화
                 >
-                  Change Password
+                  비밀번호 변경
                 </Button>
                 <Button
                   variant="logout" size="medium"
                   onClick={cancelPasswordChange}
                 >
-                  Cancel
+                  취소
                 </Button>
               </div>
             </form>
