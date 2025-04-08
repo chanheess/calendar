@@ -19,7 +19,7 @@ const messaging = getMessaging(app);
 
 export const requestFirebaseNotificationPermission = async () => {
   try {
-    const token = await getToken(messaging, { vapidKey: "BOOYYhMRpzdRL1n3Nnwm8jAhu1be-_tiMQKpCRPzBs4hXY85KB4yX9kR65__1hOB43Uj7ixfhHyPPSYA1NsNBSI" });
+    const token = await getToken(messaging, { vapidKey: process.env.REACT_APP_FIREBASE_VAPID_KEY });
     return token;
   } catch (error) {
     console.error('FCM 토큰 가져오기 실패', error);

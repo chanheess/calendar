@@ -50,8 +50,8 @@ public interface ScheduleRepository extends JpaRepository<ScheduleEntity, Long> 
     @Query("SELECT s FROM ScheduleEntity s WHERE s.repeatId = :repeatId AND s.startAt >= :startAt AND s.userId = :userId")
     List<ScheduleEntity> findCurrentAndFutureRepeatSchedules(@Param("repeatId") Long repeatId, @Param("startAt") LocalDateTime startAt, @Param("userId") Long userId);
 
-    @Query("SELECT COUNT(s) = 1 FROM ScheduleEntity s WHERE s.repeatId = :repeatId")
-    boolean isLastRemainingRepeatSchedule(@Param("repeatId") Long repeatId);
+    @Query("SELECT COUNT(s) FROM ScheduleEntity s WHERE s.repeatId = :repeatId")
+    long countByRepeatId(@Param("repeatId") Long repeatId);
 
     @Query("SELECT s.repeatId FROM ScheduleEntity s WHERE s.id = :scheduleId AND s.userId = :userId")
     Optional<Long> getRepeatId(@Param("scheduleId") Long scheduleId, @Param("userId") Long userId);
