@@ -269,7 +269,7 @@ public class ScheduleService {
 
         if (standardSchedule.get().getRepeatId() != null) {
             //자신을 제외한 반복 일정이 없다면 반복 일정을 삭제해준다.
-            if (scheduleRepository.isLastRemainingRepeatSchedule(standardSchedule.get().getRepeatId())) {
+            if (scheduleRepository.countByRepeatId(standardSchedule.get().getRepeatId()) <= 1) {
                 scheduleRepeatRepository.deleteById(standardSchedule.get().getRepeatId());
             }
         }
@@ -279,7 +279,7 @@ public class ScheduleService {
     public void deleteCurrentOnlyRepeatSchedule(ScheduleEntity standardSchedule) {
         if (standardSchedule.getRepeatId() != null) {
             //자신을 제외한 반복 일정이 없다면 반복 일정을 삭제해준다.
-            if (scheduleRepository.isLastRemainingRepeatSchedule(standardSchedule.getRepeatId())) {
+            if (scheduleRepository.countByRepeatId(standardSchedule.getRepeatId()) <= 1) {
                 scheduleRepeatRepository.deleteById(standardSchedule.getRepeatId());
                 scheduleGroupService.deleteScheduleGroup(standardSchedule.getId());
             }
@@ -308,7 +308,7 @@ public class ScheduleService {
 
         scheduleRepository.deleteAll(scheduleList);
 
-        if (scheduleRepository.isLastRemainingRepeatSchedule(standardSchedule.getRepeatId())) {
+        if (scheduleRepository.countByRepeatId(standardSchedule.getRepeatId()) <= 1) {
             scheduleRepeatRepository.deleteById(standardSchedule.getRepeatId());
         }
     }
@@ -459,7 +459,7 @@ public class ScheduleService {
         if (scheduleEntity.getId() != masterScheduleEntity.getId()) {
             scheduleGroupService.updateScheduleId(scheduleEntity.getId(), masterScheduleEntity.getId());
         } else {
-            if (scheduleRepository.isLastRemainingRepeatSchedule(scheduleEntity.getRepeatId())) {
+            if (scheduleRepository.countByRepeatId(scheduleEntity.getRepeatId()) <= 1) {
                 scheduleGroupService.deleteScheduleGroup(scheduleId);
             }
         }
