@@ -2,6 +2,7 @@ package com.chpark.chcalendar.controller.schedule;
 
 import com.chpark.chcalendar.dto.CursorPage;
 import com.chpark.chcalendar.dto.schedule.ScheduleDto;
+import com.chpark.chcalendar.enumClass.JwtTokenType;
 import com.chpark.chcalendar.enumClass.ScheduleRepeatScope;
 import com.chpark.chcalendar.exception.ValidGroup;
 import com.chpark.chcalendar.security.JwtTokenProvider;
@@ -37,7 +38,7 @@ public class ScheduleController {
                                                                  HttpServletRequest request) {
         List<ScheduleDto> schedules;
 
-        String token = jwtTokenProvider.resolveToken(request);
+        String token = jwtTokenProvider.resolveToken(request, JwtTokenType.ACCESS.getValue());
         long userId = jwtTokenProvider.getUserIdFromToken(token);
 
         if (title == null) {
@@ -68,7 +69,7 @@ public class ScheduleController {
                 : LocalDateTime.of(1000, 1, 1, 0, 0);
         long targetCursorId = (cursorId != null) ? cursorId : 0L;
 
-        String token = jwtTokenProvider.resolveToken(request);
+        String token = jwtTokenProvider.resolveToken(request, JwtTokenType.ACCESS.getValue());
         long userId = jwtTokenProvider.getUserIdFromToken(token);
 
         CursorPage<ScheduleDto> result = scheduleService.getNextSchedules(userId, startTime, endTime, targetCursorTime, targetCursorId, size);
@@ -78,7 +79,7 @@ public class ScheduleController {
     @GetMapping("/{id}")
     public ResponseEntity<ScheduleDto> getScheduleById(@PathVariable("id") long id,
                                                        HttpServletRequest request) {
-        String token = jwtTokenProvider.resolveToken(request);
+        String token = jwtTokenProvider.resolveToken(request, JwtTokenType.ACCESS.getValue());
         long userId = jwtTokenProvider.getUserIdFromToken(token);
 
         Optional<ScheduleDto> scheduleDto = scheduleService.findById(id, userId);
@@ -89,7 +90,7 @@ public class ScheduleController {
     @PostMapping
     public ResponseEntity<ScheduleDto.Response> createSchedule(@Validated(ValidGroup.CreateGroup.class) @RequestBody ScheduleDto.Request schedule,
                                                                HttpServletRequest request) {
-        String token = jwtTokenProvider.resolveToken(request);
+        String token = jwtTokenProvider.resolveToken(request, JwtTokenType.ACCESS.getValue());
         long userId = jwtTokenProvider.getUserIdFromToken(token);
 
         ScheduleDto.Response result = scheduleService.createByForm(schedule, userId);
@@ -102,7 +103,7 @@ public class ScheduleController {
                                                                @RequestParam("repeat") boolean isRepeatChecked,
                                                                @Validated @RequestBody ScheduleDto.Request scheduleDto,
                                                                HttpServletRequest request) {
-        String token = jwtTokenProvider.resolveToken(request);
+        String token = jwtTokenProvider.resolveToken(request, JwtTokenType.ACCESS.getValue());
         long userId = jwtTokenProvider.getUserIdFromToken(token);
 
         ScheduleDto.Response response = scheduleService.updateSchedule(id, isRepeatChecked, scheduleDto, userId);
@@ -119,7 +120,7 @@ public class ScheduleController {
         ScheduleRepeatScope scheduleRepeatScope = ScheduleRepeatScope.fromValue(repeatStringScope);
         ScheduleDto.Response response = null;
 
-        String token = jwtTokenProvider.resolveToken(request);
+        String token = jwtTokenProvider.resolveToken(request, JwtTokenType.ACCESS.getValue());
         long userId = jwtTokenProvider.getUserIdFromToken(token);
 
         switch (scheduleRepeatScope) {
@@ -138,7 +139,7 @@ public class ScheduleController {
     public ResponseEntity<String> deleteSchedule(@PathVariable("schedule-id") long scheduleId,
                                                  @PathVariable("calendar-id") long calendarId,
                                                  HttpServletRequest request) {
-        String token = jwtTokenProvider.resolveToken(request);
+        String token = jwtTokenProvider.resolveToken(request, JwtTokenType.ACCESS.getValue());
         long userId = jwtTokenProvider.getUserIdFromToken(token);
 
         scheduleService.deleteById(scheduleId, calendarId, userId);
@@ -154,7 +155,7 @@ public class ScheduleController {
                                                        HttpServletRequest request) {
         ScheduleRepeatScope scheduleRepeatScope = ScheduleRepeatScope.fromValue(repeatStringScope);
 
-        String token = jwtTokenProvider.resolveToken(request);
+        String token = jwtTokenProvider.resolveToken(request, JwtTokenType.ACCESS.getValue());
         long userId = jwtTokenProvider.getUserIdFromToken(token);
 
         //삭제할 범위

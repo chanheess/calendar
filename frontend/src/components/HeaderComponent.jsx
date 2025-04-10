@@ -61,9 +61,6 @@ const HeaderComponent = ({ mode, onSidebarToggle }) => {
       const response = await axios.get("/notifications", { withCredentials: true });
       setNotifications(response.data || []);
     } catch (error) {
-      if (error.status === 401) {
-        window.location.href = "/auth/login";
-      }
       console.error("Error fetching notifications:", error);
     }
   }

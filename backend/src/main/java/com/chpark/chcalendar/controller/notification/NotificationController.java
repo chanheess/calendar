@@ -1,6 +1,7 @@
 package com.chpark.chcalendar.controller.notification;
 
 import com.chpark.chcalendar.dto.notification.NotificationDto;
+import com.chpark.chcalendar.enumClass.JwtTokenType;
 import com.chpark.chcalendar.enumClass.NotificationCategory;
 import com.chpark.chcalendar.security.JwtTokenProvider;
 import com.chpark.chcalendar.service.notification.NotificationService;
@@ -25,7 +26,7 @@ public class NotificationController {
     @GetMapping("/notifications")
     public ResponseEntity<List<NotificationDto>> getNotifications(HttpServletRequest request) {
 
-        String token = jwtTokenProvider.resolveToken(request);
+        String token = jwtTokenProvider.resolveToken(request, JwtTokenType.ACCESS.getValue());
         long userId = jwtTokenProvider.getUserIdFromToken(token);
 
         NotificationService notification =  notificationService.get(NotificationCategory.GROUP);
@@ -39,7 +40,7 @@ public class NotificationController {
                                                               @RequestParam(value = "nickname", required = false) String nickname,
                                                               HttpServletRequest request) {
 
-        String token = jwtTokenProvider.resolveToken(request);
+        String token = jwtTokenProvider.resolveToken(request, JwtTokenType.ACCESS.getValue());
         long userId = jwtTokenProvider.getUserIdFromToken(token);
 
         NotificationService notification =  notificationService.get(NotificationCategory.GROUP);
@@ -52,7 +53,7 @@ public class NotificationController {
     public ResponseEntity<String> acceptNotification(@Validated @RequestBody NotificationDto notificationDto,
                                                               HttpServletRequest request) {
 
-        String token = jwtTokenProvider.resolveToken(request);
+        String token = jwtTokenProvider.resolveToken(request, JwtTokenType.ACCESS.getValue());
         long userId = jwtTokenProvider.getUserIdFromToken(token);
 
         NotificationService notification =  notificationService.get(notificationDto.getCategory());
@@ -65,7 +66,7 @@ public class NotificationController {
     public ResponseEntity<String> rejectNotification(@Validated @RequestBody NotificationDto notificationDto,
                                                      HttpServletRequest request) {
 
-        String token = jwtTokenProvider.resolveToken(request);
+        String token = jwtTokenProvider.resolveToken(request, JwtTokenType.ACCESS.getValue());
         long userId = jwtTokenProvider.getUserIdFromToken(token);
 
         NotificationService notification =  notificationService.get(notificationDto.getCategory());
@@ -78,7 +79,7 @@ public class NotificationController {
     public ResponseEntity<String> maybeNotification(@Validated @RequestBody NotificationDto notificationDto,
                                                      HttpServletRequest request) {
 
-        String token = jwtTokenProvider.resolveToken(request);
+        String token = jwtTokenProvider.resolveToken(request, JwtTokenType.ACCESS.getValue());
         long userId = jwtTokenProvider.getUserIdFromToken(token);
 
         NotificationService notification =  notificationService.get(notificationDto.getCategory());

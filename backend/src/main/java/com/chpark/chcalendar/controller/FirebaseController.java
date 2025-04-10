@@ -1,10 +1,10 @@
 package com.chpark.chcalendar.controller;
 
 import com.chpark.chcalendar.dto.FirebaseTokenDto;
+import com.chpark.chcalendar.enumClass.JwtTokenType;
 import com.chpark.chcalendar.security.JwtTokenProvider;
 import com.chpark.chcalendar.service.notification.FirebaseService;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -21,7 +21,7 @@ public class FirebaseController {
     @PostMapping("/notifications/token")
     public ResponseEntity<String> subscribe(@RequestBody FirebaseTokenDto firebaseToken,
                                             HttpServletRequest request) {
-        String token = jwtTokenProvider.resolveToken(request);
+        String token = jwtTokenProvider.resolveToken(request, JwtTokenType.ACCESS.getValue());
         long userId = jwtTokenProvider.getUserIdFromToken(token);
 
         firebaseService.saveToken(userId, firebaseToken);
@@ -32,7 +32,7 @@ public class FirebaseController {
     @DeleteMapping("/notifications/token/{fcmToken}")
     public ResponseEntity<String> unsubscribe(@Validated @PathVariable("fcmToken") String fcmToken,
                                               HttpServletRequest request) {
-        String token = jwtTokenProvider.resolveToken(request);
+        String token = jwtTokenProvider.resolveToken(request, JwtTokenType.ACCESS.getValue());
         long userId = jwtTokenProvider.getUserIdFromToken(token);
 
         firebaseService.deleteToken(userId, fcmToken);

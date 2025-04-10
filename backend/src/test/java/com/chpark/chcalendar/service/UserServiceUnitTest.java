@@ -2,6 +2,7 @@ package com.chpark.chcalendar.service;
 
 import com.chpark.chcalendar.dto.UserDto;
 import com.chpark.chcalendar.dto.calendar.CalendarInfoDto;
+import com.chpark.chcalendar.dto.security.JwtAuthenticationResponseDto;
 import com.chpark.chcalendar.entity.UserEntity;
 import com.chpark.chcalendar.repository.user.UserRepository;
 import com.chpark.chcalendar.security.JwtTokenProvider;
@@ -93,14 +94,14 @@ class UserServiceUnitTest {
                 .thenReturn(authentication);
         when(userRepository.findByEmail(userDto.getEmail()))
                 .thenReturn(Optional.of(savedUser));
-        when(jwtTokenProvider.generateToken(authentication, savedUser.getId()))
+        when(jwtTokenProvider.generateAccessToken(authentication, savedUser.getId()))
                 .thenReturn("mocked_jwt_token");
 
         // when
-        String token = userService.login(userDto, "1234");
+        JwtAuthenticationResponseDto token = userService.login(userDto, "1234");
 
         // then
-        assertThat(token).isEqualTo("mocked_jwt_token");
+        assertThat(token.getAccessToken()).isEqualTo("mocked_jwt_token");
     }
 
     @Test

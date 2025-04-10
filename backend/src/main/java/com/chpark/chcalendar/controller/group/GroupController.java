@@ -1,6 +1,7 @@
 package com.chpark.chcalendar.controller.group;
 
 import com.chpark.chcalendar.dto.calendar.CalendarInfoDto;
+import com.chpark.chcalendar.enumClass.JwtTokenType;
 import com.chpark.chcalendar.security.JwtTokenProvider;
 import com.chpark.chcalendar.service.calendar.GroupCalendarService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,7 +24,7 @@ public class GroupController {
     public ResponseEntity<CalendarInfoDto> createGroup(@RequestParam(value = "title", required = false) String title,
                                                                 HttpServletRequest request) {
 
-        String token = jwtTokenProvider.resolveToken(request);
+        String token = jwtTokenProvider.resolveToken(request, JwtTokenType.ACCESS.getValue());
         long userId = jwtTokenProvider.getUserIdFromToken(token);
 
         CalendarInfoDto result = groupCalendarService.create(userId, title);
