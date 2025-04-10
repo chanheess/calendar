@@ -19,9 +19,6 @@ axios.interceptors.response.use(
               try {
                   const refreshResponse = await axios.post('/auth/refresh');
                   if (refreshResponse.status === 200) {
-                      const newAccessToken = refreshResponse.data.accessToken;
-                      axios.defaults.headers.common['Authorization'] = 'Bearer ' + newAccessToken;
-                      originalRequest.headers['Authorization'] = 'Bearer ' + newAccessToken;
                       return axios(originalRequest);
                   }
               } catch (refreshError) {
