@@ -1,6 +1,7 @@
 package com.chpark.chcalendar.controller.schedule;
 
 import com.chpark.chcalendar.dto.schedule.ScheduleGroupDto;
+import com.chpark.chcalendar.enumClass.JwtTokenType;
 import com.chpark.chcalendar.security.JwtTokenProvider;
 import com.chpark.chcalendar.service.schedule.ScheduleGroupService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -22,7 +23,7 @@ public class ScheduleGroupController {
     @GetMapping("/schedules/{scheduleId}/group")
     public ResponseEntity<List<ScheduleGroupDto>> getScheduleGroup(@PathVariable("scheduleId") long scheduleId,
                                                                    HttpServletRequest request) {
-        String token = jwtTokenProvider.resolveToken(request);
+        String token = jwtTokenProvider.resolveToken(request, JwtTokenType.ACCESS.getValue());
         long userId = jwtTokenProvider.getUserIdFromToken(token);
 
         return ResponseEntity.ok(scheduleGroupService.getScheduleGroupUserList(userId, scheduleId));

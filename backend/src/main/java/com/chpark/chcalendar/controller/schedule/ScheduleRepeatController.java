@@ -1,6 +1,7 @@
 package com.chpark.chcalendar.controller.schedule;
 
 import com.chpark.chcalendar.dto.schedule.ScheduleRepeatDto;
+import com.chpark.chcalendar.enumClass.JwtTokenType;
 import com.chpark.chcalendar.security.JwtTokenProvider;
 import com.chpark.chcalendar.service.schedule.ScheduleRepeatService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -25,7 +26,7 @@ public class ScheduleRepeatController {
     public ResponseEntity<ScheduleRepeatDto> createScheduleRepeat(@RequestParam("scheduleId") long scheduleId,
                                                                   @Validated @RequestBody ScheduleRepeatDto repeatDto,
                                                                   HttpServletRequest request) {
-        String token = jwtTokenProvider.resolveToken(request);
+        String token = jwtTokenProvider.resolveToken(request, JwtTokenType.ACCESS.getValue());
         long userId = jwtTokenProvider.getUserIdFromToken(token);
 
         ScheduleRepeatDto createResponse = scheduleRepeatService.create(scheduleId, repeatDto, userId);

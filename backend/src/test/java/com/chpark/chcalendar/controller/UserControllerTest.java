@@ -2,6 +2,7 @@ package com.chpark.chcalendar.controller;
 
 import com.chpark.chcalendar.DotenvInitializer;
 import com.chpark.chcalendar.dto.UserDto;
+import com.chpark.chcalendar.enumClass.JwtTokenType;
 import com.chpark.chcalendar.security.JwtAuthenticationFilter;
 import com.chpark.chcalendar.security.JwtTokenProvider;
 import com.chpark.chcalendar.service.user.UserService;
@@ -21,8 +22,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -59,7 +59,7 @@ class UserControllerTest {
         Mockito.doNothing().when(jwtAuthenticationFilter).doFilter(any(), any(), any());
 
         // Mocking JWT Token Provider 설정
-        when(jwtTokenProvider.resolveToken(any(HttpServletRequest.class)))
+        when(jwtTokenProvider.resolveToken(any(HttpServletRequest.class), eq(JwtTokenType.ACCESS.getValue())))
                 .thenReturn("mockedToken");
         when(jwtTokenProvider.getUserIdFromToken("mockedToken"))
                 .thenReturn(1234);

@@ -1,5 +1,8 @@
 package com.chpark.chcalendar.security;
 
+import com.chpark.chcalendar.dto.security.JwtAuthenticationResponseDto;
+import com.chpark.chcalendar.enumClass.JwtTokenType;
+import com.chpark.chcalendar.exception.authentication.TokenAuthenticationException;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -28,10 +31,37 @@ public class JwtTokenProvider {
         this.key = Keys.hmacShaKeyFor(Decoders.BASE64.decode(SECRET_KEY));
     }
 
-    // JWT 토큰 생성
-    public String generateToken(Authentication authentication, long userId) {
-        String username = ((UserDetails) authentication.getPrincipal()).getUsername();
-        long EXPIRATION_TIME = 86400000;
+    // JWT 액세스 토큰 생성
+    public String generateAccessToken(Authentication authentication, long userId) {
+        String username;
+        Object principal = authentication.getPrincipal();
+        if (principal instanceof org.springframework.security.core.userdetails.UserDetails) {
+            username = ((org.springframework.security.core.userdetails.UserDetails) principal).getUsername();
+        } else {
+            username = principal.toString();
+        }
+
+        long EXPIRATION_TIME = 60 * 60 * 1000;
+        return Jwts.builder()
+                .setSubject(username)
+                .claim("userId", userId) // 사용자 ID를 payload에 추가
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
+                .signWith(key, SignatureAlgorithm.HS512)
+                .compact();
+    }
+
+    // JWT 리프레시 토큰 생성
+    public String generateRefreshToken(Authentication authentication, long userId) {
+        String username;
+        Object principal = authentication.getPrincipal();
+        if (principal instanceof org.springframework.security.core.userdetails.UserDetails) {
+            username = ((org.springframework.security.core.userdetails.UserDetails) principal).getUsername();
+        } else {
+            username = principal.toString();
+        }
+
+        long EXPIRATION_TIME = 14 * 24 * 60 * 60 * 1000;
         return Jwts.builder()
                 .setSubject(username)
                 .claim("userId", userId) // 사용자 ID를 payload에 추가
@@ -42,10 +72,10 @@ public class JwtTokenProvider {
     }
 
     // 쿠키에서 JWT 토큰 추출
-    public String resolveToken(HttpServletRequest request) {
+    public String resolveToken(HttpServletRequest request, String tokenName) {
         if (request.getCookies() != null) {
             for (Cookie cookie : request.getCookies()) {
-                if ("jwtToken".equals(cookie.getName())) {
+                if (tokenName.equals(cookie.getName())) {
                     return cookie.getValue();
                 }
             }
@@ -54,10 +84,12 @@ public class JwtTokenProvider {
     }
 
     // JWT 토큰 검증
-    public boolean validateToken(String token) {
+    public boolean validateToken(String token, JwtTokenType jwtTokenType) {
         try {
             Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
             return true;
+        } catch (ExpiredJwtException ex) {
+            throw new TokenAuthenticationException(jwtTokenType.getValue() + " expired", ex);
         } catch (JwtException | IllegalArgumentException e) {
             return false;
         }
@@ -86,6 +118,19 @@ public class JwtTokenProvider {
 
         Integer userId = claims.get("userId", Integer.class);
         return userId != null ? userId : 0;
+    }
+
+    public JwtAuthenticationResponseDto renewAccessToken(HttpServletRequest request) {
+        String refreshToken = resolveToken(request, JwtTokenType.REFRESH.getValue());
+        validateToken(refreshToken, JwtTokenType.REFRESH);
+
+        Authentication authentication = getAuthentication(refreshToken);
+        long userId = getUserIdFromToken(refreshToken);
+
+        String newAccessToken = generateAccessToken(authentication, userId);
+        String newRefreshToken = generateRefreshToken(authentication, userId);
+
+        return new JwtAuthenticationResponseDto(newAccessToken, newRefreshToken, "Tokens renewed successfully");
     }
 
 }
