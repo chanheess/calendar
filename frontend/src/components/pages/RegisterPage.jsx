@@ -133,7 +133,7 @@ const RegisterPage = () => {
         </div>
         <div className={styles.passwordText}>
           <small>
-            영문, 숫자, 특수문자를 포함하여 8~20자의 비밀번호를 사용하세요.<br/>
+            영문, 숫자, 특수문자를 포함하여 8자 이상의 비밀번호를 사용하세요.<br/>
           </small>
           {!isPasswordMatch && (
             <small className={styles.passwordError}>비밀번호가 일치하지 않습니다.</small>
