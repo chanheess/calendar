@@ -8,11 +8,12 @@ chcalendar는 그룹 일정 통합 관리 서비스로, 전체 그룹 일정을 
 
 # 주요 기능
 **유저 및 회원**
-- 로그인, 로그아웃
-- 회원가입, 이메일 인증
-- 프로필, 비밀번호 변경
-- 이메일 인증으로 비밀번호 초기화
-- 비밀번호 5회 이상 틀릴시 30분후 시도 가능하도록 처리
+- 로그인, 로그아웃 [PR #11](https://github.com/chanheess/calendar/pull/11)
+- 회원가입, 이메일 인증 [PR #11](https://github.com/chanheess/calendar/pull/11)
+- 프로필, 비밀번호 변경 [PR #11](https://github.com/chanheess/calendar/pull/11)
+- 이메일 인증으로 비밀번호 초기화 [PR #33](https://github.com/chanheess/calendar/pull/33)
+- 비밀번호 5회 이상 틀릴시 30분후 시도 가능하도록 처리 [PR #40](https://github.com/chanheess/calendar/pull/40)
+
 
 **캘린더**
 - 일, 주, 월 단위로 캘린더 보기
