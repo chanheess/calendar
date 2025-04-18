@@ -31,7 +31,7 @@ chcalendar는 그룹 모임을 관리하거나 그룹내의 소규모 모임의 
 - Quartz에 등록해서 알림 예약 발송
 
 **인증 인가**
-- jwt 토큰으로 로그인 처리 (JWT 0.11.5)
+- jwt 토큰으로 로그인 처리
 
 **인프라**
 - Jenkins CI/CD
@@ -43,9 +43,9 @@ chcalendar는 그룹 모임을 관리하거나 그룹내의 소규모 모임의 
 - SSH
 
 # 기술 스택 
-`JAVA 17` `Spring Boot 3.3.1` `Spring 6.1.10` `Spring Security` `JPA`<br/>
+`Java 17` `Spring Boot 3.3.1` `Spring 6.1.10` `Spring Security` `JPA`<br/>
 `MySQL` `Redis`<br/>
-`AWS EC2` `AWS RDS` `Docker` `Jenkins` `Nginx`
+`AWS EC2` `AWS RDS` `Docker` `Jenkins` `NGINX`
 
 # ERD
  ![chcalendar](https://github.com/user-attachments/assets/6e2f8932-78d5-43b9-8cc1-3e3783d743b7)
