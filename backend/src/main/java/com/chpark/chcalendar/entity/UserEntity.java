@@ -43,7 +43,7 @@ public class UserEntity {
 
     public static void validatePassword(String plainPassword) {
         int passwordMin = 8;
-        int passwordMax = 20;
+        int passwordMax = 100;
 
         if (plainPassword.length() < passwordMin || plainPassword.length() > passwordMax) {
             throw new PasswordAuthenticationException(String.format("Password must be between %d ~ %d characters long.", passwordMin, passwordMax));
