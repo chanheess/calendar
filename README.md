@@ -17,22 +17,22 @@ chcalendar는 그룹 일정 통합 관리 서비스로, 전체 그룹 일정을 
 
 **캘린더**
 - 일, 주, 월 단위로 캘린더 보기
-    - 페이징으로 나눠서 캘린더 데이터를 가져오기
-- 캘린더 일정 작성
-- 캘린더별 색상 지정
-- 반복 일정 작성
-- 그룹 캘린더로 다른 사용자가 같은 캘린더에서 일정 작성
-- 그룹 캘린더에 초대하기
-- 그룹 캘린더에서 개별 인원에 대해서 일정 초대
-- 그룹 캘린더에서 일정에 대해 수락 거부
+    - 페이징으로 나눠서 캘린더 데이터를 가져오기 [PR #42](https://github.com/chanheess/calendar/pull/42/commits/1b451481a7df7af394fd1fd7bb2524173e0fc51e)
+- 캘린더 일정 작성 [PR #9](https://github.com/chanheess/calendar/pull/9)
+- 캘린더별 색상 지정 [PR #52](https://github.com/chanheess/calendar/pull/52)
+- 반복 일정 작성 [PR #8](https://github.com/chanheess/calendar/pull/8)
+- 그룹 캘린더로 다른 사용자가 같은 캘린더에서 일정 작성 [PR #18](https://github.com/chanheess/calendar/pull/18)
+- 그룹 캘린더에 초대하기 [PR #18](https://github.com/chanheess/calendar/pull/18)
+- 그룹 캘린더에서 개별 인원에 대해서 일정 초대 [PR #58](https://github.com/chanheess/calendar/pull/58)
+- 그룹 캘린더에서 일정에 대해 수락 거부 [PR #58](https://github.com/chanheess/calendar/pull/58)
 
 **알림**
 - 사이트 내 기본 알림 (초대 알림)
-- FCM 사용한 브라우저 푸시 알림 처리
-- Quartz에 등록해서 알림 예약 발송
+- FCM 사용한 브라우저 푸시 알림 처리 [PR #42](https://github.com/chanheess/calendar/pull/42)
+- Quartz에 등록해서 알림 예약 발송 [PR #42](https://github.com/chanheess/calendar/pull/42)
 
 **인증 인가**
-- jwt 토큰으로 로그인 처리
+- jwt 토큰으로 로그인 처리 [PR #11](https://github.com/chanheess/calendar/pull/11)
 
 **인프라**
 - Jenkins CI/CD
