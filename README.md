@@ -1,5 +1,5 @@
 #  chcalendar
- https://chcalendar.site/
+사이트 링크: https://chcalendar.site/
 
 # 서비스 소개
 chcalendar는 그룹 일정 통합 관리 서비스로, 전체 그룹 일정을 한눈에 관리하고 원하는 멤버만 일정에 초대할 수 있는 기능을 제공하여 그룹 일정을 효율적으로 관리할 수 있도록 지원합니다.
@@ -13,7 +13,7 @@ chcalendar는 그룹 일정 통합 관리 서비스로, 전체 그룹 일정을 
 - 프로필, 비밀번호 변경 [PR #11](https://github.com/chanheess/calendar/pull/11)
 - 이메일 인증으로 비밀번호 초기화 [PR #33](https://github.com/chanheess/calendar/pull/33)
 - 비밀번호 5회 이상 틀릴시 30분후 시도 가능하도록 처리 [PR #40](https://github.com/chanheess/calendar/pull/40)
-
+</br>블로그 링크: [이메일 인증을 위한 Redis 설정과 문제 해결 과정](https://chanheess.tistory.com/271)
 
 **캘린더**
 - 일, 주, 월 단위로 캘린더 보기
@@ -30,9 +30,11 @@ chcalendar는 그룹 일정 통합 관리 서비스로, 전체 그룹 일정을 
 - 사이트 내 기본 알림 (초대 알림)
 - FCM 사용한 브라우저 푸시 알림 처리 [PR #42](https://github.com/chanheess/calendar/pull/42)
 - Quartz에 등록해서 알림 예약 발송 [PR #42](https://github.com/chanheess/calendar/pull/42)
+</br>블로그 링크: [빌드 실패 디버깅](https://chanheess.tistory.com/278)
 
 **인증 인가**
 - jwt 토큰으로 로그인 처리 [PR #11](https://github.com/chanheess/calendar/pull/11)
+</br>블로그 링크: [Spring Security, JWT을 사용하여 로그인 서비스 만들기](https://chanheess.tistory.com/258)
 
 **인프라**
 - Jenkins CI/CD
@@ -42,6 +44,8 @@ chcalendar는 그룹 일정 통합 관리 서비스로, 전체 그룹 일정을 
 - nginx
 - redis
 - SSH
+</br>블로그 링크: </br>- [EC2를 활용한 HTTPS 및 도메인 설정](https://chanheess.tistory.com/274)
+</br>- [CI/CD? 배포 자동화를 해보자](https://chanheess.tistory.com/275)
 
 # 기술 스택 
 `Java 17` `Spring Boot 3.3.1` `Spring 6.1.10` `Spring Security` `JPA`<br/>
