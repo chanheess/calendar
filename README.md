@@ -1,4 +1,6 @@
 #  chcalendar
+<img width="800" src="https://github.com/user-attachments/assets/ae3ef784-73e6-4730-b47b-eaa2b1346c94" />
+
 사이트 링크: https://chcalendar.site/
 
 # 서비스 소개
