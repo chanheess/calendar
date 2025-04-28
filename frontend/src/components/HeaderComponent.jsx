@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom"; // useLocation 추가
 import Nickname from "./Nickname";
 import axios from "axios";
@@ -115,17 +115,17 @@ const HeaderComponent = ({ mode, onSidebarToggle, onCloseSidebarPopups }) => {
           </button>
         )}
         {!isMobile && (
-          <a onClick={handleHome} className={styles.logo}>
+          <button type="button" onClick={handleHome} className={styles.logo}>
             chcalendar
-          </a>
+          </button>
         )}
       </div>
 
       {isMobile && (
         <div className={styles.centerSection}>
-          <a onClick={handleHome} className={styles.logo}>
+          <button type="button" onClick={handleHome} className={styles.logo}>
             chcalendar
-          </a>
+          </button>
         </div>
       )}
 
