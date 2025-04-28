@@ -7,6 +7,7 @@ import PushNotification from "../PushNotification";
 
 const LayoutComponent = ({ userId }) => {
   const sidebarRef = useRef(null);
+  const calendarRef = useRef(null);
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [selectedCalendarList, setSelectedCalendars] = useState({});
@@ -29,9 +30,12 @@ const LayoutComponent = ({ userId }) => {
         mode="main"
         onSidebarToggle={toggleSidebar}
         onCloseSidebarPopups={() => {
-         if (sidebarRef.current) {
-           sidebarRef.current.closeAllPopups();
-         }
+          if (sidebarRef.current) {
+            sidebarRef.current.closeAllPopups();
+          }
+          if (calendarRef.current) {
+            calendarRef.current.closeAllPopups();
+          }
         }}
       />
       <div className={styles.content}>
@@ -44,8 +48,15 @@ const LayoutComponent = ({ userId }) => {
           userId={userId}
           refreshSchedules={refreshSchedules}  // Sidebar에서 일정 생성 후 호출
         />
+        {isSidebarOpen && (
+          <div
+            className={styles.dimmedOverlay}
+            onClick={closeSidebar}
+          />
+        )}
         <main className={`${styles.mainContent} ${isSidebarOpen ? styles.sidebarOpen : ""}`}>
           <CalendarComponent
+            ref={calendarRef}
             selectedCalendarList={selectedCalendarList}
             refreshKey={refreshKey}
             refreshSchedules={refreshSchedules}

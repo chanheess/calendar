@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom"; // useLocation 추가
 import Nickname from "./Nickname";
 import axios from "axios";
 import styles from "styles/Header.module.css";
@@ -15,6 +15,8 @@ const HeaderComponent = ({ mode, onSidebarToggle, onCloseSidebarPopups }) => {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 600);
 
   const navigate = useNavigate();
+  const location = useLocation();
+  const isProfilePage = location.pathname === "/user/profile";
 
   useEffect(() => {
     fetchNotifications();
@@ -107,7 +109,7 @@ const HeaderComponent = ({ mode, onSidebarToggle, onCloseSidebarPopups }) => {
       {isLoading && <LoadingOverlay fullScreen={true} />}
 
       <div className={styles.leftSection}>
-        {isMobile && (
+        {isMobile && !isProfilePage && (
           <button className={styles.hamburgerButton} onClick={handleSidebarToggle}>
             ☰
           </button>
