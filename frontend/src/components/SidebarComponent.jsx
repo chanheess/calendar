@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, forwardRef, useImperativeHandle } from "react";
 import styles from "styles/Sidebar.module.css";
 import Button from "./Button";
 import CalendarList from "./CalendarList";
@@ -7,14 +7,14 @@ import AddCalendarPopup from "./popups/AddCalendarPopup";
 import ManageCalendarPopup from "./popups/ManageCalendarPopup";
 import SchedulePopup from "./popups/SchedulePopup";
 
-const SidebarComponent = ({
+const SidebarComponent = forwardRef(({
   isOpen,
   onClose,
   selectedCalendarList,
   onCalendarChange,
   userId,
   refreshSchedules, // LayoutComponent에서 전달받은 캘린더 새로고침 콜백
-}) => {
+}, ref) => {
   const [myCalendars, setMyCalendars] = useState({});
   const [groupCalendars, setGroupCalendars] = useState({});
   const [managePopupCalendar, setManagePopupCalendar] = useState({
@@ -32,6 +32,15 @@ const SidebarComponent = ({
   const [schedulePopupVisible, setSchedulePopupVisible] = useState(false);
   const [schedulePopupMode, setSchedulePopupMode] = useState("create");
   const [schedulePopupData, setSchedulePopupData] = useState(null);
+
+  useImperativeHandle(ref, () => ({
+    closeAllPopups: () => {
+      setAddCalendarPopupVisible(false);
+      setManagePopupVisible(false);
+      setSchedulePopupVisible(false);
+      setDropdownOpen(false);
+    }
+  }));
 
   // 바깥 영역 클릭 감지하여 드롭다운 닫기
   useEffect(() => {
@@ -115,6 +124,9 @@ const SidebarComponent = ({
 
   // "일정" 드롭다운 항목 클릭 시: 오늘 날짜 기준으로 SchedulePopup 생성 (일정 생성 팝업 열기)
   const handleCreateSchedule = () => {
+    if (typeof onClose === "function") {
+      onClose();
+    }
     const now = new Date();
     const hh = now.getHours();
     const mm = now.getMinutes();
@@ -142,11 +154,17 @@ const SidebarComponent = ({
   };
 
   const openAddCalendarPopup = () => {
+    if (typeof onClose === "function") {
+      onClose();
+    }
     setAddCalendarPopupVisible(true);
     setDropdownOpen(false);
   };
 
   const openManageCalendarPopup = (calendar, sectionId) => {
+    if (typeof onClose === "function") {
+      onClose();
+    }
     setManagePopupVisible(true);
     setManagePopupCalendar({ ...calendar, category: sectionId });
   };
@@ -238,6 +256,6 @@ const SidebarComponent = ({
       </div>
     </>
   );
-};
+});
 
 export default SidebarComponent;

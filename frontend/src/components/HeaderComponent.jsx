@@ -7,7 +7,7 @@ import Button from "./Button";
 import { getFirebaseToken } from "components/FirebaseToken";
 import LoadingOverlay from "components/LoadingOverlay";
 
-const HeaderComponent = ({ mode, onSidebarToggle }) => {
+const HeaderComponent = ({ mode, onSidebarToggle, onCloseSidebarPopups }) => {
   const [notifications, setNotifications] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const [showMoreMenu, setShowMoreMenu] = useState(false);
@@ -33,11 +33,36 @@ const HeaderComponent = ({ mode, onSidebarToggle }) => {
   }, [showDropdown]);
 
   const toggleDropdown = () => {
-    setShowDropdown((prev) => !prev);
+    setShowDropdown((prev) => {
+      if (!prev) {
+        setShowMoreMenu(false); // 수정: 알림 열 때 더보기 닫기
+        if (typeof onCloseSidebarPopups === "function") {
+          onCloseSidebarPopups();
+        }
+      }
+      return !prev;
+    });
   };
 
   const toggleMoreMenu = () => {
-    setShowMoreMenu((prev) => !prev);
+    setShowMoreMenu((prev) => {
+      if (!prev) {
+        setShowDropdown(false); // 수정: 더보기 열 때 알림 닫기
+        if (typeof onCloseSidebarPopups === "function") {
+          onCloseSidebarPopups();
+        }
+      }
+      return !prev;
+    });
+  };
+
+  const handleSidebarToggle = () => {
+    onSidebarToggle();
+    setShowDropdown(false);
+    setShowMoreMenu(false);
+    if (typeof onCloseSidebarPopups === "function") {
+      onCloseSidebarPopups();
+    }
   };
 
   async function fetchNotifications() {
@@ -81,32 +106,28 @@ const HeaderComponent = ({ mode, onSidebarToggle }) => {
     <header className={styles.header}>
       {isLoading && <LoadingOverlay fullScreen={true} />}
 
-      {/* 왼쪽: 햄버거 + (데스크탑일 때 로고) */}
       <div className={styles.leftSection}>
         {isMobile && (
-          <button className={styles.hamburgerButton} onClick={onSidebarToggle}>
+          <button className={styles.hamburgerButton} onClick={handleSidebarToggle}>
             ☰
           </button>
         )}
         {!isMobile && (
-          <a onClick={() => window.location.href = "/"} className={styles.logo}>
+          <a onClick={handleHome} className={styles.logo}>
             chcalendar
           </a>
         )}
       </div>
 
-      {/* 가운데: (모바일일 때 로고) */}
       {isMobile && (
         <div className={styles.centerSection}>
-          <a onClick={() => window.location.href = "/"} className={styles.logo}>
+          <a onClick={handleHome} className={styles.logo}>
             chcalendar
           </a>
         </div>
       )}
 
-      {/* 오른쪽 */}
       <div className={styles.rightSection}>
-        {/* 데스크탑 메뉴 */}
         {!isMobile && (
           <>
             <Nickname variant="" size="medium" />
@@ -119,7 +140,6 @@ const HeaderComponent = ({ mode, onSidebarToggle }) => {
           </>
         )}
 
-        {/* 알림 버튼 (공통) */}
         <div className={styles.notificationWrapper}>
           <button
             className={styles.notificationBell}
@@ -150,7 +170,6 @@ const HeaderComponent = ({ mode, onSidebarToggle }) => {
           )}
         </div>
 
-        {/* 모바일: 더보기 메뉴 */}
         {isMobile && (
           <div className={styles.mobileMoreWrapper}>
             <button className={styles.moreButton} onClick={toggleMoreMenu}>

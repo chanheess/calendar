@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useRef } from "react";
 import SidebarComponent from "./SidebarComponent";
 import HeaderComponent from "./HeaderComponent";
 import CalendarComponent from "./CalendarComponent";
@@ -6,6 +6,8 @@ import styles from "styles/Layout.module.css";
 import PushNotification from "../PushNotification";
 
 const LayoutComponent = ({ userId }) => {
+  const sidebarRef = useRef(null);
+
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [selectedCalendarList, setSelectedCalendars] = useState({});
   const [refreshKey, setRefreshKey] = useState(0);
@@ -23,9 +25,18 @@ const LayoutComponent = ({ userId }) => {
 
   return (
     <div className={styles.layout}>
-      <HeaderComponent mode="main" onSidebarToggle={toggleSidebar} />
+      <HeaderComponent
+        mode="main"
+        onSidebarToggle={toggleSidebar}
+        onCloseSidebarPopups={() => {
+         if (sidebarRef.current) {
+           sidebarRef.current.closeAllPopups();
+         }
+        }}
+      />
       <div className={styles.content}>
         <SidebarComponent
+          ref={sidebarRef}
           isOpen={isSidebarOpen}
           onClose={closeSidebar}
           selectedCalendarList={selectedCalendarList}

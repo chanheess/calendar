@@ -36,6 +36,10 @@
   to { transform: rotate(360deg); }
 }
 
+:global(.fc-daygrid-event.fc-event-end) {
+  overflow: hidden;
+}
+
 :global(.fc-event:hover){
   cursor: pointer;
 }
