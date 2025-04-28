@@ -18,7 +18,7 @@ import {
   applyDeltaDate,
 } from "components/ScheduleUtility";
 
-const CalendarComponent = forwardRef(({ selectedCalendarList, refreshKey, refreshSchedules, onCloseAllPopups }, ref) => {
+const CalendarComponent = forwardRef(({ selectedCalendarList, refreshKey, refreshSchedules }, ref) => {
   const [currentUserId, setCurrentUserId] = useState(null);
 
   // "더보기" 팝업 상태
