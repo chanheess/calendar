@@ -14,6 +14,7 @@ const SidebarComponent = forwardRef(({
   onCalendarChange,
   userId,
   refreshSchedules, // LayoutComponent에서 전달받은 캘린더 새로고침 콜백
+  onCloseSidebarPopups
 }, ref) => {
   const [myCalendars, setMyCalendars] = useState({});
   const [groupCalendars, setGroupCalendars] = useState({});
@@ -124,6 +125,9 @@ const SidebarComponent = forwardRef(({
 
   // "일정" 드롭다운 항목 클릭 시: 오늘 날짜 기준으로 SchedulePopup 생성 (일정 생성 팝업 열기)
   const handleCreateSchedule = () => {
+    if (typeof onCloseSidebarPopups === "function") {
+      onCloseSidebarPopups();
+    }
     if (typeof onClose === "function") {
       onClose();
     }
@@ -154,6 +158,9 @@ const SidebarComponent = forwardRef(({
   };
 
   const openAddCalendarPopup = () => {
+    if (typeof onCloseSidebarPopups === "function") {
+      onCloseSidebarPopups();
+    }
     if (typeof onClose === "function") {
       onClose();
     }
@@ -162,6 +169,9 @@ const SidebarComponent = forwardRef(({
   };
 
   const openManageCalendarPopup = (calendar, sectionId) => {
+    if (typeof onCloseSidebarPopups === "function") {
+      onCloseSidebarPopups();
+    }
     if (typeof onClose === "function") {
       onClose();
     }
@@ -238,7 +248,12 @@ const SidebarComponent = forwardRef(({
           <Button
             variant="blue"
             size=""
-            onClick={() => setDropdownOpen(!dropdownOpen)}
+            onClick={() => {
+              if (!dropdownOpen && typeof onCloseSidebarPopups === "function") {
+                onCloseSidebarPopups();
+              }
+              setDropdownOpen(!dropdownOpen);
+            }}
           >
             +
           </Button>

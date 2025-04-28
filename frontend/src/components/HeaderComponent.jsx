@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom"; // useLocation 추가
 import Nickname from "./Nickname";
 import axios from "axios";
@@ -63,7 +63,7 @@ const HeaderComponent = ({ mode, onSidebarToggle, onCloseSidebarPopups }) => {
     setShowDropdown(false);
     setShowMoreMenu(false);
     if (typeof onCloseSidebarPopups === "function") {
-      onCloseSidebarPopups();
+      onCloseSidebarPopups(true); // true 전달로 "모든 팝업 닫기" 신호
     }
   };
 

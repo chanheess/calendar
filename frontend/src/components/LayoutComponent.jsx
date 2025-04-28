@@ -24,19 +24,21 @@ const LayoutComponent = ({ userId }) => {
     setRefreshKey((prev) => prev + 1);
   }, []);
 
+  const handleCloseSidebarPopups = () => {
+    if (sidebarRef.current && typeof sidebarRef.current.closeAllPopups === "function") {
+      sidebarRef.current.closeAllPopups();
+    }
+    if (calendarRef.current && typeof calendarRef.current.closeAllPopups === "function") {
+      calendarRef.current.closeAllPopups();
+    }
+  };
+
   return (
     <div className={styles.layout}>
       <HeaderComponent
         mode="main"
         onSidebarToggle={toggleSidebar}
-        onCloseSidebarPopups={() => {
-          if (sidebarRef.current) {
-            sidebarRef.current.closeAllPopups();
-          }
-          if (calendarRef.current) {
-            calendarRef.current.closeAllPopups();
-          }
-        }}
+        onCloseSidebarPopups={handleCloseSidebarPopups}
       />
       <div className={styles.content}>
         <SidebarComponent
@@ -46,7 +48,7 @@ const LayoutComponent = ({ userId }) => {
           selectedCalendarList={selectedCalendarList}
           onCalendarChange={handleCalendarChange}
           userId={userId}
-          refreshSchedules={refreshSchedules}  // Sidebar에서 일정 생성 후 호출
+          refreshSchedules={refreshSchedules}
         />
         {isSidebarOpen && (
           <div
@@ -60,6 +62,7 @@ const LayoutComponent = ({ userId }) => {
             selectedCalendarList={selectedCalendarList}
             refreshKey={refreshKey}
             refreshSchedules={refreshSchedules}
+            onCloseAllPopups={handleCloseSidebarPopups}
           />
         </main>
       </div>

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useRef, useEffect, useCallback, forwardRef, useImperativeHandle } from "react";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
@@ -18,7 +18,7 @@ import {
   applyDeltaDate,
 } from "components/ScheduleUtility";
 
-const CalendarComponent = ({ selectedCalendarList, refreshKey, refreshSchedules }) => {
+const CalendarComponent = forwardRef(({ selectedCalendarList, refreshKey, refreshSchedules, onCloseAllPopups }, ref) => {
   const [currentUserId, setCurrentUserId] = useState(null);
 
   // "더보기" 팝업 상태
@@ -46,6 +46,16 @@ const CalendarComponent = ({ selectedCalendarList, refreshKey, refreshSchedules 
 
   const pageSize = 1000;
   const maxLoops = 10;
+
+  useImperativeHandle(ref, () => ({
+    closeAllPopups() {
+      setPopupVisible(false);
+      setPopupData([]);
+      setPopupTitle("");
+      setSchedulePopupVisible(false);
+      setSchedulePopupData(null);
+    }
+  }));
 
   // 사용자 ID
   useEffect(() => {
@@ -414,6 +424,26 @@ const CalendarComponent = ({ selectedCalendarList, refreshKey, refreshSchedules 
         eventResize={(data) => {
           handleEventDrop(data, "resize");
         }}
+        moreLinkClick={(arg) => {
+          const customEvents = arg.allSegs.map((seg) => ({
+            ...seg.event.extendedProps,
+            id: seg.event.id,
+            title: seg.event.title,
+            startAt: seg.event.startStr,
+            endAt: seg.event.endStr,
+          }));
+          const formattedDate = arg.date
+            ? arg.date.toLocaleDateString("ko-KR", { month: "long", day: "numeric" })
+            : "";
+
+          // store the actual date so we can create a schedule on that day
+          setPopupSelectedDate(arg.date);
+
+          setPopupTitle(`${formattedDate} 일정`);
+          setPopupData(customEvents);
+          setPopupVisible(true);
+          return true;
+        }}
         dayMaxEventRows={true}
       />
 
@@ -494,6 +524,6 @@ const CalendarComponent = ({ selectedCalendarList, refreshKey, refreshSchedules 
       )}
     </div>
   );
-};
+});
 
 export default CalendarComponent;
