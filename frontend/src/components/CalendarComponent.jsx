@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useRef, useEffect, useCallback, forwardRef, useImperativeHandle } from "react";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
@@ -18,7 +18,7 @@ import {
   applyDeltaDate,
 } from "components/ScheduleUtility";
 
-const CalendarComponent = ({ selectedCalendarList, refreshKey, refreshSchedules }) => {
+const CalendarComponent = forwardRef(({ selectedCalendarList, refreshKey, refreshSchedules }, ref) => {
   const [currentUserId, setCurrentUserId] = useState(null);
 
   // "더보기" 팝업 상태
@@ -46,6 +46,16 @@ const CalendarComponent = ({ selectedCalendarList, refreshKey, refreshSchedules 
 
   const pageSize = 1000;
   const maxLoops = 10;
+
+  useImperativeHandle(ref, () => ({
+    closeAllPopups() {
+      setPopupVisible(false);
+      setPopupData([]);
+      setPopupTitle("");
+      setSchedulePopupVisible(false);
+      setSchedulePopupData(null);
+    }
+  }));
 
   // 사용자 ID
   useEffect(() => {
@@ -369,11 +379,10 @@ const CalendarComponent = ({ selectedCalendarList, refreshKey, refreshSchedules 
         locale={koLocale}
         timeZone="Asia/Seoul"
         initialView="dayGridMonth"
-        aspectRatio={1}
         editable={true}
-        height="99%"
         eventResizableFromStart={true}
-        datesSet={handleDatesSet}
+        fixedWeekCount={true}
+        height="100%"
         headerToolbar={{
           left: `prev,next today${autoLoadComplete ? ",loadMore" : ""}`,
           center: "title",
@@ -382,8 +391,6 @@ const CalendarComponent = ({ selectedCalendarList, refreshKey, refreshSchedules 
         views={{
           dayGridMonth: {
             buttonText: "월",
-            // 날짜마다 "오전 7:53" 등의 시간이 표시되는 것을 제거하고
-            // 단순히 일(day)만 보이도록
             dayCellContent: (args) => {
               const dayNum = args.date.getDate();
               return { html: String(dayNum) };
@@ -397,6 +404,25 @@ const CalendarComponent = ({ selectedCalendarList, refreshKey, refreshSchedules 
             text: "더보기",
             click: handleLoadMore,
           },
+        }}
+        datesSet={handleDatesSet}
+        events={fetchEvents}
+        dateClick={dateClickEvent}
+        eventClick={(arg) => {
+          const eventData = {
+            ...arg.event.extendedProps,
+            id: arg.event.id,
+            title: arg.event.title,
+            startAt: arg.event.startStr,
+            endAt: arg.event.endStr,
+          };
+          handleEventClick(eventData);
+        }}
+        eventDrop={(data) => {
+          handleEventDrop(data, "drop");
+        }}
+        eventResize={(data) => {
+          handleEventDrop(data, "resize");
         }}
         moreLinkClick={(arg) => {
           const customEvents = arg.allSegs.map((seg) => ({
@@ -418,26 +444,7 @@ const CalendarComponent = ({ selectedCalendarList, refreshKey, refreshSchedules 
           setPopupVisible(true);
           return true;
         }}
-        events={fetchEvents}
-        dateClick={dateClickEvent}
-        eventClick={(arg) => {
-          const eventData = {
-            ...arg.event.extendedProps,
-            id: arg.event.id,
-            title: arg.event.title,
-            startAt: arg.event.startStr,
-            endAt: arg.event.endStr,
-          };
-          handleEventClick(eventData);
-        }}
-        eventDrop={(data) => {
-          handleEventDrop(data, "drop");
-        }}
-        eventResize={(data) => {
-          handleEventDrop(data, "resize");
-        }}
         dayMaxEventRows={true}
-        fixedWeekCount={true}
       />
 
       {/* "더보기" 팝업 */}
@@ -517,6 +524,6 @@ const CalendarComponent = ({ selectedCalendarList, refreshKey, refreshSchedules 
       )}
     </div>
   );
-};
+});
 
 export default CalendarComponent;

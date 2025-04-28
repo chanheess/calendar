@@ -14,3 +14,20 @@
   flex: 1;
   height: 100%; /* 콘텐츠 영역 전체 높이 */
 }
+
+.dimmedOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5); /* 반투명 검은색 */
+  z-index: 500; /* 사이드바보다 낮고, 캘린더보다 높게 */
+}
+
+/* 데스크탑에서는 딤드 안 나오게 */
+@media (min-width: 768px) {
+  .dimmedOverlay {
+    display: none;
+  }
+}

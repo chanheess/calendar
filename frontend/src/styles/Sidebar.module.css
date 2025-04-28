@@ -1,19 +1,22 @@
+/* ===== 공통 스타일 ===== */
 .sidebar {
   width: 250px;
   background: #f9f9f9;
   border-right: 1px solid #ddd;
-  padding: 20px;
+  padding: calc(20px + env(safe-area-inset-top)) 20px 20px 20px;
+  padding-top: calc(60px + env(safe-area-inset-top)); /* 헤더(60px) 만큼 + 노치 대응 */
   overflow-y: auto;
-  height: calc(100vh - 60px); /* 헤더 높이를 뺀 나머지 화면 */
+  height: 100vh;
   box-sizing: border-box;
   position: fixed;
-  left: -250px; /* 기본적으로 숨김 */
+  top: 0;
+  left: -250px;
   transition: left 0.3s ease-in-out;
   z-index: 1000;
 }
 
 .sidebar.open {
-  left: 0;
+  left: 0; /* 열리면 보이게 */
 }
 
 .dimmedOverlay {
@@ -23,14 +26,19 @@
   width: 100%;
   height: 100%;
   background: rgba(0, 0, 0, 0.5);
-  z-index: 999;
-  display: none;
+  z-index: 900;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
 }
 
 .dimmedOverlay.show {
   display: block;
+  opacity: 1;
+  visibility: visible;
 }
 
+/* 캘린더 섹션 */
 .calendarSection {
   margin-bottom: 20px;
 }
@@ -60,9 +68,9 @@
   align-items: center;
   margin-bottom: 10px;
   justify-content: flex-start;
-  gap: 12px;
   border-radius: 8px;
   transition: background-color 0.2s ease-in-out;
+  padding-right: 8px; /* 오른쪽에 여백 추가 */
 }
 
 .calendarItem:hover {
@@ -71,24 +79,33 @@
 }
 
 .calendarItem input {
-  margin-left: 10px;
+  flex: 0 0 auto;
+  margin-left: 6px;
 }
 
 .calendarItem label {
-  flex: 4;
+  flex: 1 1 auto; /* label은 남는 공간 다 차지 */
   margin-left: 10px;
+  font-size: 16px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .calendarItem button {
-  flex: 1;
-  padding: 0px;
+  flex: 0 0 auto;
+  width: 24px;
+  height: 24px;
+  padding: 0;
   font-size: 18px;
-  margin-left: 10px;
-  opacity: 0; /* 기본적으로 숨김 */
+  margin-left: 8px;
+  background: none;
+  border: none;
+  opacity: 0;
   transition: opacity 0.3s ease;
 }
 
-.calendarItem:hover button{
+.calendarItem:hover button {
   opacity: 1;
 }
 
@@ -97,38 +114,63 @@
   color: #888;
 }
 
-/* 데스크탑 환경 */
-@media (min-width: 768px) {
-  .dimmedOverlay {
-    display: none;
-  }
-  .sidebar {
-    left: 0;
-    position: relative;
-    top: 0;
-    height: auto;
-    z-index: 1;
-  }
+/* + 버튼 감싸는 div */
+.dropdownWrapper {
+  position: relative;
+  margin-top: 20px; /* 버튼 간 여유 */
 }
 
+/* 드롭다운 메뉴 */
 .dropdownMenu {
   position: absolute;
-  top: 100%;
+  top: calc(100% + 8px); /* 버튼 바로 아래 약간 띄움 */
   left: 0;
   background-color: #fff;
   border: 1px solid #ccc;
-  border-radius: 4px;
-  min-width: 120px;
+  border-radius: 6px;
+  min-width: 140px;
   z-index: 999;
-  position: relative;
-    display: inline-block;
-}
-.dropdownItem {
-  padding: 8px 12px;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-.dropdownItem:hover {
-  background: #f2f2f2;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
 }
 
+.dropdownItem {
+  padding: 10px 16px;
+  cursor: pointer;
+  transition: background 0.2s;
+  font-size: 14px;
+}
+
+.dropdownItem:hover {
+  background: #f5f5f5;
+}
+
+/* ===== 데스크탑 환경 ===== */
+@media (min-width: 768px) {
+  .sidebar {
+    position: relative;
+    top: 0;
+    left: 0;
+    height: auto;
+    z-index: 1;
+    padding-top: 20px; /* 노치 필요 없음 */
+    transition: none;
+  }
+
+  .calendarItem button {
+    opacity: 0;
+  }
+  .calendarItem:hover button {
+    opacity: 1;
+  }
+
+  .dimmedOverlay {
+    display: none !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .calendarItem button {
+    opacity: 1;
+  }
+}
