@@ -6,8 +6,7 @@
 }
 
 :global(.fc-header-toolbar.fc-toolbar) {
-  margin-left: 10px;
-  margin-right: 10px;
+  margin: 10px;
 }
 
 .loadingOverlay {
@@ -57,4 +56,44 @@
 :global(.fc-h-event) {
   border: 0px;
   padding: 1px;
+}
+
+/* Calendar.module.css 또는 Button 관련 CSS에 추가 */
+
+@media (max-width: 600px) {
+  /* 버튼 폰트 크기와 패딩을 줄임 */
+  .calendarContainer :global(.fc-button) {
+    font-size: 12px;
+    padding: 4px 8px;
+    min-height: 25px;
+    min-width: 20px;
+  }
+  .calendarContainer :global(.fc-toolbar-title) {
+    font-size: 20px;
+  }
+
+  /* "오늘" 버튼 따로 커스터마이징 필요하면 */
+  .calendarContainer :global(.fc-today-button) {
+    font-size: 12px;
+    padding: 4px 8px;
+  }
+
+  .calendarContainer :global(.fc-toolbar.fc-header-toolbar) {
+    margin: 10px;
+  }
+
+  .calendarContainer {
+    padding-top: calc(60px + env(safe-area-inset-top));
+    box-sizing: border-box;
+  }
+
+
+  /* "월/주/일" 버튼 줄이기 */
+  .calendarContainer :global(.fc-dayGridMonth-button,
+  .fc-timeGridWeek-button,
+  .fc-timeGridDay-button) {
+    font-size: 12px;
+    padding: 4px 8px;
+    min-width: 50px;
+  }
 }

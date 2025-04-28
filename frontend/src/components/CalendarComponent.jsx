@@ -369,11 +369,10 @@ const CalendarComponent = ({ selectedCalendarList, refreshKey, refreshSchedules 
         locale={koLocale}
         timeZone="Asia/Seoul"
         initialView="dayGridMonth"
-        aspectRatio={1}
         editable={true}
-        height="99%"
         eventResizableFromStart={true}
-        datesSet={handleDatesSet}
+        fixedWeekCount={true}
+        height="100%"
         headerToolbar={{
           left: `prev,next today${autoLoadComplete ? ",loadMore" : ""}`,
           center: "title",
@@ -382,8 +381,6 @@ const CalendarComponent = ({ selectedCalendarList, refreshKey, refreshSchedules 
         views={{
           dayGridMonth: {
             buttonText: "월",
-            // 날짜마다 "오전 7:53" 등의 시간이 표시되는 것을 제거하고
-            // 단순히 일(day)만 보이도록
             dayCellContent: (args) => {
               const dayNum = args.date.getDate();
               return { html: String(dayNum) };
@@ -398,26 +395,7 @@ const CalendarComponent = ({ selectedCalendarList, refreshKey, refreshSchedules 
             click: handleLoadMore,
           },
         }}
-        moreLinkClick={(arg) => {
-          const customEvents = arg.allSegs.map((seg) => ({
-            ...seg.event.extendedProps,
-            id: seg.event.id,
-            title: seg.event.title,
-            startAt: seg.event.startStr,
-            endAt: seg.event.endStr,
-          }));
-          const formattedDate = arg.date
-            ? arg.date.toLocaleDateString("ko-KR", { month: "long", day: "numeric" })
-            : "";
-
-          // store the actual date so we can create a schedule on that day
-          setPopupSelectedDate(arg.date);
-
-          setPopupTitle(`${formattedDate} 일정`);
-          setPopupData(customEvents);
-          setPopupVisible(true);
-          return true;
-        }}
+        datesSet={handleDatesSet}
         events={fetchEvents}
         dateClick={dateClickEvent}
         eventClick={(arg) => {
@@ -437,7 +415,6 @@ const CalendarComponent = ({ selectedCalendarList, refreshKey, refreshSchedules 
           handleEventDrop(data, "resize");
         }}
         dayMaxEventRows={true}
-        fixedWeekCount={true}
       />
 
       {/* "더보기" 팝업 */}

@@ -216,7 +216,7 @@ const SidebarComponent = ({
           onManageClick={openManageCalendarPopup}
         />
 
-        <div ref={dropdownRef}>
+        <div className={styles.dropdownWrapper} ref={dropdownRef}>
           <Button
             variant="blue"
             size=""
