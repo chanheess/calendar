@@ -343,5 +343,6 @@
     flex-direction: column;
     box-sizing: border-box;
     height: 100%;
+    padding-bottom: env(safe-area-inset-bottom);
   }
 }
