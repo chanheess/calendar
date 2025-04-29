@@ -89,15 +89,6 @@
   .calendarContainer {
     padding-top: calc(60px + env(safe-area-inset-top));
     box-sizing: border-box;
-  }
-
-
-  /* "월/주/일" 버튼 줄이기 */
-  .calendarContainer :global(.fc-dayGridMonth-button,
-  .fc-timeGridWeek-button,
-  .fc-timeGridDay-button) {
-    font-size: 12px;
-    padding: 4px 8px;
-    min-width: 50px;
+    overflow-y: auto;
   }
 }
