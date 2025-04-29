@@ -270,7 +270,7 @@
   border: 1px solid #dadce0;
   color: #3c4043;
   border-radius: 4px;
-  padding: 8px 8px;
+  padding: 8px 6px;
   font-size: 14px;
   margin-left: 8px;
   cursor: pointer;
@@ -326,7 +326,19 @@
 
 @media (max-width: 600px) {
   .infoRow label {
-      min-width: 80px;
+    min-width: 69px;
+  }
+
+  .infoRow textarea {
+    max-width: 207px;
+  }
+
+  .infoRow input[type="datetime-local"] {
+    max-width: 215px;
+  }
+
+  .infoRow input[type="number"] {
+    min-width: 100px;
   }
 
   .infoRow input,
@@ -334,6 +346,7 @@
     min-height: 18px;
     background-color: #fff;
     color: #000;
+    max-width: 207px;
   }
 
   .infoRow select,
@@ -342,11 +355,11 @@
     font-size: .85em;
     background-color: #fff;
     color: #000;
+    max-width: 224px;
   }
 
   .popupContent {
-    min-height: calc(100vh - 235px);
-    max-height: auto;
+    flex: 1;
     overflow-y: auto;
   }
 
