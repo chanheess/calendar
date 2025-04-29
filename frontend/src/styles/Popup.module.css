@@ -1,3 +1,7 @@
+:root {
+  --vh: 100%;
+}
+
 .popupOverlay {
   position: fixed;
   top: 0;
@@ -20,6 +24,7 @@
   padding: 10px;
   display: flex;
   flex-direction: column;
+  z-index: 1001;
 }
 
 .popupContent {
@@ -324,6 +329,21 @@
       min-width: 80px;
   }
 
+  .infoRow input,
+  .notificationRow input {
+    min-height: 18px;
+    background-color: #fff;
+    color: #000;
+  }
+
+  .infoRow select,
+  .notificationRow select {
+    height: 34px;
+    font-size: .85em;
+    background-color: #fff;
+    color: #000;
+  }
+
   .popupContent {
     min-height: calc(100vh - 235px);
     max-height: auto;
@@ -342,7 +362,7 @@
     display: flex;
     flex-direction: column;
     box-sizing: border-box;
-    height: 100%;
+    height: calc(var(--vh, 1vh) * 100);
     padding-bottom: env(safe-area-inset-bottom);
   }
 }

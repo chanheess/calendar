@@ -54,6 +54,7 @@
 /* 햄버거 버튼 */
 .hamburgerButton {
   font-size: 24px;
+  color: #000;
   background: none;
   border: none;
   cursor: pointer;
@@ -148,6 +149,7 @@
   background: none;
   border: none;
   cursor: pointer;
+  color: #000;
 }
 
 .moreMenu {
