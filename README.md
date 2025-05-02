@@ -55,5 +55,6 @@ chcalendar는 그룹 일정 통합 관리 서비스로, 전체 그룹 일정을 
 `AWS EC2` `AWS RDS` `Docker` `Jenkins` `NGINX`
 
 # ERD
- ![chcalendar (1)](https://github.com/user-attachments/assets/61a53d01-a0ba-4b43-a6a4-2d15048258f5)
+ ![chcalendar (2)](https://github.com/user-attachments/assets/d459c942-62af-4e22-9092-195c58e96eb1)
+
 
