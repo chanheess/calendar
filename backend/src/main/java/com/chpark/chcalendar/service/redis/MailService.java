@@ -20,7 +20,7 @@ public class MailService {
     @Async
     public void sendMail(EmailDto emailDto, String code) {
         String subject = emailDto.getType().getMessage() + " 인증 메일입니다.";
-        String text = "인증 코드는 " + code + "입니다.";
+        String text = "인증 코드는 " + code + " 입니다.";
 
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(emailDto.getEmail());

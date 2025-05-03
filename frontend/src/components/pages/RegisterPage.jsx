@@ -14,8 +14,14 @@ const RegisterPage = () => {
   const [isPasswordMatch, setIsPasswordMatch] = useState(true);
   const [isSubmitEnabled, setIsSubmitEnabled] = useState(false);
 
-  const navigate = useNavigate();
+  const [timeLeft, setTimeLeft] = useState(300);
+  const [isCodeExpired, setIsCodeExpired] = useState(false);
+  const [isCodeVisible, setIsCodeVisible] = useState(false);
 
+  const [isLoading, setIsLoading] = useState(false);
+  const [cooldown, setCooldown] = useState(0);
+
+  const navigate = useNavigate();
   const emailPattern = useMemo(() => /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/, []);
 
   useEffect(() => {
@@ -33,17 +39,51 @@ const RegisterPage = () => {
     setIsSubmitEnabled(isFormValid);
   }, [email, emailCode, nickname, password, confirmPassword, emailPattern]);
 
+  useEffect(() => {
+    if (timeLeft > 0 && isCodeVisible) {
+      const timer = setInterval(() => {
+        setTimeLeft((prev) => prev - 1);
+      }, 1000);
+      return () => clearInterval(timer);
+    } else if (timeLeft === 0) {
+      setIsCodeExpired(true);
+    }
+  }, [timeLeft, isCodeVisible]);
+
+  useEffect(() => {
+    if (cooldown > 0) {
+      const timer = setTimeout(() => setCooldown((prev) => prev - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [cooldown]);
+
+  const formatTime = (seconds) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}:${remainingSeconds < 10 ? "0" : ""}${remainingSeconds}`;
+  };
+
   const handleEmailVerification = async () => {
     if (!isEmailValid) return;
+
     const data = { email: email, type: "REGISTER" };
 
     try {
+      setIsLoading(true);
       const response = await axios.post("/auth/mail", data);
       alert(response.data);
+
+      setIsCodeVisible(true);
+      setTimeLeft(300);
+      setIsCodeExpired(false);
+      setCooldown(60); // 재전송 제한 시간
     } catch (error) {
       alert(error.response.data.message);
+    } finally {
+      setIsLoading(false);
     }
   };
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -89,11 +129,11 @@ const RegisterPage = () => {
           <Button
             type="button"
             size="input"
-            variant={isEmailValid ? "green" : "disabled"}
+            variant={isEmailValid && !cooldown ? "green" : "disabled"}
             onClick={handleEmailVerification}
-            disabled={!isEmailValid}
+            disabled={!isEmailValid || cooldown}
           >
-            인증
+            {cooldown ? `${cooldown}초 후 재전송` : "인증"}
           </Button>
         </div>
         <div className={styles.infoRow}>
@@ -103,10 +143,19 @@ const RegisterPage = () => {
             id="email-verification"
             value={emailCode}
             onChange={(e) => setEmailCode(e.target.value)}
-            placeholder="인증 코드를 입력하세요."
+            placeholder={`인증 코드를 입력하세요.${isCodeVisible ? ` (${formatTime(timeLeft)})` : ""}`}
             required
+            autoComplete="off"
+            disabled={isCodeExpired}
           />
         </div>
+        {isCodeExpired && (
+          <div className={styles.passwordText}>
+            <small className={styles.passwordError}>
+              인증 코드 유효기간이 만료되었습니다. 새 코드를 요청하세요.
+            </small>
+          </div>
+        )}
         <div className={styles.infoRow}>
           <label htmlFor="password">비밀번호:</label>
           <input
