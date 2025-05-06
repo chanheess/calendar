@@ -73,7 +73,7 @@
     min-width: 20px;
   }
   .calendarContainer :global(.fc-toolbar-title) {
-    font-size: 20px;
+    font-size: 14px;
   }
 
   /* "오늘" 버튼 따로 커스터마이징 필요하면 */
@@ -91,4 +91,19 @@
     box-sizing: border-box;
     overflow-y: auto;
   }
+
+  :global(.fc-col-header-cell-cushion) {
+    display: flex;
+    flex-direction: column;
+    white-space: normal;
+    text-align: center;
+    font-size: 12px;
+    line-height: 1.2;
+  }
+
+  :global(.fc .fc-button) {
+    font-size: 12px;
+    padding: 4px 6px;
+  }
+
 }
