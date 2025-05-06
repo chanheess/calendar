@@ -173,4 +173,8 @@
   .calendarItem button {
     opacity: 1;
   }
+
+  .sidebar.open {
+    width: 100%;
+  }
 }
