@@ -92,6 +92,12 @@
     overflow-y: auto;
   }
 
+  body.safari .calendarContainer {
+    padding-top: calc(60px + env(safe-area-inset-top));
+    height: calc(100dvh - 60px);
+    overflow-y: auto;
+  }
+
   :global(.fc-col-header-cell-cushion) {
     display: flex;
     flex-direction: column;
