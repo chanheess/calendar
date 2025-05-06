@@ -92,7 +92,7 @@
     overflow-y: auto;
   }
 
-  body.safari .calendarContainer {
+  :global(body.safari) .calendarContainer {
     padding-top: calc(60px + env(safe-area-inset-top));
     height: calc(100dvh - 60px);
     overflow-y: auto;
