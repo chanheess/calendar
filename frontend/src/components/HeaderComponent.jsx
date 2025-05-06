@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom"; // useLocation 추가
 import Nickname from "./Nickname";
 import axios from "axios";
@@ -17,6 +17,15 @@ const HeaderComponent = ({ mode, onSidebarToggle, onCloseSidebarPopups }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const isProfilePage = location.pathname === "/user/profile";
+
+  const openDropdownRef = useRef(null);
+
+  const handleToggleDropdown = (newRef) => {
+    if (openDropdownRef.current && openDropdownRef.current !== newRef) {
+      openDropdownRef.current.dispatchEvent(new CustomEvent("closeDropdown"));
+    }
+    openDropdownRef.current = newRef;
+  };
 
   useEffect(() => {
     fetchNotifications();
@@ -78,6 +87,47 @@ const HeaderComponent = ({ mode, onSidebarToggle, onCloseSidebarPopups }) => {
       console.error("Error fetching notifications:", error);
     }
   }
+  const handleNotificationAction = async (notification, action) => {
+    let url = "";
+    let method = "";
+
+    switch (action) {
+     case "accept":
+       url = "/notifications/accept";
+       method = "POST";
+       break;
+     case "reject":
+       url = "/notifications/reject";
+       method = "DELETE";
+       break;
+     case "maybe":
+       url = "/notifications/maybe";
+       method = "POST";
+       break;
+     default:
+       console.error(`Unknown action: ${action}`);
+       return;
+    }
+
+    try {
+     const response = await axios({
+       method,
+       url,
+       data: notification,
+       withCredentials: true,
+       headers: { "Content-Type": "application/json" },
+     });
+
+     if (response.status === 200) {
+       alert(`알림 처리 완료`);
+       fetchNotifications(); // 다시 목록 불러오기
+     } else {
+       alert("요청 처리 중 문제가 발생했습니다.");
+     }
+    } catch (error) {
+     console.error("Error processing notification:", error);
+    }
+  };
 
   const handleLogout = async () => {
     try {
@@ -103,6 +153,60 @@ const HeaderComponent = ({ mode, onSidebarToggle, onCloseSidebarPopups }) => {
   const handleProfile = () => {
     navigate("/user/profile");
   };
+
+  if (mode === "profile") {
+    return (
+      <header className={styles.header}>
+        <div className={styles.leftSection}>
+          {isMobile && !isProfilePage && (
+           <button className={styles.hamburgerButton} onClick={handleSidebarToggle}>
+             ☰
+           </button>
+          )}
+          {!isMobile && (
+           <button type="button" onClick={handleHome} className={styles.logo}>
+             chcalendar
+           </button>
+          )}
+        </div>
+        <div className={styles.rightSection}>
+         {isMobile && (
+           <div className={styles.centerSection}>
+             <button type="button" onClick={handleHome} className={styles.logo}>
+               chcalendar
+             </button>
+           </div>
+         )}
+
+         {!isMobile && (
+           <>
+             <Nickname variant="" size="medium" />
+             <Button variant="logout" size="header" onClick={handleLogout}>
+               로그아웃
+             </Button>
+           </>
+         )}
+
+         {isMobile && (
+           <div className={styles.mobileMoreWrapper}>
+             <button className={styles.moreButton} onClick={toggleMoreMenu}>
+               ⋮
+             </button>
+
+             {showMoreMenu && (
+               <div className={styles.moreMenu}>
+                 <Nickname variant="" size="small" />
+                 <Button variant="logout" size="full" onClick={handleLogout}>
+                   로그아웃
+                 </Button>
+               </div>
+             )}
+           </div>
+         )}
+         </div>
+      </header>
+     );
+   }
 
   return (
     <header className={styles.header}>
@@ -162,6 +266,12 @@ const HeaderComponent = ({ mode, onSidebarToggle, onCloseSidebarPopups }) => {
                   {notifications.map((notification, idx) => (
                     <li key={idx} className={styles.notificationCard}>
                       <p className={styles.notificationText}>{notification.message}</p>
+                      <MoreActions
+                        notification={notification}
+                        index={idx}
+                        onAction={handleNotificationAction}
+                        onToggle={handleToggleDropdown}
+                      />
                     </li>
                   ))}
                 </ul>
@@ -195,5 +305,46 @@ const HeaderComponent = ({ mode, onSidebarToggle, onCloseSidebarPopups }) => {
     </header>
   );
 };
+
+function MoreActions({ notification, index, onAction, onToggle }) {
+  const [open, setOpen] = useState(false);
+  const containerRef = useRef(null);
+
+  const toggleDropdown = () => {
+    if (!open) {
+      onToggle(containerRef.current);
+    }
+    setOpen(!open);
+  };
+
+  useEffect(() => {
+    const ref = containerRef.current;
+    const handleClose = () => setOpen(false);
+    if (ref) ref.addEventListener("closeDropdown", handleClose);
+    return () => {
+      if (ref) ref.removeEventListener("closeDropdown", handleClose);
+    };
+  }, []);
+
+  const handleClick = (action) => {
+    onAction(notification, action);
+    setOpen(false);
+  };
+
+  return (
+    <div className={styles.notificationContainer} ref={containerRef}>
+      <button onClick={toggleDropdown}>더보기</button>
+      {open && (
+        <div className={styles.notificationSelect}>
+          <button onClick={() => handleClick("accept")}>예</button>
+          <button onClick={() => handleClick("reject")}>아니오</button>
+          {notification.category === 'SCHEDULE' && (
+            <button onClick={() => handleClick("maybe")}>미정</button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default HeaderComponent;

@@ -32,6 +32,12 @@
   gap: 10px;
 }
 
+.dropdownHeader {
+  margin: 0px;
+  font-weight: bold;
+  font-size: 18px;
+}
+
 /* 로고 */
 .logo {
   font-size: 20px;
@@ -105,6 +111,7 @@
   box-shadow: 0 2px 8px rgba(0,0,0,0.15);
   padding: 10px;
   z-index: 9999;
+  animation: fadeIn 0.3s ease forwards;
 }
 
 /* 알림 리스트 */
@@ -144,18 +151,58 @@
   position: relative;
 }
 
-.moreButton {
-  font-size: 24px;
-  background: none;
+.notificationContainer {
+  align-self: flex-end;
+  position: relative;
+}
+
+.notificationDropdown button {
   border: none;
+  background-color: #f3f3f3;
+  padding: 4px 8px;
+  text-align: left;
+  font-size: 13px;
   cursor: pointer;
-  color: #000;
+  border-radius: 4px;
+}
+
+.notificationDropdown button:hover {
+  background-color: #f3f3f3;
+}
+
+.notificationSelect {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  z-index: 999;
+  min-width: 120px;
+  animation: fadeIn 0.3s ease forwards;
+}
+
+.notificationSelect button {
+  border: none;
+  background-color: #fff;
+  padding: 6px 10px;
+  text-align: left;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.notificationDropdown button:hover {
+  background-color: #f3f3f3;
 }
 
 .moreMenu {
   position: absolute;
-  top: calc(60px + env(safe-area-inset-top));
-  right: 10px;
+  top: calc(45px + env(safe-area-inset-top));
+  right: 0px;
   width: 180px;
   background: #fff;
   border: 1px solid #ddd;
@@ -167,6 +214,14 @@
   gap: 12px;
   z-index: 9999;
   animation: fadeIn 0.3s ease forwards;
+}
+
+.moreButton {
+  font-size: 24px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #000;
 }
 
 /* 버튼 확장 */
@@ -199,6 +254,19 @@
     padding: 4px 8px;
     border-width: 2px;
   }
+
+   .notificationDropdown {
+      position: absolute;
+      top: calc(45px + env(safe-area-inset-top));
+      right: -50px;
+      width: 300px;
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      padding: 10px;
+      z-index: 9999;
+    }
 
   .notificationBell {
     width: 32px;
