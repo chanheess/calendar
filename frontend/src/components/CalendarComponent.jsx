@@ -368,8 +368,18 @@ const CalendarComponent = forwardRef(({ selectedCalendarList, refreshKey, refres
     return `${startDate}, ${startTime} ~ ${endDate}, ${endTime}`;
   };
 
+  // Safari detection and body class toggling
+  useEffect(() => {
+    const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+    if (isSafari) {
+      document.body.classList.add("safari");
+    } else {
+      document.body.classList.remove("safari");
+    }
+  }, []);
+
   return (
-    <div className={styles.calendarContainer}>
+    <div className={`${styles.calendarContainer} ${typeof document !== "undefined" && document.body.classList.contains("safari") ? 'safari' : ''}`}>
       {isLoading && <LoadingOverlay fullScreen={false} />}
 
       <FullCalendar
