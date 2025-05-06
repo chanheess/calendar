@@ -17,6 +17,7 @@ const RegisterPage = () => {
   const [timeLeft, setTimeLeft] = useState(300);
   const [isCodeExpired, setIsCodeExpired] = useState(false);
   const [isCodeVisible, setIsCodeVisible] = useState(false);
+
   const [cooldown, setCooldown] = useState(0);
 
   const navigate = useNavigate();
@@ -67,7 +68,6 @@ const RegisterPage = () => {
     const data = { email: email, type: "REGISTER" };
 
     try {
-      setIsLoading(true);
       const response = await axios.post("/auth/mail", data);
       alert(response.data);
 
@@ -77,8 +77,6 @@ const RegisterPage = () => {
       setCooldown(60); // 재전송 제한 시간
     } catch (error) {
       alert(error.response.data.message);
-    } finally {
-      setIsLoading(false);
     }
   };
 
