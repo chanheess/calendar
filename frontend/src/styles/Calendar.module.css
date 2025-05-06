@@ -96,6 +96,8 @@
     padding-top: calc(60px + env(safe-area-inset-top));
     height: calc(100dvh - 60px);
     overflow-y: auto;
+    padding-bottom: env(safe-area-inset-bottom);
+    box-sizing: border-box;
   }
 
   :global(.fc-col-header-cell-cushion) {
