@@ -17,8 +17,6 @@ const RegisterPage = () => {
   const [timeLeft, setTimeLeft] = useState(300);
   const [isCodeExpired, setIsCodeExpired] = useState(false);
   const [isCodeVisible, setIsCodeVisible] = useState(false);
-
-  const [isLoading, setIsLoading] = useState(false);
   const [cooldown, setCooldown] = useState(0);
 
   const navigate = useNavigate();
