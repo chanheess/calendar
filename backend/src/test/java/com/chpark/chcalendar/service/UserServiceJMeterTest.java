@@ -47,17 +47,15 @@ public class UserServiceJMeterTest {
 
     @Test
     void generateUserCsvForJMeter() throws IOException {
-        String outputFile = "/Users/chpark/users.csv"; // 경로는 JMeter 실행 위치에 맞게 조정
+        String outputFile = "/Users/chpark/users.csv";
         int userCount = 1000;
 
         List<UserEntity> userList = userRepository.findByNicknameContaining("tester");
 
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputFile))) {
-            // 헤더 작성
             writer.write("email,password");
             writer.newLine();
 
-            // 예: testUser001 ~ testUser100
             for (int i = 0; i <= userCount; i++) {
                 if (userList.size() <= i) {
                     break;
@@ -71,7 +69,7 @@ public class UserServiceJMeterTest {
             }
         }
 
-        System.out.println("✅ users.csv 파일 생성 완료: " + outputFile);
+        System.out.println("users.csv 파일 생성 완료: " + outputFile);
     }
 
     public static String getRandom(int length) {
