@@ -45,7 +45,7 @@ const CalendarComponent = forwardRef(({ selectedCalendarList, refreshKey, refres
   const calendarRef = useRef(null);
 
   const pageSize = 1000;
-  const maxLoops = 10;
+  const maxLoops = 1;
 
   useImperativeHandle(ref, () => ({
     closeAllPopups() {
@@ -378,6 +378,26 @@ const CalendarComponent = forwardRef(({ selectedCalendarList, refreshKey, refres
     }
   }, []);
 
+  // 새로운 일정을 기존 이벤트 배열에 추가하는 함수
+  const addNewEventToCalendar = (newEventData) => {
+    const formattedEvent = {
+      id: newEventData.id,
+      title: newEventData.title,
+      start: newEventData.startAt,
+      end: newEventData.endAt,
+      description: newEventData.description,
+      repeatId: newEventData.repeatId,
+      userId: newEventData.userId,
+      calendarId: newEventData.calendarId,
+      backgroundColor: selectedCalendarList[newEventData.calendarId]?.color || "#3788d8",
+    };
+
+    if (selectedCalendarList[newEventData.calendarId]?.isSelected) {
+      eventCacheRef.current = [...eventCacheRef.current, formattedEvent];
+      setFetchEvents([...eventCacheRef.current]);
+    }
+  };
+
   return (
     <div className={`${styles.calendarContainer} ${typeof document !== "undefined" && document.body.classList.contains("safari") ? 'safari' : ''}`}>
       {isLoading && <LoadingOverlay fullScreen={false} />}
@@ -522,10 +542,17 @@ const CalendarComponent = forwardRef(({ selectedCalendarList, refreshKey, refres
           isOpen={schedulePopupVisible}
           mode={schedulePopupMode}
           eventDetails={schedulePopupData}
-          onClose={(updated) => {
+          onClose={(updated, newEventData) => {
             setSchedulePopupVisible(false);
-            if (updated && typeof refreshSchedules === "function") {
-              refreshSchedules();
+            if (updated) {
+              if (schedulePopupMode === 'create' && newEventData) {
+                addNewEventToCalendar(newEventData);
+              } else {
+                // 수정이나 삭제의 경우는 전체 리프레시
+                if (typeof refreshSchedules === "function") {
+                  refreshSchedules();
+                }
+              }
             }
           }}
           selectedCalendarList={selectedCalendarList}
