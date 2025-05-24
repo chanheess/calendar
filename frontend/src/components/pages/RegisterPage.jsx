@@ -129,7 +129,7 @@ const RegisterPage = () => {
             onClick={handleEmailVerification}
             disabled={!isEmailValid || cooldown}
           >
-            {cooldown ? `${cooldown}초 후 재전송` : "인증"}
+            {cooldown ? `${cooldown}` : "인증"}
           </Button>
         </div>
         <div className={styles.infoRow}>
