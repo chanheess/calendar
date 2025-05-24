@@ -48,7 +48,7 @@ public class GroupUserService {
 
     public GroupUserEntity getGroupUser(long userId, long groupId) {
         return groupUserRepository.findByUserIdAndGroupId(userId, groupId).orElseThrow(
-            () -> new GroupAuthenticationException("You do not have permission.")
+            () -> new GroupAuthenticationException("그룹에 대한 권한이 없습니다.")
         );
     }
 
@@ -56,7 +56,7 @@ public class GroupUserService {
         GroupUserEntity result = this.getGroupUser(userId, groupId);
 
         if (result.getRole().compareTo(GroupAuthority.USER) >= 0) {
-            throw new GroupAuthenticationException("You do not have permission.");
+            throw new GroupAuthenticationException("그룹에 대한 권한이 없습니다.");
         }
 
         return result;
@@ -64,14 +64,14 @@ public class GroupUserService {
 
     public void checkGroupUserExists(long userId, long groupId) {
         if (groupUserRepository.findByUserIdAndGroupId(userId, groupId).isPresent()) {
-            throw new IllegalArgumentException("The user is already registered.");
+            throw new IllegalArgumentException("이미 등록된 사용자입니다.");
         }
     }
 
     @Transactional
     public void addUser(long userId, String nickname, long groupId) {
         CalendarInfoEntity entity = calendarInfoRepository.findByIdAndCategory(groupId, CalendarCategory.GROUP).orElseThrow(
-                () -> new IllegalArgumentException("The group does not exist.")
+                () -> new IllegalArgumentException("존재하지 않는 그룹입니다.")
         );
 
         //그룹 가입 최대 유저 수 제한 필요

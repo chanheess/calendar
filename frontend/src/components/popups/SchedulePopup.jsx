@@ -291,8 +291,8 @@ import {
           openRepeatPopup("save");
         } else {
           await axios.patch(`/schedules/${scheduleData.id}?repeat=false`, scheduleDTO, {
-            withCredentials: true,
-            headers: { "Content-Type": "application/json" },
+              withCredentials: true,
+              headers: { "Content-Type": "application/json" },
           });
           alert("일정이 수정되었습니다.");
           onClose(true);

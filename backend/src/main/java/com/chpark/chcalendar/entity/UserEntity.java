@@ -46,19 +46,19 @@ public class UserEntity {
         int passwordMax = 100;
 
         if (plainPassword.length() < passwordMin || plainPassword.length() > passwordMax) {
-            throw new PasswordAuthenticationException(String.format("Password must be between %d ~ %d characters long.", passwordMin, passwordMax));
+            throw new PasswordAuthenticationException(String.format("비밀번호는 %d ~ %d자 사이여야 합니다.", passwordMin, passwordMax));
         }
 
         if (!plainPassword.matches(".*[0-9].*")) {
-            throw new PasswordAuthenticationException("Password must contain at least one digit.");
+            throw new PasswordAuthenticationException("비밀번호에 숫자가 하나 이상 포함되어야 합니다.");
         }
 
         if (!(plainPassword.matches(".*[a-z].*") || plainPassword.matches(".*[A-Z].*"))) {
-            throw new PasswordAuthenticationException("Password must contain at least one uppercase or lowercase letter.");
+            throw new PasswordAuthenticationException("비밀번호에 대문자 또는 소문자가 하나 이상 포함되어야 합니다.");
         }
 
         if (!plainPassword.matches(".*[!\"#$%&'()*+,-./:;<=>?@\\[\\]^_`{|}~].*")) {
-            throw new PasswordAuthenticationException("Password must contain at least one special character.");
+            throw new PasswordAuthenticationException("비밀번호에 특수문자가 하나 이상 포함되어야 합니다.");
         }
     }
 

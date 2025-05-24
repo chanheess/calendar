@@ -94,7 +94,7 @@ class ScheduleUtilityTest {
         for (String email : invalidEmails) {
             assertThatThrownBy(() -> ScheduleUtility.validateEmail(email))
                     .isInstanceOf(IllegalArgumentException.class)
-                    .hasMessageContaining("Invalid email format");
+                    .hasMessageContaining("잘못된 이메일 형식: " + email);
         }
     }
 

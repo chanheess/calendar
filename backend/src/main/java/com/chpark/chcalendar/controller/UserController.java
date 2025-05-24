@@ -138,14 +138,11 @@ public class UserController {
         long userId = jwtTokenProvider.getUserIdFromToken(token);
 
         userService.updatePassword(userId, changePassword);
-        return ResponseEntity.ok().body("Password updated successfully.");
+        return ResponseEntity.ok().body("비밀번호가 변경되었습니다.");
     }
 
     @PostMapping("/auth/register")
     public ResponseEntity<String> createUser(@Validated @RequestBody UserDto.RegisterRequest userRequest) {
-        EmailDto emailDto = new EmailDto(userRequest.getEmail(), RequestType.REGISTER);
-
-        redisService.verificationEmail(emailDto, userRequest.getEmailCode());
         userService.create(userRequest);
 
         return ResponseEntity.ok("회원가입이 성공적으로 완료되었습니다.");

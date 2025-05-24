@@ -6,8 +6,8 @@ import com.chpark.chcalendar.entity.UserEntity;
 import com.chpark.chcalendar.repository.user.UserRepository;
 import com.chpark.chcalendar.security.JwtTokenProvider;
 import com.chpark.chcalendar.service.calendar.UserCalendarService;
-import com.chpark.chcalendar.service.user.GroupUserService;
 import com.chpark.chcalendar.service.redis.RedisService;
+import com.chpark.chcalendar.service.user.GroupUserService;
 import com.chpark.chcalendar.service.user.UserService;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.Test;
@@ -59,8 +59,7 @@ class UserServiceUnitTest {
         //given
         UserDto.RegisterRequest userDto = new UserDto.RegisterRequest("testing1@naver.com", "testpassword123!!", "testingKing", "1234");
 
-        when(userRepository.existsByEmail(userDto.getEmail())).thenReturn(false);
-        when(userRepository.existsByNickname(userDto.getNickname())).thenReturn(false);
+
         when(passwordEncoder.encode(userDto.getPassword())).thenReturn("encoded_password");
 
         UserEntity savedUser = UserEntity.builder()
@@ -153,7 +152,7 @@ class UserServiceUnitTest {
         //when & then
         assertThatThrownBy(() -> userService.findNickname(userId))
                 .isInstanceOf(EntityNotFoundException.class)
-                .hasMessageContaining("User not found");
+                .hasMessageContaining("사용자를 찾을 수 없습니다.");
     }
 
     @Test
@@ -184,7 +183,7 @@ class UserServiceUnitTest {
         //when & then
         assertThatThrownBy(() -> userService.findUserInfo(userId))
                 .isInstanceOf(EntityNotFoundException.class)
-                .hasMessageContaining("User not found");
+                .hasMessageContaining("사용자를 찾을 수 없습니다.");
     }
 
     @Test

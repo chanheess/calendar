@@ -91,13 +91,13 @@ const RegisterPage = () => {
         password,
       };
 
-      await axios.post("/auth/register", payload, {
+      const response = await axios.post("/auth/register", payload, {
         headers: {
             "Content-Type": "application/json",
             },
         });
 
-      alert("Registration successful!");
+      alert(response.data);
       navigate("/auth/login");
     } catch (error) {
       if (error.response) {
@@ -129,7 +129,7 @@ const RegisterPage = () => {
             onClick={handleEmailVerification}
             disabled={!isEmailValid || cooldown}
           >
-            {cooldown ? `${cooldown}초 후 재전송` : "인증"}
+            {cooldown ? `${cooldown}` : "인증"}
           </Button>
         </div>
         <div className={styles.infoRow}>
