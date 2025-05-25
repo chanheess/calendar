@@ -286,9 +286,12 @@
     top: calc(60px + env(safe-area-inset-top));
     right: 10px;
     width: calc(100vw - 20px);
-    max-width: 350px;
-    max-height: calc(var(--vh, 1vh) * 100 - 80px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+    max-width: calc(100vw - 20px);
+    max-height: calc(100vh - 80px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 0;
+    box-sizing: border-box;
   }
 
   .notificationSelect {
@@ -296,6 +299,8 @@
     right: 10px;
     width: auto;
     max-width: calc(100vw - 20px);
+    max-height: calc(100vh - 80px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+    overflow-y: auto;
   }
 
   .moreMenu {
