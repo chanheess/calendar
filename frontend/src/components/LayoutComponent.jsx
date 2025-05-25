@@ -8,6 +8,7 @@ import PushNotification from "../PushNotification";
 const LayoutComponent = ({ userId }) => {
   const sidebarRef = useRef(null);
   const calendarRef = useRef(null);
+  const headerRef = useRef(null);
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [selectedCalendarList, setSelectedCalendars] = useState({});
@@ -24,18 +25,25 @@ const LayoutComponent = ({ userId }) => {
     setRefreshKey((prev) => prev + 1);
   }, []);
 
-  const handleCloseSidebarPopups = () => {
-    if (sidebarRef.current && typeof sidebarRef.current.closeAllPopups === "function") {
-      sidebarRef.current.closeAllPopups();
-    }
-    if (calendarRef.current && typeof calendarRef.current.closeAllPopups === "function") {
-      calendarRef.current.closeAllPopups();
-    }
-  };
+  const handleCloseSidebarPopups = useCallback(() => {
+    // 각 컴포넌트의 팝업을 순차적으로 닫기
+    setTimeout(() => {
+      if (sidebarRef.current?.closeAllPopups) {
+        sidebarRef.current.closeAllPopups();
+      }
+    }, 0);
+
+    setTimeout(() => {
+      if (calendarRef.current?.closeAllPopups) {
+        calendarRef.current.closeAllPopups();
+      }
+    }, 0);
+  }, []);
 
   return (
     <div className={styles.layout}>
       <HeaderComponent
+        ref={headerRef}
         mode="main"
         onSidebarToggle={toggleSidebar}
         onCloseSidebarPopups={handleCloseSidebarPopups}
@@ -49,6 +57,7 @@ const LayoutComponent = ({ userId }) => {
           onCalendarChange={handleCalendarChange}
           userId={userId}
           refreshSchedules={refreshSchedules}
+          onCloseSidebarPopups={handleCloseSidebarPopups}
         />
         {isSidebarOpen && (
           <div

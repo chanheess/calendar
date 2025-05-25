@@ -101,10 +101,11 @@
 
 /* 알림 드롭다운 */
 .notificationDropdown {
-  position: absolute;
+  position: fixed;
   top: calc(60px + env(safe-area-inset-top));
-  right: 0;
-  width: 300px;
+  right: 10px;
+  width: calc(100vw - 20px);
+  max-width: 350px;
   background: #fff;
   border: 1px solid #ddd;
   border-radius: 8px;
@@ -112,6 +113,9 @@
   padding: 10px;
   z-index: 9999;
   animation: fadeIn 0.3s ease forwards;
+  max-height: calc(100vh - 80px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* 알림 리스트 */
@@ -171,9 +175,9 @@
 }
 
 .notificationSelect {
-  position: absolute;
-  right: 0;
-  top: 100%;
+  position: fixed;
+  right: 10px;
+  top: auto;
   margin-top: 8px;
   display: flex;
   flex-direction: column;
@@ -183,6 +187,7 @@
   box-shadow: 0 2px 8px rgba(0,0,0,0.2);
   z-index: 999;
   min-width: 120px;
+  max-width: calc(100vw - 20px);
   animation: fadeIn 0.3s ease forwards;
 }
 
@@ -200,10 +205,11 @@
 }
 
 .moreMenu {
-  position: absolute;
-  top: calc(45px + env(safe-area-inset-top));
-  right: 0px;
-  width: 180px;
+  position: fixed;
+  top: calc(60px + env(safe-area-inset-top));
+  right: 10px;
+  width: calc(100vw - 20px);
+  max-width: 180px;
   background: #fff;
   border: 1px solid #ddd;
   border-radius: 8px;
@@ -214,6 +220,9 @@
   gap: 12px;
   z-index: 9999;
   animation: fadeIn 0.3s ease forwards;
+  max-height: calc(100vh - 80px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .moreButton {
@@ -255,18 +264,73 @@
     border-width: 2px;
   }
 
-   .notificationDropdown {
-      position: absolute;
-      top: calc(45px + env(safe-area-inset-top));
-      right: -50px;
-      width: 300px;
-      background: #fff;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-      padding: 10px;
-      z-index: 9999;
-    }
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    background: #fff;
+    border-bottom: 1px solid #ddd;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: calc(60px + env(safe-area-inset-top));
+    padding-top: env(safe-area-inset-top);
+    box-sizing: border-box;
+    z-index: 1001;
+  }
+
+  .notificationDropdown {
+    position: fixed;
+    top: calc(60px + env(safe-area-inset-top));
+    right: 10px;
+    width: calc(100vw - 20px);
+    max-width: 350px;
+    max-height: calc(var(--vh, 1vh) * 100 - 80px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+    overflow-y: auto;
+  }
+
+  .notificationSelect {
+    position: fixed;
+    right: 10px;
+    width: auto;
+    max-width: calc(100vw - 20px);
+  }
+
+  .moreMenu {
+    position: fixed;
+    top: calc(60px + env(safe-area-inset-top));
+    right: 10px;
+    width: calc(100vw - 20px);
+    max-width: 180px;
+    max-height: calc(var(--vh, 1vh) * 100 - 80px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+    overflow-y: auto;
+  }
+
+  .notificationList {
+    max-height: none;
+    overflow-y: visible;
+  }
+
+  .notificationCard {
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+  }
+
+  .notificationText {
+    margin-bottom: 8px;
+    word-break: break-word;
+  }
+
+  .notificationContainer {
+    position: relative;
+  }
+
+  .notificationContainer button {
+    padding: 8px 12px;
+    font-size: 14px;
+  }
 
   .notificationBell {
     width: 32px;
@@ -286,22 +350,5 @@
 
   .rightSection {
     gap: 6px;
-  }
-
-  .header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 20px;
-    background: #fff;
-    border-bottom: 1px solid #ddd;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: calc(60px + env(safe-area-inset-top));
-    padding-top: env(safe-area-inset-top);
-    box-sizing: border-box;
-    z-index: 1001;
   }
 }

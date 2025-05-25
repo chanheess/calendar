@@ -3,10 +3,67 @@
   height: 100%;
   padding-top: 10px;
   position: relative;
+  display: flex;
+  flex-direction: column;
 }
 
-:global(.fc-header-toolbar.fc-toolbar) {
-  margin: 10px;
+/* 모바일 환경 대응 */
+@media screen and (max-width: 768px) {
+  .calendarContainer {
+    padding-top: 0;
+    /* iOS Safari 노치 영역 대응 */
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  :global(.fc) {
+    height: 100% !important;
+  }
+
+  :global(.fc-header-toolbar.fc-toolbar) {
+    margin: 8px 4px !important;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  :global(.fc-toolbar-chunk) {
+    display: flex;
+    gap: 4px;
+  }
+
+  :global(.fc-toolbar-title) {
+    font-size: 1.2em !important;
+  }
+
+  :global(.fc-button) {
+    padding: 0.2em 0.4em !important;
+    font-size: 0.9em !important;
+  }
+
+  :global(.fc-view-harness) {
+    height: calc(100% - 80px) !important;
+  }
+
+  :global(.fc-daygrid-day-number) {
+    padding: 2px !important;
+  }
+
+  :global(.fc-daygrid-day-events) {
+    margin: 0 !important;
+  }
+
+  :global(.fc-event-title) {
+    font-size: 0.9em;
+  }
+}
+
+/* iOS Safari에서 탭 하이라이트 제거 */
+@media (hover: none) {
+  :global(.fc-event),
+  :global(.fc-button) {
+    -webkit-tap-highlight-color: transparent;
+  }
 }
 
 .loadingOverlay {

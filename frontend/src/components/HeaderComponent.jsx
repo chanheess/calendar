@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, forwardRef, useImperativeHandle } from "react";
 import { useNavigate, useLocation } from "react-router-dom"; // useLocation 추가
 import Nickname from "./Nickname";
 import axios from "axios";
@@ -7,7 +7,7 @@ import Button from "./Button";
 import { getFirebaseToken } from "components/FirebaseToken";
 import LoadingOverlay from "components/LoadingOverlay";
 
-const HeaderComponent = ({ mode, onSidebarToggle, onCloseSidebarPopups }) => {
+const HeaderComponent = forwardRef(({ mode, onSidebarToggle, onCloseSidebarPopups }, ref) => {
   const [notifications, setNotifications] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const [showMoreMenu, setShowMoreMenu] = useState(false);
@@ -19,17 +19,23 @@ const HeaderComponent = ({ mode, onSidebarToggle, onCloseSidebarPopups }) => {
   const isProfilePage = location.pathname === "/user/profile";
 
   const openDropdownRef = useRef(null);
+  const dropdownRef = useRef(null);
+  const moreMenuRef = useRef(null);
 
-  const handleToggleDropdown = (newRef) => {
-    if (openDropdownRef.current && openDropdownRef.current !== newRef) {
-      openDropdownRef.current.dispatchEvent(new CustomEvent("closeDropdown"));
+  useImperativeHandle(ref, () => ({
+    closeAllPopups: () => {
+      setShowDropdown(false);
+      setShowMoreMenu(false);
     }
-    openDropdownRef.current = newRef;
-  };
+  }));
 
+  // 초기 알림 데이터 로딩
   useEffect(() => {
     fetchNotifications();
+  }, []);
 
+  // 리사이즈 이벤트 처리
+  useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth <= 600);
     };
@@ -37,18 +43,41 @@ const HeaderComponent = ({ mode, onSidebarToggle, onCloseSidebarPopups }) => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
+  // 알림 드롭다운이 열릴 때 알림 데이터 새로고침
   useEffect(() => {
     if (showDropdown) {
       fetchNotifications();
     }
   }, [showDropdown]);
 
+  // 외부 클릭 감지
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showDropdown && dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setShowDropdown(false);
+      }
+      if (showMoreMenu && moreMenuRef.current && !moreMenuRef.current.contains(event.target)) {
+        setShowMoreMenu(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('touchstart', handleClickOutside);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, [showDropdown, showMoreMenu]);
+
   const toggleDropdown = () => {
     setShowDropdown((prev) => {
       if (!prev) {
-        setShowMoreMenu(false); // 수정: 알림 열 때 더보기 닫기
-        if (typeof onCloseSidebarPopups === "function") {
-          onCloseSidebarPopups();
+        setShowMoreMenu(false);
+        if (onCloseSidebarPopups) {
+          setTimeout(() => {
+            onCloseSidebarPopups();
+          }, 0);
         }
       }
       return !prev;
@@ -58,9 +87,11 @@ const HeaderComponent = ({ mode, onSidebarToggle, onCloseSidebarPopups }) => {
   const toggleMoreMenu = () => {
     setShowMoreMenu((prev) => {
       if (!prev) {
-        setShowDropdown(false); // 수정: 더보기 열 때 알림 닫기
-        if (typeof onCloseSidebarPopups === "function") {
-          onCloseSidebarPopups();
+        setShowDropdown(false);
+        if (onCloseSidebarPopups) {
+          setTimeout(() => {
+            onCloseSidebarPopups();
+          }, 0);
         }
       }
       return !prev;
@@ -71,8 +102,10 @@ const HeaderComponent = ({ mode, onSidebarToggle, onCloseSidebarPopups }) => {
     onSidebarToggle();
     setShowDropdown(false);
     setShowMoreMenu(false);
-    if (typeof onCloseSidebarPopups === "function") {
-      onCloseSidebarPopups(true); // true 전달로 "모든 팝업 닫기" 신호
+    if (onCloseSidebarPopups) {
+      setTimeout(() => {
+        onCloseSidebarPopups();
+      }, 0);
     }
   };
 
@@ -84,45 +117,46 @@ const HeaderComponent = ({ mode, onSidebarToggle, onCloseSidebarPopups }) => {
       console.error("Error fetching notifications:", error);
     }
   }
+
   const handleNotificationAction = async (notification, action) => {
     let url = "";
     let method = "";
 
     switch (action) {
-     case "accept":
-       url = "/notifications/accept";
-       method = "POST";
-       break;
-     case "reject":
-       url = "/notifications/reject";
-       method = "DELETE";
-       break;
-     case "maybe":
-       url = "/notifications/maybe";
-       method = "POST";
-       break;
-     default:
-       console.error(`Unknown action: ${action}`);
-       return;
+      case "accept":
+        url = "/notifications/accept";
+        method = "POST";
+        break;
+      case "reject":
+        url = "/notifications/reject";
+        method = "DELETE";
+        break;
+      case "maybe":
+        url = "/notifications/maybe";
+        method = "POST";
+        break;
+      default:
+        console.error(`Unknown action: ${action}`);
+        return;
     }
 
     try {
-     const response = await axios({
-       method,
-       url,
-       data: notification,
-       withCredentials: true,
-       headers: { "Content-Type": "application/json" },
-     });
+      const response = await axios({
+        method,
+        url,
+        data: notification,
+        withCredentials: true,
+        headers: { "Content-Type": "application/json" },
+      });
 
-     if (response.status === 200) {
-       alert(`알림 처리 완료`);
-       fetchNotifications(); // 다시 목록 불러오기
-     } else {
-       alert("요청 처리 중 문제가 발생했습니다.");
-     }
+      if (response.status === 200) {
+        alert(`알림 처리 완료`);
+        fetchNotifications();
+      } else {
+        alert("요청 처리 중 문제가 발생했습니다.");
+      }
     } catch (error) {
-     console.error("Error processing notification:", error);
+      console.error("Error processing notification:", error);
     }
   };
 
@@ -151,59 +185,66 @@ const HeaderComponent = ({ mode, onSidebarToggle, onCloseSidebarPopups }) => {
     navigate("/user/profile");
   };
 
+  const handleToggleDropdown = useRef((newRef) => {
+    if (openDropdownRef.current && openDropdownRef.current !== newRef) {
+      openDropdownRef.current.dispatchEvent(new CustomEvent("closeDropdown"));
+    }
+    openDropdownRef.current = newRef;
+  }).current;
+
   if (mode === "profile") {
     return (
       <header className={styles.header}>
         <div className={styles.leftSection}>
           {isMobile && !isProfilePage && (
-           <button className={styles.hamburgerButton} onClick={handleSidebarToggle}>
-             ☰
-           </button>
+            <button className={styles.hamburgerButton} onClick={handleSidebarToggle}>
+              ☰
+            </button>
           )}
           {!isMobile && (
-           <button type="button" onClick={handleHome} className={styles.logo}>
-             chcalendar
-           </button>
+            <button type="button" onClick={handleHome} className={styles.logo}>
+              chcalendar
+            </button>
           )}
         </div>
         <div className={styles.rightSection}>
-         {isMobile && (
-           <div className={styles.centerSection}>
-             <button type="button" onClick={handleHome} className={styles.logo}>
-               chcalendar
-             </button>
-           </div>
-         )}
+          {isMobile && (
+            <div className={styles.centerSection}>
+              <button type="button" onClick={handleHome} className={styles.logo}>
+                chcalendar
+              </button>
+            </div>
+          )}
 
-         {!isMobile && (
-           <>
-             <Nickname variant="" size="medium" />
-             <Button variant="logout" size="header" onClick={handleLogout}>
-               로그아웃
-             </Button>
-           </>
-         )}
+          {!isMobile && (
+            <>
+              <Nickname variant="" size="medium" />
+              <Button variant="logout" size="header" onClick={handleLogout}>
+                로그아웃
+              </Button>
+            </>
+          )}
 
-         {isMobile && (
-           <div className={styles.mobileMoreWrapper}>
-             <button className={styles.moreButton} onClick={toggleMoreMenu}>
-               ⋮
-             </button>
+          {isMobile && (
+            <div className={styles.mobileMoreWrapper}>
+              <button className={styles.moreButton} onClick={toggleMoreMenu}>
+                ⋮
+              </button>
 
-             {showMoreMenu && (
-               <div className={styles.moreMenu}>
-                 <Nickname variant="" size="small" />
-                 <Button variant="logout" size="full" onClick={handleLogout}>
-                   로그아웃
-                 </Button>
-               </div>
-             )}
-           </div>
-         )}
-         </div>
+              {showMoreMenu && (
+                <div className={styles.moreMenu} ref={moreMenuRef}>
+                  <Nickname variant="" size="small" />
+                  <Button variant="logout" size="full" onClick={handleLogout}>
+                    로그아웃
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </header>
-     );
-   }
+    );
+  }
 
   return (
     <header className={styles.header}>
@@ -256,7 +297,7 @@ const HeaderComponent = ({ mode, onSidebarToggle, onCloseSidebarPopups }) => {
           </button>
 
           {showDropdown && (
-            <div className={styles.notificationDropdown}>
+            <div className={styles.notificationDropdown} ref={dropdownRef}>
               <h3 className={styles.dropdownHeader}>알림</h3>
               {notifications.length > 0 ? (
                 <ul className={styles.notificationList}>
@@ -286,7 +327,7 @@ const HeaderComponent = ({ mode, onSidebarToggle, onCloseSidebarPopups }) => {
             </button>
 
             {showMoreMenu && (
-              <div className={styles.moreMenu}>
+              <div className={styles.moreMenu} ref={moreMenuRef}>
                 <Nickname variant="" size="small" />
                 <Button variant="green" size="full" onClick={handleProfile}>
                   내 정보
@@ -301,27 +342,40 @@ const HeaderComponent = ({ mode, onSidebarToggle, onCloseSidebarPopups }) => {
       </div>
     </header>
   );
-};
+});
 
 function MoreActions({ notification, index, onAction, onToggle }) {
   const [open, setOpen] = useState(false);
   const containerRef = useRef(null);
+  const selectRef = useRef(null);
 
   const toggleDropdown = () => {
-    if (!open) {
-      onToggle(containerRef.current);
-    }
     setOpen(!open);
   };
 
   useEffect(() => {
-    const ref = containerRef.current;
-    const handleClose = () => setOpen(false);
-    if (ref) ref.addEventListener("closeDropdown", handleClose);
-    return () => {
-      if (ref) ref.removeEventListener("closeDropdown", handleClose);
+    if (open) {
+      onToggle(containerRef.current);
+    }
+  }, [open, onToggle]);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (selectRef.current && !selectRef.current.contains(event.target)) {
+        setOpen(false);
+      }
     };
-  }, []);
+
+    if (open) {
+      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('touchstart', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
+    };
+  }, [open]);
 
   const handleClick = (action) => {
     onAction(notification, action);
@@ -332,7 +386,7 @@ function MoreActions({ notification, index, onAction, onToggle }) {
     <div className={styles.notificationContainer} ref={containerRef}>
       <button onClick={toggleDropdown}>더보기</button>
       {open && (
-        <div className={styles.notificationSelect}>
+        <div className={styles.notificationSelect} ref={selectRef}>
           <button onClick={() => handleClick("accept")}>예</button>
           <button onClick={() => handleClick("reject")}>아니오</button>
           {notification.category === 'SCHEDULE' && (
