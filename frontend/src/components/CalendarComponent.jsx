@@ -44,8 +44,11 @@ const CalendarComponent = forwardRef(({ selectedCalendarList, refreshKey, refres
   const isFetchingRef = useRef(false);
   const calendarRef = useRef(null);
 
-  const pageSize = 1000;
+  const pageSize = 100;
   const maxLoops = 1;
+
+  // 모바일 환경 감지
+  const [isMobile, setIsMobile] = useState(false);
 
   useImperativeHandle(ref, () => ({
     closeAllPopups() {
@@ -398,6 +401,67 @@ const CalendarComponent = forwardRef(({ selectedCalendarList, refreshKey, refres
     }
   };
 
+  // 모바일 브라우저 viewport 높이 조정
+  useEffect(() => {
+    const setViewportHeight = () => {
+      const vh = window.innerHeight * 0.01;
+      document.documentElement.style.setProperty('--vh', `${vh}px`);
+    };
+
+    setViewportHeight();
+    window.addEventListener('resize', setViewportHeight);
+    window.addEventListener('orientationchange', setViewportHeight);
+
+    // iOS Safari에서 주소창 표시/숨김에 대응
+    let lastScrollTop = window.pageYOffset || document.documentElement.scrollTop;
+    window.addEventListener('scroll', () => {
+      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+      if (Math.abs(scrollTop - lastScrollTop) > 50) {  // 50px 이상 스크롤된 경우에만 처리
+        setViewportHeight();
+        lastScrollTop = scrollTop;
+      }
+    });
+
+    return () => {
+      window.removeEventListener('resize', setViewportHeight);
+      window.removeEventListener('orientationchange', setViewportHeight);
+      window.removeEventListener('scroll', setViewportHeight);
+    };
+  }, []);
+
+  // 모바일 환경 감지
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+
+    // 초기 체크
+    checkMobile();
+
+    // 리사이즈 이벤트 리스너
+    window.addEventListener('resize', checkMobile);
+
+    // 클린업
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // iOS Safari 주소창 높이 변경 대응
+  useEffect(() => {
+    const handleResize = () => {
+      // 100vh 대신 실제 viewport 높이 사용
+      document.documentElement.style.setProperty('--vh', `${window.innerHeight * 0.01}px`);
+    };
+
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('orientationchange', handleResize);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('orientationchange', handleResize);
+    };
+  }, []);
+
   return (
     <div className={`${styles.calendarContainer} ${typeof document !== "undefined" && document.body.classList.contains("safari") ? 'safari' : ''}`}>
       {isLoading && <LoadingOverlay fullScreen={false} />}
@@ -408,15 +472,15 @@ const CalendarComponent = forwardRef(({ selectedCalendarList, refreshKey, refres
         plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
         locale={koLocale}
         timeZone="Asia/Seoul"
-        initialView="dayGridMonth"
+        initialView={isMobile ? "dayGridMonth" : "dayGridMonth"}
         editable={true}
         eventResizableFromStart={true}
-        fixedWeekCount={true}
+        fixedWeekCount={false}
         height="100%"
         headerToolbar={{
-          left: `prev,next today${autoLoadComplete ? ",loadMore" : ""}`,
-          center: "title",
-          right: "dayGridMonth,timeGridWeek,timeGridDay",
+          left: isMobile ? 'prev,next' : `prev,next today${autoLoadComplete ? ",loadMore" : ""}`,
+          center: 'title',
+          right: isMobile ? 'today,dayGridMonth,timeGridDay' : 'dayGridMonth,timeGridWeek,timeGridDay'
         }}
         views={{
           dayGridMonth: {

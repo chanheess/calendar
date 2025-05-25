@@ -107,9 +107,6 @@
     padding: 7px;
 }
 
-.infoRow input[type="number"] {
-}
-
 .infoRow input[type="checkbox"] {
     max-width: 30px;
 }
@@ -325,44 +322,6 @@
 }
 
 @media (max-width: 600px) {
-  .infoRow label {
-    min-width: 69px;
-  }
-
-  .infoRow textarea {
-    max-width: 207px;
-  }
-
-  .infoRow input[type="datetime-local"] {
-    max-width: 215px;
-  }
-
-  .infoRow input[type="number"] {
-    min-width: 100px;
-  }
-
-  .infoRow input,
-  .notificationRow input {
-    min-height: 18px;
-    background-color: #fff;
-    color: #000;
-    max-width: 207px;
-  }
-
-  .infoRow select,
-  .notificationRow select {
-    height: 34px;
-    font-size: .85em;
-    background-color: #fff;
-    color: #000;
-    max-width: 224px;
-  }
-
-  .popupContent {
-    flex: 1;
-    overflow-y: auto;
-  }
-
   .popup {
     position: fixed;
     top: 60px;
@@ -375,7 +334,158 @@
     display: flex;
     flex-direction: column;
     box-sizing: border-box;
-    height: calc(var(--vh, 1vh) * 100);
-    padding-bottom: env(safe-area-inset-bottom);
+    height: 100%;
+    padding: 10px;
+  }
+
+  .popupContent {
+    flex: 1;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 15px 10px;
+    margin-bottom: env(safe-area-inset-bottom);
+  }
+
+  .infoRow {
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+  }
+
+  .infoRow label {
+    min-width: 80px;
+    font-size: 0.85em;
+    margin-right: 8px;
+  }
+
+  /* 모든 입력 필드의 기본 스타일 통일 */
+  .infoRow input,
+  .infoRow textarea,
+  .infoRow select,
+  .notificationRow input,
+  .notificationRow select {
+    width: calc(100% - 100px);
+    max-width: none;
+    min-height: 34px;
+    padding: 7px;
+    font-size: 0.85em;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: #fff;
+    color: #000;
+    box-sizing: border-box;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  /* datetime-local 입력 필드 특별 처리 */
+  .infoRow input[type="datetime-local"] {
+    min-height: 34px;
+    padding: 7px;
+  }
+
+  /* select 요소 특별 처리 */
+  .infoRow select {
+    background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23333'%3E%3Cpath d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    padding-right: 24px;
+  }
+
+  /* textarea 높이 조정 */
+  .infoRow textarea {
+    min-height: 80px;
+    resize: vertical;
+  }
+
+  /* 알림 설정 행 스타일 조정 */
+  .notificationRow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    padding: 0 10px;
+  }
+
+  .notificationRow input {
+    width: 80px;
+  }
+
+  .notificationRow select {
+    flex: 1;
+    min-width: 100px;
+  }
+
+  /* 그룹 사용자 테이블 스타일 조정 */
+  .userTable {
+    width: 100%;
+    margin: 8px 0;
+  }
+
+  .userTable th,
+  .userTable td {
+    padding: 8px;
+    font-size: 0.85em;
+  }
+
+  /* 버튼 스타일 통일 */
+  .popupFooter button,
+  .infoRow button {
+    min-height: 34px;
+    padding: 7px 14px;
+    font-size: 0.85em;
+    border-radius: 4px;
+  }
+
+  /* 컨테이너 스타일 통일 */
+  .availableUsersContainer,
+  .selectedUsersContainer {
+    margin: 8px 0;
+    padding: 8px;
+    border-radius: 4px;
+  }
+
+  /* 구글 스타일 버튼 조정 */
+  .googleFooter {
+    padding: 10px;
+    margin: 0;
+    border-top: 1px solid #eee;
+  }
+
+  .googleButton {
+    min-height: 34px;
+    padding: 7px 12px;
+    font-size: 0.85em;
+    border-radius: 4px;
+  }
+
+  /* 푸터 위치 자동 조절을 위한 스타일 */
+  .popupFooter {
+    position: sticky;
+    bottom: 0;
+    background-color: #fff;
+    padding: 10px;
+    margin: 0;
+    z-index: 1;
+    border-top: 1px solid #eee;
+    padding-bottom: max(10px, env(safe-area-inset-bottom));
+  }
+}
+
+/* 사파리 특정 스타일 */
+@supports (-webkit-touch-callout: none) {
+  .popup {
+    height: -webkit-fill-available;
+  }
+
+  .popupContent {
+    height: 100%;
+    padding-bottom: 60px; /* 푸터 높이만큼 여백 추가 */
+  }
+}
+
+/* 모바일 브라우저 주소창 변화 대응 */
+@media (max-width: 600px) {
+  :root {
+    --vh: 1vh;
   }
 }
