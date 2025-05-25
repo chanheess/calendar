@@ -53,9 +53,16 @@ const HeaderComponent = forwardRef(({ mode, onSidebarToggle, onCloseSidebarPopup
   // 외부 클릭 감지
   useEffect(() => {
     const handleClickOutside = (event) => {
+      // 알림 버튼과 더보기 버튼 클릭은 무시
+      if (event.target.closest(`.${styles.notificationBell}`) || 
+          event.target.closest(`.${styles.moreButton}`)) {
+        return;
+      }
+      // 알림 드롭다운 외부 클릭시 닫기
       if (showDropdown && dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setShowDropdown(false);
       }
+      // 더보기 메뉴 외부 클릭시 닫기
       if (showMoreMenu && moreMenuRef.current && !moreMenuRef.current.contains(event.target)) {
         setShowMoreMenu(false);
       }
@@ -71,31 +78,13 @@ const HeaderComponent = forwardRef(({ mode, onSidebarToggle, onCloseSidebarPopup
   }, [showDropdown, showMoreMenu]);
 
   const toggleDropdown = () => {
-    setShowDropdown((prev) => {
-      if (!prev) {
-        setShowMoreMenu(false);
-        if (onCloseSidebarPopups) {
-          setTimeout(() => {
-            onCloseSidebarPopups();
-          }, 0);
-        }
-      }
-      return !prev;
-    });
+    setShowMoreMenu(false);
+    setShowDropdown((prev) => !prev);
   };
 
   const toggleMoreMenu = () => {
-    setShowMoreMenu((prev) => {
-      if (!prev) {
-        setShowDropdown(false);
-        if (onCloseSidebarPopups) {
-          setTimeout(() => {
-            onCloseSidebarPopups();
-          }, 0);
-        }
-      }
-      return !prev;
-    });
+    setShowDropdown(false);
+    setShowMoreMenu((prev) => !prev);
   };
 
   const handleSidebarToggle = () => {
@@ -178,7 +167,12 @@ const HeaderComponent = forwardRef(({ mode, onSidebarToggle, onCloseSidebarPopup
   };
 
   const handleHome = () => {
-    navigate("/");
+    // 현재 경로가 홈페이지('/')인 경우 새로고침
+    if (location.pathname === '/') {
+      window.location.reload();
+    } else {
+      navigate('/');
+    }
   };
 
   const handleProfile = () => {
