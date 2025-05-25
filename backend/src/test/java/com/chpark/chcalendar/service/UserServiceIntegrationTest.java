@@ -74,7 +74,7 @@ public class UserServiceIntegrationTest {
         //when & then
         assertThatThrownBy(() -> userService.updatePassword(savedUser.getId(), password))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Incorrect password");
+                .hasMessageContaining("현재 비밀번호가 일치하지 않습니다.");
     }
 
     @Test
@@ -86,7 +86,7 @@ public class UserServiceIntegrationTest {
         //when & then
         assertThatThrownBy(() -> userService.updatePassword(savedUser.getId(), password))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("New password can't be the same as the current password.");
+                .hasMessageContaining("새 비밀번호는 현재 비밀번호와 같을 수 없습니다.");
     }
 
     @Test
@@ -99,6 +99,6 @@ public class UserServiceIntegrationTest {
         //when & then
         assertThatThrownBy(() -> userService.updatePassword(nonExistentUserId, password))
                 .isInstanceOf(EntityNotFoundException.class)
-                .hasMessageContaining("User not found");
+                .hasMessageContaining("사용자를 찾을 수 없습니다.");
     }
 }

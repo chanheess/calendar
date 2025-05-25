@@ -80,7 +80,7 @@ public class ScheduleUtility {
     public static void validateEmail(String email) {
         EmailValidator validator = EmailValidator.getInstance();
         if (!validator.isValid(email)) {
-            throw new IllegalArgumentException("Invalid email format: " + email);
+            throw new IllegalArgumentException("잘못된 이메일 형식: " + email);
         }
     }
 

@@ -79,7 +79,7 @@ class UserControllerTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(changePasswordDto)))
                 .andExpect(status().isOk())
-                .andExpect(content().string("Password updated successfully."));
+                .andExpect(content().string("비밀번호가 변경되었습니다."));
     }
 
     @Test

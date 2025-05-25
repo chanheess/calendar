@@ -277,25 +277,23 @@ import {
   // Save
   const handleSave = async () => {
     try {
+      const scheduleDTO = getScheduleData();
+
       if (mode === "create") {
-        await axios.post("/schedules", getScheduleData(), {
+        const response = await axios.post("/schedules", scheduleDTO, {
           withCredentials: true,
           headers: { "Content-Type": "application/json" },
         });
-        alert("일정이 추가되었습니다.");
-        onClose(true);
+        alert("일정이 생성되었습니다.");
+        onClose(true, response.data.scheduleDto);
       } else if (mode === "edit") {
         if (scheduleData.repeatId) {
           openRepeatPopup("save");
         } else {
-          await axios.patch(
-            `/schedules/${scheduleData.id}?repeat=${isRepeatEnabled}`,
-            getScheduleData(),
-            {
+          await axios.patch(`/schedules/${scheduleData.id}?repeat=false`, scheduleDTO, {
               withCredentials: true,
               headers: { "Content-Type": "application/json" },
-            }
-          );
+          });
           alert("일정이 수정되었습니다.");
           onClose(true);
         }
