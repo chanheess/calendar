@@ -1,6 +1,7 @@
 package com.chpark.chcalendar.controller.schedule;
 
 import com.chpark.chcalendar.dto.schedule.ScheduleNotificationDto;
+import com.chpark.chcalendar.enumClass.JwtTokenType;
 import com.chpark.chcalendar.security.JwtTokenProvider;
 import com.chpark.chcalendar.service.schedule.ScheduleNotificationService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -26,7 +27,7 @@ public class ScheduleNotificationController {
     public ResponseEntity<List<ScheduleNotificationDto>> createNotification(@PathVariable("id") long scheduleId,
                                                                             @Validated @RequestBody List<ScheduleNotificationDto> notifications,
                                                                             HttpServletRequest request) {
-        String token = jwtTokenProvider.resolveToken(request);
+        String token = jwtTokenProvider.resolveToken(request, JwtTokenType.ACCESS.getValue());
         long userId = jwtTokenProvider.getUserIdFromToken(token);
 
         List<ScheduleNotificationDto> createdNotifications = scheduleNotificationService.create(userId, scheduleId, notifications);
@@ -40,6 +41,7 @@ public class ScheduleNotificationController {
 
     @GetMapping
     public ResponseEntity<List<ScheduleNotificationDto>> getNotifications(@PathVariable("id") long scheduleId) {
+
         List<ScheduleNotificationDto> findResponses = scheduleNotificationService.findByScheduleId(scheduleId);
 
         return ResponseEntity.ok().body(findResponses);
@@ -49,7 +51,7 @@ public class ScheduleNotificationController {
     public ResponseEntity<List<ScheduleNotificationDto>> updateNotification(@PathVariable("id") long scheduleId,
                                                                             @Validated @RequestBody List<ScheduleNotificationDto> notificationDto,
                                                                             HttpServletRequest request) {
-        String token = jwtTokenProvider.resolveToken(request);
+        String token = jwtTokenProvider.resolveToken(request, JwtTokenType.ACCESS.getValue());
         long userId = jwtTokenProvider.getUserIdFromToken(token);
 
         List<ScheduleNotificationDto> responseDto = scheduleNotificationService.update(userId, scheduleId, notificationDto);
@@ -59,6 +61,7 @@ public class ScheduleNotificationController {
 
     @DeleteMapping
     public ResponseEntity<String> deleteByScheduleId(@RequestParam("id") long scheduleId) {
+
         scheduleNotificationService.deleteByScheduleId(scheduleId);
 
         return ResponseEntity.ok().body("Notifications deleted successfully");

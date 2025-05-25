@@ -15,10 +15,6 @@ const Nickname = ({ variant = "primary", size = "medium", ...props }) => {
         });
         setNickname(response.data);
       } catch (err) {
-        if (err.status === 401) {
-          window.location.href = "/auth/login";
-        }
-
         console.error("Error fetching nickname:", err);
         setError("닉네임을 가져오지 못했습니다.");
       }

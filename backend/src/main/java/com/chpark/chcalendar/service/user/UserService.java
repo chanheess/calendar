@@ -1,6 +1,8 @@
 package com.chpark.chcalendar.service.user;
 
+
 import com.chpark.chcalendar.dto.EmailDto;
+import com.chpark.chcalendar.dto.security.JwtAuthenticationResponseDto;
 import com.chpark.chcalendar.dto.UserDto;
 import com.chpark.chcalendar.entity.UserEntity;
 import com.chpark.chcalendar.enumClass.RequestType;
@@ -59,7 +61,7 @@ public class UserService {
     }
 
     @Transactional
-    public String login(UserDto requestUser,String ipAddress) {
+    public JwtAuthenticationResponseDto login(UserDto requestUser, String ipAddress) {
 
         redisService.checkRequestCount(RequestType.LOGIN, ipAddress);
         redisService.increaseRequestCount(RequestType.LOGIN, ipAddress);
@@ -78,7 +80,11 @@ public class UserService {
             redisService.deleteVerificationData(RequestType.LOGIN, ipAddress);
 
             // JWT 토큰 생성 후 반환
-            return jwtTokenProvider.generateToken(authentication, userEntity.getId());
+            return new JwtAuthenticationResponseDto(
+                    jwtTokenProvider.generateAccessToken(authentication, userEntity.getId()),
+                    jwtTokenProvider.generateRefreshToken(authentication, userEntity.getId()),
+                    "로그인 성공."
+            );
         } catch (BadCredentialsException e) {
             throw new IllegalArgumentException(String.format(
                     "이메일이나 비밀번호를 확인해주세요. (%s)", redisService.getRequestCount(RequestType.LOGIN, ipAddress))

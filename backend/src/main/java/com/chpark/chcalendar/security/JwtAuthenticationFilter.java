@@ -1,5 +1,6 @@
 package com.chpark.chcalendar.security;
 
+import com.chpark.chcalendar.enumClass.JwtTokenType;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,9 +24,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
-        String token = jwtTokenProvider.resolveToken(request);
+        if (request.getRequestURI().startsWith("/api/auth/login") || request.getRequestURI().startsWith("/api/auth/refresh")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
 
-        if (token != null && jwtTokenProvider.validateToken(token)) {
+        String token = jwtTokenProvider.resolveToken(request, JwtTokenType.ACCESS.getValue());
+
+        if (token != null && jwtTokenProvider.validateToken(token, JwtTokenType.ACCESS)) {
             Authentication auth = jwtTokenProvider.getAuthentication(token);
             SecurityContextHolder.getContext().setAuthentication(auth);
         }
