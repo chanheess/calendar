@@ -5,22 +5,38 @@
   <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <meta name="theme-color" content="#000000" />
+  <meta name="format-detection" content="telephone=no">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
 
   <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
-  <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+  <link rel="manifest" href="%PUBLIC_URL%/manifest.json"/>
   <title>chcalendar</title>
   <link rel="stylesheet" href="/css/style.css">
   <style>
-    html, body {
-      margin: 0;
-      padding: 0;
+    /* iOS Safari 주소창 높이 대응 */
+    :root {
+      --vh: 1vh;
+    }
+
+    html {
       height: 100%;
-      width: 100%;
-      overflow: hidden;
+      height: -webkit-fill-available;
     }
 
     body {
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      width: 100vw;
+      background-color: #f5f5f5;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
       position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
       -webkit-overflow-scrolling: touch;
     }
 
@@ -29,16 +45,182 @@
       width: 100%;
     }
 
+    #inapp-message {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 20px;
+      box-sizing: border-box;
+      height: 100%;
+      overflow: auto;
+      -webkit-overflow-scrolling: touch;
+      text-align: center;
+      box-sizing: border-box;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    #inapp-message img {
+      width: 120px;
+      height: 120px;
+      margin-bottom: 24px;
+    }
+
+    #inapp-message h1 {
+      font-size: 24px;
+      font-weight: 700;
+      margin: 0 0 12px 0;
+      color: #000000;
+    }
+
+    #inapp-message p {
+      font-size: 16px;
+      color: #333333;
+      margin: 0;
+      white-space: pre-line;
+      word-break: keep-all;
+    }
+
+    #externalBtn {
+      margin-top: 20px;
+      padding: 12px 20px;
+      font-size: 16px;
+      background-color: #007AFF;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
     /* iOS Safari 주소창 높이 대응 */
     @supports (-webkit-touch-callout: none) {
       body {
         height: -webkit-fill-available;
       }
     }
+
+    @media (prefers-color-scheme: dark) {
+      body {
+        background-color: #000000;
+      }
+      #inapp-message h1 {
+        color: #FFFFFF;
+      }
+      #inapp-message p {
+        color: #CCCCCC;
+      }
+    }
   </style>
 </head>
 <body>
-<noscript>You need to enable JavaScript to run this app.</noscript>
-<div id="root"></div>
+  <div id="root"></div>
+  <div id="inapp-message" style="display:none;"></div>
+  <script>
+    // 뷰포트 높이 계산 함수
+    function setViewportHeight() {
+      let vh = window.innerHeight * 0.01;
+      document.documentElement.style.setProperty('--vh', `${vh}px`);
+    }
+
+    // 초기 실행
+    setViewportHeight();
+
+    // 리사이즈 이벤트에 대응
+    window.addEventListener('resize', () => {
+      setViewportHeight();
+    });
+
+    // 스크롤 방지
+    document.body.addEventListener('touchmove', function(e) {
+      if (document.getElementById('root').style.display !== 'none' && e.target.closest('#root')) return;
+      e.preventDefault();
+    }, { passive: false });
+
+    function detectDevice() {
+      const ua = navigator.userAgent || navigator.vendor || window.opera;
+
+      if (/android/i.test(ua)) {
+        return 'android';
+      }
+      if (/iPad|iPhone|iPod/.test(ua) && !window.MSStream) {
+        return 'ios';
+      }
+      return 'other';
+    }
+
+    function detectInAppBrowser() {
+      const ua = navigator.userAgent || navigator.vendor || window.opera;
+
+      if (/KAKAOTALK/i.test(ua)) {
+        return 'kakaotalk';
+      }
+      return null;
+    }
+
+    function openExternalBrowser() {
+      const currentUrl = window.location.href;
+      const device = detectDevice();
+      const inAppBrowser = detectInAppBrowser();
+
+      if (inAppBrowser === 'kakaotalk') {
+        if (device === 'android') {
+          // 안드로이드에서는 브라우저 선택 인텐트 실행 (fallback 고려)
+          window.location.href = 'intent://' + window.location.host + window.location.pathname + '#Intent;scheme=https;package=com.android.chrome;end';
+        } else if (device === 'ios') {
+          // iOS에서는 카카오톡 외부 브라우저 열기 (setTimeout으로 fallback 가능)
+          window.location.href = 'kakaotalk://web/openExternal?url=' + encodeURIComponent(currentUrl);
+          setTimeout(() => {
+            window.location.href = currentUrl;
+          }, 2000);
+        } else {
+          // 기타 환경에서는 현재 URL로 이동
+          window.open(currentUrl, '_blank');
+        }
+      }
+    }
+
+    // 인앱 브라우저에서만 안내 UI 동적 생성
+    window.addEventListener('load', function() {
+      const inAppBrowser = detectInAppBrowser();
+      if (inAppBrowser) {
+        if (confirm("외부 브라우저에서만 사용 가능합니다.\n계속하시겠습니까?")) {
+          openExternalBrowser();
+          return;
+        }
+        // 안내 콘텐츠 동적 생성
+        const root = document.getElementById('root');
+        root.style.display = 'none';
+
+        const inappMessage = document.getElementById('inapp-message');
+        inappMessage.innerHTML = '';
+
+        const img = document.createElement('img');
+        img.src = "%PUBLIC_URL%/logo192.png";
+        img.alt = "chcalendar logo";
+
+        const h1 = document.createElement('h1');
+        h1.textContent = "chcalendar";
+
+        const p = document.createElement('p');
+        p.textContent = "외부 브라우저에서만 사용 가능합니다.";
+
+        const btn = document.createElement('button');
+        btn.id = "externalBtn";
+        btn.textContent = "외부 브라우저로 이동";
+        btn.addEventListener('click', openExternalBrowser);
+
+        inappMessage.appendChild(img);
+        inappMessage.appendChild(h1);
+        inappMessage.appendChild(p);
+        inappMessage.appendChild(btn);
+
+        inappMessage.style.display = 'flex';
+      }
+    });
+  </script>
 </body>
 </html>
