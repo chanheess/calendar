@@ -7,6 +7,11 @@
   flex-direction: column;
 }
 
+:global(.fc .fc-toolbar.fc-header-toolbar) {
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
 /* 모바일 환경 대응 */
 @media screen and (max-width: 768px) {
   .calendarContainer {
