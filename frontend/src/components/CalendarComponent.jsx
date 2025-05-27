@@ -146,10 +146,10 @@ const CalendarComponent = forwardRef(({ selectedCalendarList, refreshKey, refres
             keepLoading = false;
           }
         }
-
-        if (firstLoad && loopCount >= maxLoops && cursorTimeRef.current) {
+        // "더보기" 버튼 노출 조건 수정
+        if (cursorTimeRef.current && eventCacheRef.current.length >= pageSize) {
           setAutoLoadComplete(true);
-        } else if (!cursorTimeRef.current) {
+        } else {
           setAutoLoadComplete(false);
         }
       } catch (err) {
