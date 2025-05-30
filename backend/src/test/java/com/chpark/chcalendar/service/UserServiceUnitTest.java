@@ -4,6 +4,7 @@ import com.chpark.chcalendar.dto.UserDto;
 import com.chpark.chcalendar.dto.calendar.CalendarInfoDto;
 import com.chpark.chcalendar.dto.security.JwtAuthenticationResponseDto;
 import com.chpark.chcalendar.entity.UserEntity;
+import com.chpark.chcalendar.enumClass.JwtTokenType;
 import com.chpark.chcalendar.repository.user.UserRepository;
 import com.chpark.chcalendar.security.JwtTokenProvider;
 import com.chpark.chcalendar.service.calendar.UserCalendarService;
@@ -58,7 +59,7 @@ class UserServiceUnitTest {
     @Test
     void create() {
         //given
-        UserDto.RegisterRequest userDto = new UserDto.RegisterRequest("testing1@naver.com", "testpassword123!!", "testingKing", "1234");
+        UserDto.RegisterRequest userDto = new UserDto.RegisterRequest("testing1@naver.com", "testpassword123!!", "testingKing", "1234", "local");
 
 
         when(passwordEncoder.encode(userDto.getPassword())).thenReturn("encoded_password");
@@ -93,7 +94,7 @@ class UserServiceUnitTest {
                 .thenReturn(authentication);
         when(userRepository.findByEmail(userDto.getEmail()))
                 .thenReturn(Optional.of(savedUser));
-        when(jwtTokenProvider.generateAccessToken(authentication, savedUser.getId()))
+        when(jwtTokenProvider.generateToken(authentication, savedUser.getId(), JwtTokenType.ACCESS))
                 .thenReturn("mocked_jwt_token");
 
         // when

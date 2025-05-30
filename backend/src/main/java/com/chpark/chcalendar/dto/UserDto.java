@@ -4,6 +4,7 @@ import com.chpark.chcalendar.entity.UserEntity;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -32,11 +33,14 @@ public class UserDto {
         private String nickname;
         @NotBlank
         private String emailCode;
+        private String provider = "local";
 
-        public RegisterRequest(String email, String password, String nickname, String emailCode) {
-            super(email,password);
+        @Builder
+        public RegisterRequest(String email, String password, String nickname, String emailCode, String provider) {
+            super(email, password);
             this.nickname = nickname;
             this.emailCode = emailCode;
+            this.provider = provider;
         }
     }
 

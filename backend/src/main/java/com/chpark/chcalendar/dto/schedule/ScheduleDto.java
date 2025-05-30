@@ -2,6 +2,7 @@ package com.chpark.chcalendar.dto.schedule;
 
 import com.chpark.chcalendar.entity.schedule.ScheduleEntity;
 import com.chpark.chcalendar.exception.ValidGroup;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -38,7 +39,7 @@ public class ScheduleDto {
     private long userId;    //create에서는 필요하지 않음
 
     @NotNull(groups = ValidGroup.CreateGroup.class)
-    private long calendarId;
+    private Long calendarId;
 
     public ScheduleDto(String title, String description, LocalDateTime startAt, LocalDateTime endAt, Long calendarId) {
         this.title = title;
@@ -86,6 +87,7 @@ public class ScheduleDto {
     @Setter
     @NoArgsConstructor
     public static class Request {
+        @Valid
         @NotNull(groups = ValidGroup.CreateGroup.class)
         private ScheduleDto scheduleDto;
         private Set<ScheduleNotificationDto> notificationDto = new HashSet<>();

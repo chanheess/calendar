@@ -29,14 +29,14 @@ const LayoutComponent = ({ userId }) => {
     // 각 컴포넌트의 팝업을 순차적으로 닫기
     setTimeout(() => {
       if (sidebarRef.current?.closeAllPopups) {
-        sidebarRef.current.closeAllPopups();
-      }
+      sidebarRef.current.closeAllPopups();
+    }
     }, 0);
 
     setTimeout(() => {
       if (calendarRef.current?.closeAllPopups) {
-        calendarRef.current.closeAllPopups();
-      }
+      calendarRef.current.closeAllPopups();
+    }
     }, 0);
   }, []);
 

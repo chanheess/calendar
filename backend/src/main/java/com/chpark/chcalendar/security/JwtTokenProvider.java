@@ -9,6 +9,7 @@ import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -24,15 +25,25 @@ public class JwtTokenProvider {
     @Value("${JWT_SECRET}")
     private String SECRET_KEY;
 
+    @Getter
     private Key key;
+
+    @Getter
+    private long EXPIRATION_TIME = 60 * 60 * 1000;
+
+    @Getter
+    private long REFRESH_EXPIRATION_TIME = 14 * 24 * 60 * 60 * 1000;
+
+    @Getter
+    private SignatureAlgorithm signatureAlgorithm = SignatureAlgorithm.HS512;
 
     @PostConstruct
     public void init() {
         this.key = Keys.hmacShaKeyFor(Decoders.BASE64.decode(SECRET_KEY));
     }
 
-    // JWT 액세스 토큰 생성
-    public String generateAccessToken(Authentication authentication, long userId) {
+    // JWT 토큰 생성
+    public String generateToken(Authentication authentication, long userId, JwtTokenType tokenType) {
         String username;
         Object principal = authentication.getPrincipal();
         if (principal instanceof org.springframework.security.core.userdetails.UserDetails) {
@@ -41,33 +52,14 @@ public class JwtTokenProvider {
             username = principal.toString();
         }
 
-        long EXPIRATION_TIME = 60 * 60 * 1000;
+        long expirationTime = (tokenType == JwtTokenType.ACCESS) ? EXPIRATION_TIME : REFRESH_EXPIRATION_TIME;
+
         return Jwts.builder()
                 .setSubject(username)
                 .claim("userId", userId) // 사용자 ID를 payload에 추가
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
-                .signWith(key, SignatureAlgorithm.HS512)
-                .compact();
-    }
-
-    // JWT 리프레시 토큰 생성
-    public String generateRefreshToken(Authentication authentication, long userId) {
-        String username;
-        Object principal = authentication.getPrincipal();
-        if (principal instanceof org.springframework.security.core.userdetails.UserDetails) {
-            username = ((org.springframework.security.core.userdetails.UserDetails) principal).getUsername();
-        } else {
-            username = principal.toString();
-        }
-
-        long EXPIRATION_TIME = 14 * 24 * 60 * 60 * 1000;
-        return Jwts.builder()
-                .setSubject(username)
-                .claim("userId", userId) // 사용자 ID를 payload에 추가
-                .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
-                .signWith(key, SignatureAlgorithm.HS512)
+                .setExpiration(new Date(System.currentTimeMillis() + expirationTime))
+                .signWith(key, signatureAlgorithm)
                 .compact();
     }
 
@@ -127,8 +119,8 @@ public class JwtTokenProvider {
         Authentication authentication = getAuthentication(refreshToken);
         long userId = getUserIdFromToken(refreshToken);
 
-        String newAccessToken = generateAccessToken(authentication, userId);
-        String newRefreshToken = generateRefreshToken(authentication, userId);
+        String newAccessToken = generateToken(authentication, userId, JwtTokenType.ACCESS);
+        String newRefreshToken = generateToken(authentication, userId, JwtTokenType.REFRESH);
 
         return new JwtAuthenticationResponseDto(newAccessToken, newRefreshToken, "Tokens renewed successfully");
     }

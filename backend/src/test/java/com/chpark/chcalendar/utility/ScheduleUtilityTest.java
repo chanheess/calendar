@@ -110,7 +110,8 @@ class ScheduleUtilityTest {
                 "email@naver.com",
                 rawPassword,
                 "test_king",
-                "1234"
+                "1234",
+                "local"
         );
         UserEntity userEntity = UserEntity.createWithEncodedPassword(userRequest, passwordEncoder);
 

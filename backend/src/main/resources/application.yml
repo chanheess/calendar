@@ -32,6 +32,17 @@ spring:
     env_file:
       - .env
 
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            provider: google
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+            scope:
+              - email
+
 server:
   forward-headers-strategy: native
   use-forward-headers: true

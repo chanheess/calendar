@@ -2,9 +2,10 @@ package com.chpark.chcalendar.service.user;
 
 
 import com.chpark.chcalendar.dto.EmailDto;
-import com.chpark.chcalendar.dto.security.JwtAuthenticationResponseDto;
 import com.chpark.chcalendar.dto.UserDto;
+import com.chpark.chcalendar.dto.security.JwtAuthenticationResponseDto;
 import com.chpark.chcalendar.entity.UserEntity;
+import com.chpark.chcalendar.enumClass.JwtTokenType;
 import com.chpark.chcalendar.enumClass.RequestType;
 import com.chpark.chcalendar.repository.user.UserRepository;
 import com.chpark.chcalendar.security.JwtTokenProvider;
@@ -81,8 +82,8 @@ public class UserService {
 
             // JWT 토큰 생성 후 반환
             return new JwtAuthenticationResponseDto(
-                    jwtTokenProvider.generateAccessToken(authentication, userEntity.getId()),
-                    jwtTokenProvider.generateRefreshToken(authentication, userEntity.getId()),
+                    jwtTokenProvider.generateToken(authentication, userEntity.getId(), JwtTokenType.ACCESS),
+                    jwtTokenProvider.generateToken(authentication, userEntity.getId(), JwtTokenType.REFRESH),
                     "로그인 성공."
             );
         } catch (BadCredentialsException e) {

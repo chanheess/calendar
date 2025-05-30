@@ -79,6 +79,14 @@ const LoginPage = () => {
       <Button variant="blue" size="medium" margin="top" onClick={() => navigate("/auth/register")}>
         회원가입
       </Button>
+      <hr className={styles.divider} />
+      <button
+        className={styles.googleButton}
+        onClick={() => window.location.href = "https://localhost/oauth2/authorization/google"}
+      >
+        <img src="/images/google-logo.svg" alt="Google" className={styles.googleIcon} />
+        <span className={styles.googleText}>Google 계정으로 로그인</span>
+      </button>
       <small onClick={() => setPasswordResetPopupVisible(true)}>비밀번호 찾기</small>
       {errorMessage && <div className={styles.error}>{errorMessage}</div>}
     </div>

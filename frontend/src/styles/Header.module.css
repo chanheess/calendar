@@ -281,7 +281,7 @@
     z-index: 1001;
   }
 
-  .notificationDropdown {
+   .notificationDropdown {
     position: fixed;
     top: calc(60px + env(safe-area-inset-top));
     right: 10px;
@@ -335,7 +335,7 @@
   .notificationContainer button {
     padding: 8px 12px;
     font-size: 14px;
-  }
+    }
 
   .notificationBell {
     width: 32px;

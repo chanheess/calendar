@@ -112,40 +112,40 @@ const HeaderComponent = forwardRef(({ mode, onSidebarToggle, onCloseSidebarPopup
     let method = "";
 
     switch (action) {
-      case "accept":
-        url = "/notifications/accept";
-        method = "POST";
-        break;
-      case "reject":
-        url = "/notifications/reject";
-        method = "DELETE";
-        break;
-      case "maybe":
-        url = "/notifications/maybe";
-        method = "POST";
-        break;
-      default:
-        console.error(`Unknown action: ${action}`);
-        return;
+     case "accept":
+       url = "/notifications/accept";
+       method = "POST";
+       break;
+     case "reject":
+       url = "/notifications/reject";
+       method = "DELETE";
+       break;
+     case "maybe":
+       url = "/notifications/maybe";
+       method = "POST";
+       break;
+     default:
+       console.error(`Unknown action: ${action}`);
+       return;
     }
 
     try {
-      const response = await axios({
-        method,
-        url,
-        data: notification,
-        withCredentials: true,
-        headers: { "Content-Type": "application/json" },
-      });
+     const response = await axios({
+       method,
+       url,
+       data: notification,
+       withCredentials: true,
+       headers: { "Content-Type": "application/json" },
+     });
 
-      if (response.status === 200) {
-        alert(`알림 처리 완료`);
+     if (response.status === 200) {
+       alert(`알림 처리 완료`);
         fetchNotifications();
-      } else {
-        alert("요청 처리 중 문제가 발생했습니다.");
-      }
+     } else {
+       alert("요청 처리 중 문제가 발생했습니다.");
+     }
     } catch (error) {
-      console.error("Error processing notification:", error);
+     console.error("Error processing notification:", error);
     }
   };
 
@@ -191,54 +191,54 @@ const HeaderComponent = forwardRef(({ mode, onSidebarToggle, onCloseSidebarPopup
       <header className={styles.header}>
         <div className={styles.leftSection}>
           {isMobile && !isProfilePage && (
-            <button className={styles.hamburgerButton} onClick={handleSidebarToggle}>
-              ☰
-            </button>
+           <button className={styles.hamburgerButton} onClick={handleSidebarToggle}>
+             ☰
+           </button>
           )}
           {!isMobile && (
-            <button type="button" onClick={handleHome} className={styles.logo}>
-              chcalendar
-            </button>
+           <button type="button" onClick={handleHome} className={styles.logo}>
+             chcalendar
+           </button>
           )}
         </div>
         <div className={styles.rightSection}>
-          {isMobile && (
-            <div className={styles.centerSection}>
-              <button type="button" onClick={handleHome} className={styles.logo}>
-                chcalendar
-              </button>
-            </div>
-          )}
+         {isMobile && (
+           <div className={styles.centerSection}>
+             <button type="button" onClick={handleHome} className={styles.logo}>
+               chcalendar
+             </button>
+           </div>
+         )}
 
-          {!isMobile && (
-            <>
-              <Nickname variant="" size="medium" />
-              <Button variant="logout" size="header" onClick={handleLogout}>
-                로그아웃
-              </Button>
-            </>
-          )}
+         {!isMobile && (
+           <>
+             <Nickname variant="" size="medium" />
+             <Button variant="logout" size="header" onClick={handleLogout}>
+               로그아웃
+             </Button>
+           </>
+         )}
 
-          {isMobile && (
-            <div className={styles.mobileMoreWrapper}>
-              <button className={styles.moreButton} onClick={toggleMoreMenu}>
-                ⋮
-              </button>
+         {isMobile && (
+           <div className={styles.mobileMoreWrapper}>
+             <button className={styles.moreButton} onClick={toggleMoreMenu}>
+               ⋮
+             </button>
 
-              {showMoreMenu && (
+             {showMoreMenu && (
                 <div className={styles.moreMenu} ref={moreMenuRef}>
-                  <Nickname variant="" size="small" />
-                  <Button variant="logout" size="full" onClick={handleLogout}>
-                    로그아웃
-                  </Button>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
+                 <Nickname variant="" size="small" />
+                 <Button variant="logout" size="full" onClick={handleLogout}>
+                   로그아웃
+                 </Button>
+               </div>
+             )}
+           </div>
+         )}
+         </div>
       </header>
-    );
-  }
+     );
+   }
 
   return (
     <header className={styles.header}>

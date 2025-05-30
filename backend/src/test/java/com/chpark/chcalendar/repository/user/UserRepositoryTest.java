@@ -36,7 +36,7 @@ class UserRepositoryTest {
     @Transactional
     void setupUser() {
         UserDto.RegisterRequest userDto = new UserDto.RegisterRequest("testing1@naver.com",
-                "testpassword123", "testingKing", "1234");
+                "testpassword123", "testingKing", "1234", "local");
 
         savedUser = UserEntity.createWithEncodedPassword(userDto, passwordEncoder);
         userRepository.save(savedUser);

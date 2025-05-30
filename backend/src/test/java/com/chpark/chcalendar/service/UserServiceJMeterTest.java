@@ -33,7 +33,7 @@ public class UserServiceJMeterTest {
     @Test
     void createUser() {
         int count = 10000;
-        UserDto.RegisterRequest userDto = new UserDto.RegisterRequest("","","","");
+        UserDto.RegisterRequest userDto = new UserDto.RegisterRequest("","","","", "");
         for (int i = 0; i < count; i++) {
             String randomId = getRandom(4) + i;
 
