@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, forwardRef, useImperativeHandle } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate, useLocation } from "react-router-dom"; // useLocation 추가
 import Nickname from "./Nickname";
 import axios from "axios";
@@ -54,7 +55,7 @@ const HeaderComponent = forwardRef(({ mode, onSidebarToggle, onCloseSidebarPopup
   useEffect(() => {
     const handleClickOutside = (event) => {
       // 알림 버튼과 더보기 버튼 클릭은 무시
-      if (event.target.closest(`.${styles.notificationBell}`) || 
+      if (event.target.closest(`.${styles.notificationBell}`) ||
           event.target.closest(`.${styles.moreButton}`)) {
         return;
       }
@@ -112,40 +113,40 @@ const HeaderComponent = forwardRef(({ mode, onSidebarToggle, onCloseSidebarPopup
     let method = "";
 
     switch (action) {
-      case "accept":
-        url = "/notifications/accept";
-        method = "POST";
-        break;
-      case "reject":
-        url = "/notifications/reject";
-        method = "DELETE";
-        break;
-      case "maybe":
-        url = "/notifications/maybe";
-        method = "POST";
-        break;
-      default:
-        console.error(`Unknown action: ${action}`);
-        return;
+     case "accept":
+       url = "/notifications/accept";
+       method = "POST";
+       break;
+     case "reject":
+       url = "/notifications/reject";
+       method = "DELETE";
+       break;
+     case "maybe":
+       url = "/notifications/maybe";
+       method = "POST";
+       break;
+     default:
+       console.error(`Unknown action: ${action}`);
+       return;
     }
 
     try {
-      const response = await axios({
-        method,
-        url,
-        data: notification,
-        withCredentials: true,
-        headers: { "Content-Type": "application/json" },
-      });
+     const response = await axios({
+       method,
+       url,
+       data: notification,
+       withCredentials: true,
+       headers: { "Content-Type": "application/json" },
+     });
 
-      if (response.status === 200) {
-        alert(`알림 처리 완료`);
+     if (response.status === 200) {
+       alert(`알림 처리 완료`);
         fetchNotifications();
-      } else {
-        alert("요청 처리 중 문제가 발생했습니다.");
-      }
+     } else {
+       alert("요청 처리 중 문제가 발생했습니다.");
+     }
     } catch (error) {
-      console.error("Error processing notification:", error);
+     console.error("Error processing notification:", error);
     }
   };
 
@@ -191,54 +192,54 @@ const HeaderComponent = forwardRef(({ mode, onSidebarToggle, onCloseSidebarPopup
       <header className={styles.header}>
         <div className={styles.leftSection}>
           {isMobile && !isProfilePage && (
-            <button className={styles.hamburgerButton} onClick={handleSidebarToggle}>
-              ☰
-            </button>
+           <button className={styles.hamburgerButton} onClick={handleSidebarToggle}>
+             ☰
+           </button>
           )}
           {!isMobile && (
-            <button type="button" onClick={handleHome} className={styles.logo}>
-              chcalendar
-            </button>
+           <button type="button" onClick={handleHome} className={styles.logo}>
+             chcalendar
+           </button>
           )}
         </div>
         <div className={styles.rightSection}>
-          {isMobile && (
-            <div className={styles.centerSection}>
-              <button type="button" onClick={handleHome} className={styles.logo}>
-                chcalendar
-              </button>
-            </div>
-          )}
+         {isMobile && (
+           <div className={styles.centerSection}>
+             <button type="button" onClick={handleHome} className={styles.logo}>
+               chcalendar
+             </button>
+           </div>
+         )}
 
-          {!isMobile && (
-            <>
-              <Nickname variant="" size="medium" />
-              <Button variant="logout" size="header" onClick={handleLogout}>
-                로그아웃
-              </Button>
-            </>
-          )}
+         {!isMobile && (
+           <>
+             <Nickname variant="" size="medium" />
+             <Button variant="logout" size="header" onClick={handleLogout}>
+               로그아웃
+             </Button>
+           </>
+         )}
 
-          {isMobile && (
-            <div className={styles.mobileMoreWrapper}>
-              <button className={styles.moreButton} onClick={toggleMoreMenu}>
-                ⋮
-              </button>
+         {isMobile && (
+           <div className={styles.mobileMoreWrapper}>
+             <button className={styles.moreButton} onClick={toggleMoreMenu}>
+               ⋮
+             </button>
 
-              {showMoreMenu && (
+             {showMoreMenu && (
                 <div className={styles.moreMenu} ref={moreMenuRef}>
-                  <Nickname variant="" size="small" />
-                  <Button variant="logout" size="full" onClick={handleLogout}>
-                    로그아웃
-                  </Button>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
+                 <Nickname variant="" size="small" />
+                 <Button variant="logout" size="full" onClick={handleLogout}>
+                   로그아웃
+                 </Button>
+               </div>
+             )}
+           </div>
+         )}
+         </div>
       </header>
-    );
-  }
+     );
+   }
 
   return (
     <header className={styles.header}>
@@ -338,13 +339,23 @@ const HeaderComponent = forwardRef(({ mode, onSidebarToggle, onCloseSidebarPopup
   );
 });
 
+const notificationSelectRoot = typeof window !== "undefined"
+  ? (document.getElementById("notification-select-root") ||
+      (() => {
+        const el = document.createElement("div");
+        el.id = "notification-select-root";
+        document.body.appendChild(el);
+        return el;
+      })())
+  : null;
+
 function MoreActions({ notification, index, onAction, onToggle }) {
   const [open, setOpen] = useState(false);
   const containerRef = useRef(null);
   const selectRef = useRef(null);
 
   const toggleDropdown = () => {
-    setOpen(!open);
+    setOpen((prev) => !prev);
   };
 
   useEffect(() => {
@@ -359,35 +370,67 @@ function MoreActions({ notification, index, onAction, onToggle }) {
         setOpen(false);
       }
     };
-
     if (open) {
       document.addEventListener('mousedown', handleClickOutside);
       document.addEventListener('touchstart', handleClickOutside);
     }
-
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
       document.removeEventListener('touchstart', handleClickOutside);
     };
   }, [open]);
 
-  const handleClick = (action) => {
-    onAction(notification, action);
-    setOpen(false);
+  const handleClick = async (action) => {
+    try {
+      await onAction(notification, action);  // Wait for backend request to complete
+      setOpen(false);                        // Only close if request succeeds
+    } catch (error) {
+      console.error("Action failed:", error);
+      alert("요청 처리에 실패했습니다. 다시 시도해주세요.");
+    }
   };
 
+  // Get bounding rect for positioning, fallback to center if not available
+  const [coords, setCoords] = useState(null);
+  useEffect(() => {
+    if (open && containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      setCoords({
+        top: rect.bottom,
+        left: rect.left + rect.width / 2,
+      });
+    }
+  }, [open]);
+
+  // The notificationSelect is rendered via portal at top level, not inside notificationCard
   return (
     <div className={styles.notificationContainer} ref={containerRef}>
       <button onClick={toggleDropdown}>더보기</button>
-      {open && (
-        <div className={styles.notificationSelect} ref={selectRef}>
-          <button onClick={() => handleClick("accept")}>예</button>
-          <button onClick={() => handleClick("reject")}>아니오</button>
-          {notification.category === 'SCHEDULE' && (
-            <button onClick={() => handleClick("maybe")}>미정</button>
-          )}
-        </div>
-      )}
+      {open && notificationSelectRoot &&
+        createPortal(
+          <div
+            className={styles.notificationSelect}
+            ref={selectRef}
+            style={
+              coords
+                ? {
+                    position: "fixed",
+                    top: Math.min(coords.top, window.innerHeight - 150), // clamp to bottom of screen
+                    left: Math.min(coords.left, window.innerWidth - 160), // clamp to right of screen
+                    transform: "translate(-50%, 8px)",
+                  }
+                : undefined
+            }
+          >
+            <button onClick={() => handleClick("accept")}>예</button>
+            <button onClick={() => handleClick("reject")}>아니오</button>
+            {notification.category === 'SCHEDULE' && (
+              <button onClick={() => handleClick("maybe")}>미정</button>
+            )}
+          </div>,
+          notificationSelectRoot
+        )
+      }
     </div>
   );
 }

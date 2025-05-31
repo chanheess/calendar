@@ -550,7 +550,7 @@ import {
                           <option value="hours">시간</option>
                           <option value="days">일</option>
                         </select>
-                        <Button variant="close" size="" onClick={() => handleRemoveNotification(index)}>×</Button>
+                        <Button style={{ width: "15%" }} variant="close" size="" onClick={() => handleRemoveNotification(index)}>×</Button>
                       </div>
                     ))}
                     <div className={styles.infoRow}>
@@ -657,7 +657,9 @@ import {
                           <>
                             {/* 관리 가능(ADMIN/소유자) 또는 create 모드 → Available + Selected */}
                             <div style={{ marginBottom: "5px" }}>
-                              <div style={{ marginBottom: "5px" }}>참석 가능 인원:</div>
+                              <div className={styles.infoRow}>
+                              <label>참석 가능 인원:</label>
+                              </div>
                               <div className={styles.availableUsersContainer}>
                                 <table className={styles.userTable}>
                                   <thead><tr><th>선택</th><th>닉네임</th></tr></thead>
@@ -693,7 +695,9 @@ import {
                               </div>
                             </div>
                             <div style={{ marginTop: "10px" }}>
-                              <div style={{ marginBottom: "5px" }}>일정 참석자:</div>
+                              <div className={styles.infoRow}>
+                              <label>일정 참석자:</label>
+                              </div>
                               <div className={styles.selectedUsersContainer}>
                                 <table className={styles.userTable}>
                                   <thead><tr><th>닉네임</th><th>권한</th><th>상태</th><th style={{ textAlign: "center" }}>x</th></tr></thead>
