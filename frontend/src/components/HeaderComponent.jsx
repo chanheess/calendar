@@ -53,7 +53,7 @@ const HeaderComponent = forwardRef(({ mode, onSidebarToggle, onCloseSidebarPopup
 
   // 외부 클릭 감지
   useEffect(() => {
-    const handleClickOutside = (event) => {
+    const handleOutsideClick = (event) => {
       // 알림 버튼과 더보기 버튼 클릭은 무시
       if (event.target.closest(`.${styles.notificationBell}`) ||
           event.target.closest(`.${styles.moreButton}`)) {
@@ -69,12 +69,9 @@ const HeaderComponent = forwardRef(({ mode, onSidebarToggle, onCloseSidebarPopup
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    document.addEventListener('touchstart', handleClickOutside);
-
+    document.addEventListener("click", handleOutsideClick);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('touchstart', handleClickOutside);
+      document.removeEventListener("click", handleOutsideClick);
     };
   }, [showDropdown, showMoreMenu]);
 
@@ -109,6 +106,7 @@ const HeaderComponent = forwardRef(({ mode, onSidebarToggle, onCloseSidebarPopup
   }
 
   const handleNotificationAction = async (notification, action) => {
+
     let url = "";
     let method = "";
 
@@ -365,32 +363,29 @@ function MoreActions({ notification, index, onAction, onToggle }) {
   }, [open, onToggle]);
 
   useEffect(() => {
-    const handleClickOutside = (event) => {
+    const handleOutsideClick = (event) => {
       if (selectRef.current && !selectRef.current.contains(event.target)) {
         setOpen(false);
       }
     };
     if (open) {
-      document.addEventListener('mousedown', handleClickOutside);
-      document.addEventListener('touchstart', handleClickOutside);
+      document.addEventListener("mousedown", handleOutsideClick);
     }
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('touchstart', handleClickOutside);
+      document.removeEventListener("mousedown", handleOutsideClick);
     };
   }, [open]);
 
   const handleClick = async (action) => {
     try {
-      await onAction(notification, action);  // Wait for backend request to complete
-      setOpen(false);                        // Only close if request succeeds
+      await onAction(notification, action);
+      setOpen(false);
     } catch (error) {
       console.error("Action failed:", error);
       alert("요청 처리에 실패했습니다. 다시 시도해주세요.");
     }
   };
 
-  // Get bounding rect for positioning, fallback to center if not available
   const [coords, setCoords] = useState(null);
   useEffect(() => {
     if (open && containerRef.current) {
@@ -402,7 +397,6 @@ function MoreActions({ notification, index, onAction, onToggle }) {
     }
   }, [open]);
 
-  // The notificationSelect is rendered via portal at top level, not inside notificationCard
   return (
     <div className={styles.notificationContainer} ref={containerRef}>
       <button onClick={toggleDropdown}>더보기</button>
@@ -415,8 +409,8 @@ function MoreActions({ notification, index, onAction, onToggle }) {
               coords
                 ? {
                     position: "fixed",
-                    top: Math.min(coords.top, window.innerHeight - 150), // clamp to bottom of screen
-                    left: Math.min(coords.left, window.innerWidth - 160), // clamp to right of screen
+                    top: Math.min(coords.top, window.innerHeight - 150),
+                    left: Math.min(coords.left, window.innerWidth - 160),
                     transform: "translate(-50%, 8px)",
                   }
                 : undefined
