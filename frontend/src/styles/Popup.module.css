@@ -6,13 +6,13 @@
   position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
+  right: 0;
+  bottom: 0;
   background-color: rgba(0, 0, 0, 0.5);
   display: flex;
-  justify-content: center;
   align-items: center;
-  z-index: 1000;
+  justify-content: center;
+  z-index: 2000; /* 사이드바(1000)보다 높은 z-index 값 */
 }
 
 .popup {
@@ -346,15 +346,17 @@
     margin-bottom: env(safe-area-inset-bottom);
   }
 
+  .popupOverlay {
+    background-color: rgba(0, 0, 0, 0);
+  }
+
   .infoRow {
     margin-bottom: 12px;
     flex-wrap: wrap;
   }
 
   .infoRow label {
-    min-width: 80px;
     font-size: 0.85em;
-    margin-right: 8px;
   }
 
   /* 모든 입력 필드의 기본 스타일 통일 */
@@ -388,7 +390,6 @@
     background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23333'%3E%3Cpath d='M6 9L1 4h10z'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: right 8px center;
-    padding-right: 24px;
   }
 
   /* textarea 높이 조정 */
@@ -403,7 +404,6 @@
     align-items: center;
     gap: 8px;
     margin-bottom: 8px;
-    padding: 0 10px;
   }
 
   .notificationRow input {
@@ -418,7 +418,6 @@
   /* 그룹 사용자 테이블 스타일 조정 */
   .userTable {
     width: 100%;
-    margin: 8px 0;
   }
 
   .userTable th,
@@ -440,7 +439,6 @@
   .availableUsersContainer,
   .selectedUsersContainer {
     margin: 8px 0;
-    padding: 8px;
     border-radius: 4px;
   }
 
