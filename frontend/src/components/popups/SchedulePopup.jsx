@@ -468,7 +468,7 @@ import {
 
           <fieldset
             disabled={isReadOnly && mode === "edit"}
-            style={{ border: "none", padding: 0, margin: 0 }}
+            style={{ border: "none", padding: 0, margin: 0, height: "" }}
           >
             <div className={styles.popupContent}>
               <form>
@@ -773,40 +773,44 @@ import {
             </div>
           </fieldset>
 
-          {/* 현재 사용자가 Selected Users에 포함되면 참여 여부 버튼 노출 */}
-          {selectedUsers.some(
-            (user) =>
-              user.userId === currentUserId &&
-              user.status !== "Not selected"
-          ) && (
-            <div className={styles.googleFooter}>
-              <span style={{ marginRight: "8px" }}>참여 여부:</span>
-              <button
-                className={`${styles.googleButton} ${
-                  participationStatus === "ACCEPTED" ? styles.activeGoogleButton : ""
-                }`}
-                onClick={() => handleParticipation("ACCEPTED")}
-              >
-                예
-              </button>
-              <button
-                className={`${styles.googleButton} ${
-                  participationStatus === "DECLINED" ? styles.activeGoogleButton : ""
-                }`}
-                onClick={() => handleParticipation("DECLINED")}
-              >
-                아니오
-              </button>
-              <button
-                className={`${styles.googleButton} ${
-                  participationStatus === "PENDING" ? styles.activeGoogleButton : ""
-                }`}
-                onClick={() => handleParticipation("PENDING")}
-              >
-                미정
-              </button>
-            </div>
-          )}
+          {/* 현재 사용자가 Selected Users에 포함되면 참여 여부 버튼 노출, 아니면 footer 숨김 */}
+          <div
+            className={
+              selectedUsers.some(
+                (user) =>
+                  user.userId === currentUserId &&
+                  user.status !== "Not selected"
+              )
+                ? styles.googleFooter
+                : styles.googleFooterHidden
+            }
+          >
+            <span style={{ marginRight: "8px" }}>참여 여부:</span>
+            <button
+              className={`${styles.googleButton} ${
+                participationStatus === "ACCEPTED" ? styles.activeGoogleButton : ""
+              }`}
+              onClick={() => handleParticipation("ACCEPTED")}
+            >
+              예
+            </button>
+            <button
+              className={`${styles.googleButton} ${
+                participationStatus === "DECLINED" ? styles.activeGoogleButton : ""
+              }`}
+              onClick={() => handleParticipation("DECLINED")}
+            >
+              아니오
+            </button>
+            <button
+              className={`${styles.googleButton} ${
+                participationStatus === "PENDING" ? styles.activeGoogleButton : ""
+              }`}
+              onClick={() => handleParticipation("PENDING")}
+            >
+              미정
+            </button>
+          </div>
 
           {/* readOnly가 아니면 Save/Delete 버튼 노출 */}
           {!isReadOnly && (

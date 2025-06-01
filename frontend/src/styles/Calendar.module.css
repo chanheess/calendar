@@ -12,7 +12,7 @@
   padding-right: 10px;
 }
 
-/* 모바일 환경 대응 */
+/* 모바일 환경 대응 */Z
 @media screen and (max-width: 768px) {
   .calendarContainer {
     padding-top: 0;
@@ -156,7 +156,7 @@
 
   :global(body.safari) .calendarContainer {
     padding-top: calc(60px + env(safe-area-inset-top));
-    height: calc(100dvh - 60px);
+    height: calc(100dvh);
     overflow-y: auto;
     padding-bottom: env(safe-area-inset-bottom);
     box-sizing: border-box;
