@@ -215,38 +215,38 @@ import {
   }, [isOpen, mode, scheduleData.id, selectedCalendarList, scheduleData.calendarId, loadGroupUsers]);
 
   // 일정/알림/반복 DTO 생성
-  const getScheduleData = () => {
-    const groupDto =
-      selectedCalendarList[scheduleData.calendarId] &&
-      selectedCalendarList[scheduleData.calendarId].category === "GROUP"
-        ? groupUserList
-            .filter((user) => user.selected)
-            .map((user) => ({
-              id: user.id,
-              authority: user.permission,
-              status: "PENDING",
-              userId: user.userId,
-              userNickname: user.userNickname || "",
-            }))
-        : [];
-    return {
-      scheduleDto: {
-        id: scheduleData.id,
-        title: scheduleData.title,
-        description: scheduleData.description,
-        startAt: scheduleData.startAt,
-        endAt: scheduleData.endAt,
-        repeatId: scheduleData.repeatId,
-        userId: scheduleData.userId,
-        calendarId: scheduleData.calendarId,
-      },
-      notificationDto: isNotificationEnabled
-        ? convertNotificationsToDTO(scheduleData.notifications, scheduleData.startAt)
-        : [],
-      repeatDto: isRepeatEnabled ? formatRepeatDetails(scheduleData.repeatDetails) : null,
-      groupDto: groupDto,
+    const getScheduleData = () => {
+      const groupDto =
+        selectedCalendarList[scheduleData.calendarId] &&
+        selectedCalendarList[scheduleData.calendarId].category === "GROUP"
+          ? groupUserList
+              .filter((user) => user.selected)
+              .map((user) => ({
+                id: user.id,
+                authority: user.permission,
+                status: mode === "create" ? "PENDING" : user.status,
+                userId: user.userId,
+                userNickname: user.userNickname || "",
+              }))
+          : [];
+      return {
+        scheduleDto: {
+          id: scheduleData.id,
+          title: scheduleData.title,
+          description: scheduleData.description,
+          startAt: scheduleData.startAt,
+          endAt: scheduleData.endAt,
+          repeatId: scheduleData.repeatId,
+          userId: scheduleData.userId,
+          calendarId: scheduleData.calendarId,
+        },
+        notificationDto: isNotificationEnabled
+          ? convertNotificationsToDTO(scheduleData.notifications, scheduleData.startAt)
+          : [],
+        repeatDto: isRepeatEnabled ? formatRepeatDetails(scheduleData.repeatDetails) : null,
+        groupDto: groupDto,
+      };
     };
-  };
 
   // 참여 여부 수정
   const handleParticipation = async (newStatus) => {
