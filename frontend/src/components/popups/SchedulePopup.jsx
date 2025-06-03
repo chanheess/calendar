@@ -529,8 +529,10 @@ import {
                 {isNotificationEnabled && (
                   <div>
                     {scheduleData.notifications.map((notification, index) => (
-                      <div key={index} className={styles.notificationRow}>
+                      <div key={index} className={styles.infoRow}>
+                        <label></label>
                         <input
+                          style={{maxWidth: "211px"}}
                           type="number"
                           value={notification.time}
                           onChange={(e) =>
@@ -540,6 +542,7 @@ import {
                           min="1"
                         />
                         <select
+                          style={{maxWidth: "145px"}}
                           value={notification.unit}
                           onChange={(e) =>
                             handleUpdateNotification(index, "unit", e.target.value)
@@ -550,7 +553,14 @@ import {
                           <option value="hours">시간</option>
                           <option value="days">일</option>
                         </select>
-                        <Button style={{ width: "15%" }} variant="close" size="" onClick={() => handleRemoveNotification(index)}>×</Button>
+                        <Button
+                          style={{ maxWidth: "30px", flex: "1", padding: "5px" }}
+                          variant="close"
+                          size=""
+                          onClick={() => handleRemoveNotification(index)}
+                        >
+                          ×
+                        </Button>
                       </div>
                     ))}
                     <div className={styles.infoRow}>
@@ -581,6 +591,7 @@ import {
                     <div className={styles.infoRow}>
                       <label>반복 간격:</label>
                       <input
+                        style={{maxWidth: "211px"}}
                         type="number"
                         value={scheduleData.repeatDetails.repeatInterval}
                         onChange={(e) =>
@@ -594,6 +605,7 @@ import {
                         }
                       />
                       <select
+                        style={{maxWidth: "186px"}}
                         value={scheduleData.repeatDetails.repeatType}
                         onChange={(e) =>
                           setScheduleData((prevData) => ({

@@ -49,11 +49,11 @@
 .popupContent {
   padding: 10px;
   overflow-y: auto;
-  max-height: 400px;
   border-top: 1px solid #ddd;
   border-bottom: 1px solid #ddd;
   box-sizing: border-box;
   flex: 2;
+  max-height: 400px;
 }
 
 .popupContent ul {
@@ -155,33 +155,6 @@
     padding: 7px;
     margin: 0px;
     color: #07f;
-}
-
-.notificationRow {
-  display: flex;
-  align-items: center;
-  margin-bottom: 10px;
-  justify-content: flex-start;
-}
-
-.notificationRow input {
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  padding: 7px;
-  margin-right: 10px;
-}
-
-.notificationRow select {
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    padding: 7px;
-    margin-right: 10px;
-}
-
-.notificationRow button {
-    width: 20px;
-    padding: 0px;
-    border-radius: 20px;
 }
 
 .radioGroup {
@@ -373,9 +346,7 @@
   /* 모든 입력 필드의 기본 스타일 통일 */
   .infoRow input,
   .infoRow textarea,
-  .infoRow select,
-  .notificationRow input,
-  .notificationRow select {
+  .infoRow select {
     width: calc(100% - 100px);
     max-width: none;
     min-height: 34px;
@@ -407,23 +378,6 @@
   .infoRow textarea {
     min-height: 80px;
     resize: vertical;
-  }
-
-  /* 알림 설정 행 스타일 조정 */
-  .notificationRow {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 8px;
-  }
-
-  .notificationRow input {
-    width: 80px;
-  }
-
-  .notificationRow select {
-    flex: 1;
-    min-width: 100px;
   }
 
   /* 그룹 사용자 테이블 스타일 조정 */
@@ -494,5 +448,14 @@
 @media (max-width: 600px) {
   :root {
     --vh: 1vh;
+  }
+}
+@media (max-width: 600px) {
+  .popupContent {
+    max-height: calc(100vh - 230px); /* popupHeader + popupFooter + optional googleFooter */
+  }
+
+  .googleFooterHidden + .popupFooter + .popupContent {
+    max-height: calc(100vh - 170px); /* no googleFooter */
   }
 }
