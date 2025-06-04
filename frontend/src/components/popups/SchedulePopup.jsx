@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import styles from "styles/Popup.module.css";
 import Button from "components/Button";
 import Toggle from "components/Toggle";
-import axios from "axios";
+import axios from 'utils/axiosInstance';
 import RepeatPopup from "./RepeatPopup";
 import {
   fetchScheduleNotifications,
@@ -10,7 +10,6 @@ import {
   convertDTOToNotifications,
   convertNotificationsToDTO,
   formatRepeatDetails,
-  getScheduleGroupList,
 } from "components/ScheduleUtility";
 
 
@@ -151,7 +150,10 @@ import {
 
       let invitedUsers = [];
       if (mode === "edit") {
-        invitedUsers = await getScheduleGroupList(scheduleData.id);
+        invitedUsers = await axios.get(`/schedules/${scheduleData.id}/group`, {
+          withCredentials: true,
+          headers: { "Content-Type": "application/json" },
+        }).then(res => res.data);
       }
 
       // create 모드인 경우
@@ -167,24 +169,39 @@ import {
         return;
       }
 
-      // edit 모드인데 invitedUsers가 없다면
+      // edit 모드인데 invitedUsers가 없다면, 서버로부터 다시 fetch 시도
       if (mode === "edit" && invitedUsers.length === 0) {
-        const fallbackUsers = allUsers.map((user) => ({
-          ...user,
-          selected: false,
-          permission: user.userId === currentUserId ? "ADMIN" : "READ",
-          status: "Not selected",
-          userNickname: user.userNickname || "",
-        }));
-        setGroupUserList(fallbackUsers);
-        return;
+        try {
+          const reFetch = await axios.get(`/schedules/${scheduleData.id}/group`, {
+            withCredentials: true,
+            headers: { "Content-Type": "application/json" },
+          }).then(res => res.data);
+
+          if (reFetch.length > 0) {
+            invitedUsers = reFetch;
+          } else {
+            const fallbackUsers = allUsers.map((user) => ({
+              ...user,
+              selected: false,
+              permission: user.userId === currentUserId ? "ADMIN" : "READ",
+              status: "Not selected",
+              userNickname: user.userNickname || "",
+            }));
+            setGroupUserList(fallbackUsers);
+            return;
+          }
+        } catch (e) {
+          console.error("Fallback fetch failed:", e);
+        }
       }
 
       // edit 모드이며 invitedUsers가 있는 경우
       const mergedUsers = allUsers.map((user) => {
         const invited = invitedUsers.find((u) => u.userId === user.userId);
         if (user.userId === currentUserId) {
-          setParticipationStatus(invited?.status || "Not selected");
+          if (invited?.status) {
+            setParticipationStatus(invited.status);
+          }
         }
         return {
           ...user,
@@ -259,6 +276,7 @@ import {
         withCredentials: true,
         headers: { "Content-Type": "application/json" },
       });
+
       const updatedGroup = response.data;
       setGroupUserList((prevList) =>
         prevList.map((user) =>

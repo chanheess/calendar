@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, forwardRef, useImperativeHandle } f
 import { createPortal } from "react-dom";
 import { useNavigate, useLocation } from "react-router-dom"; // useLocation 추가
 import Nickname from "./Nickname";
-import axios from "axios";
+import axios from 'utils/axiosInstance';
 import styles from "styles/Header.module.css";
 import Button from "./Button";
 import { getFirebaseToken } from "components/FirebaseToken";

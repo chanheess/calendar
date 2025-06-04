@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import styles from "styles/Popup.module.css";
 import Button from "../Button";
-import axios from "axios";
+import axios from 'utils/axiosInstance';
 
 const AddCalendarPopup = ({ isOpen, onClose, onCalendarAdded }) => {
   const [title, setTitle] = useState("");
