@@ -452,10 +452,16 @@
 }
 @media (max-width: 600px) {
   .popupContent {
-    max-height: calc(100vh - 230px); /* popupHeader + popupFooter + optional googleFooter */
+    /* header(60px) + googleFooter(70px) + popupFooter(70px) + 여유(20px) */
+    max-height: calc(100vh - 220px);
+    padding-bottom: 110px; /* footer에 가려지지 않게 더 크게 */
   }
 
   .googleFooterHidden + .popupFooter + .popupContent {
-    max-height: calc(100vh - 170px); /* no googleFooter */
+    max-height: calc(100vh - 140px); /* header(60px) + popupFooter(70px) + 여유(10px) */
+  }
+
+  .googleFooter + .popupFooter + .popupContent {
+    max-height: calc(100vh - 220px); /* header(60px) + googleFooter(70px) + popupFooter(70px) + 여유(20px) */
   }
 }
