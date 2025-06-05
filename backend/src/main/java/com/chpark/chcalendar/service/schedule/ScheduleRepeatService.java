@@ -7,7 +7,6 @@ import com.chpark.chcalendar.exception.CustomException;
 import com.chpark.chcalendar.repository.schedule.ScheduleBatchRepository;
 import com.chpark.chcalendar.repository.schedule.ScheduleRepeatRepository;
 import com.chpark.chcalendar.repository.schedule.ScheduleRepository;
-import com.chpark.chcalendar.security.JwtTokenProvider;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,11 +24,9 @@ public class ScheduleRepeatService {
     private final ScheduleRepeatRepository scheduleRepeatRepository;
     private final ScheduleBatchRepository scheduleBatchRepository;
 
-    private final JwtTokenProvider jwtTokenProvider;
-
     @Transactional
     public ScheduleRepeatDto create(long scheduleId, ScheduleRepeatDto repeatDto, long userId) {
-        if(repeatDto == null) {
+        if (repeatDto == null) {
             return new ScheduleRepeatDto();
         }
 
@@ -39,12 +36,12 @@ public class ScheduleRepeatService {
         );
 
         //이미 반복이 만들어져있다면 실패
-        if(scheduleEntity.getRepeatId() != null) {
+        if (scheduleEntity.getRepeatId() != null) {
             throw new CustomException("This value already exists.");
         }
 
         //반복 생성
-        ScheduleRepeatEntity repeatEntity = new ScheduleRepeatEntity(repeatDto, scheduleEntity.getId());
+        ScheduleRepeatEntity repeatEntity = new ScheduleRepeatEntity(repeatDto);
         ScheduleRepeatEntity createRepeatEntity = scheduleRepeatRepository.save(repeatEntity);
 
         //기준 일정의 데이터 반복 일정 적용
@@ -73,19 +70,6 @@ public class ScheduleRepeatService {
 
     public boolean existsById(long id) {
         return scheduleRepeatRepository.existsById(id);
-    }
-
-
-    public boolean isMasterSchedule(Long repeatId, long scheduleId) {
-        if (repeatId == null) {
-            return false;
-        }
-
-        ScheduleRepeatEntity repeatEntity = scheduleRepeatRepository.findById(repeatId).orElseThrow(
-                () -> new EntityNotFoundException("Repeat not found")
-        );
-
-        return repeatEntity.getMasterScheduleId() == scheduleId;
     }
 
 }

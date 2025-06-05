@@ -17,6 +17,8 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Set;
+
 @Service
 public class NotificationScheduleService extends NotificationService {
 
@@ -87,13 +89,19 @@ public class NotificationScheduleService extends NotificationService {
     @Transactional
     public void deleteScheduleNotifications(long scheduleId) {
         String pattern = "user:*:" + NotificationCategory.SCHEDULE + ":" + scheduleId + ":" + NotificationType.INVITE + ":*";
-        notificationRepository.deletePatten(pattern);
+        Set<String> keys = redisTemplate.keys(pattern);
+        if (keys != null && !keys.isEmpty()) {
+            redisTemplate.delete(keys);
+        }
     }
 
     @Transactional
     public void deleteScheduleNotification(long userId, long scheduleId) {
         String pattern = "user:" + userId + ":" + NotificationCategory.SCHEDULE + ":" + scheduleId + ":" + NotificationType.INVITE + ":*";
-        notificationRepository.deletePatten(pattern);
+        Set<String> keys = redisTemplate.keys(pattern);
+        if (keys != null && !keys.isEmpty()) {
+            redisTemplate.delete(keys);
+        }
     }
 
 

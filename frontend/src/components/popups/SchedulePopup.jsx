@@ -137,6 +137,7 @@ import {
     ) {
       return;
     }
+
     try {
       // 그룹 내 전체 사용자 가져오기
       const allUsersResponse = await axios.get(
@@ -158,11 +159,12 @@ import {
 
       // create 모드인 경우
       if (mode === "create") {
+
         const mergedUsers = allUsers.map((user) => ({
           ...user,
           selected: false,
           permission: user.userId === currentUserId ? "ADMIN" : "READ",
-          status: "Not selected",
+          status: "PENDING",
           userNickname: user.userNickname || "",
         }));
         setGroupUserList(mergedUsers);
@@ -184,7 +186,7 @@ import {
               ...user,
               selected: false,
               permission: user.userId === currentUserId ? "ADMIN" : "READ",
-              status: "Not selected",
+              status: "PENDING",
               userNickname: user.userNickname || "",
             }));
             setGroupUserList(fallbackUsers);
@@ -198,16 +200,15 @@ import {
       // edit 모드이며 invitedUsers가 있는 경우
       const mergedUsers = allUsers.map((user) => {
         const invited = invitedUsers.find((u) => u.userId === user.userId);
-        if (user.userId === currentUserId) {
-          if (invited?.status) {
-            setParticipationStatus(invited.status);
-          }
+        if (user.userId === currentUserId && invited) {
+          setParticipationStatus(invited.status || "PENDING");
         }
         return {
           ...user,
+          id: invited?.id || null,
           selected: !!invited,
           permission: invited ? (invited.authority || "READ") : "READ",
-          status: invited?.status || "Not selected",
+          status: invited?.status || "PENDING",
           userNickname: user.userNickname || "",
         };
       });
@@ -241,7 +242,7 @@ import {
               .map((user) => ({
                 id: user.id,
                 authority: user.permission,
-                status: mode === "create" ? "PENDING" : user.status,
+                status: user.status || "PENDING",
                 userId: user.userId,
                 userNickname: user.userNickname || "",
               }))
@@ -308,7 +309,7 @@ import {
         if (scheduleData.repeatId) {
           openRepeatPopup("save");
         } else {
-          await axios.patch(`/schedules/${scheduleData.id}?repeat=false`, scheduleDTO, {
+          await axios.patch(`/schedules/${scheduleData.id}?repeat=${isRepeatEnabled}`, scheduleDTO, {
               withCredentials: true,
               headers: { "Content-Type": "application/json" },
           });
