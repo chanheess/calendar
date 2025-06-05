@@ -62,14 +62,6 @@ public class ScheduleGroupService {
             return new ArrayList<>();
         }
 
-        //반복 일정에서의 가져오기
-        if (scheduleEntity.getRepeatId() != null) {
-            Optional<ScheduleRepeatEntity> scheduleRepeatEntity = scheduleRepeatRepository.findById(scheduleEntity.getRepeatId());
-            if (scheduleRepeatEntity.isPresent()) {
-                scheduleId = scheduleRepeatEntity.get().getMasterScheduleId();
-            }
-        }
-
         List<ScheduleGroupEntity> scheduleGroupEntityList = scheduleGroupRepository.findByScheduleId(scheduleId);
         List<ScheduleGroupDto> result = null;
 

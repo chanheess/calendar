@@ -6,13 +6,13 @@
   position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
+  right: 0;
+  bottom: 0;
   background-color: rgba(0, 0, 0, 0.5);
   display: flex;
-  justify-content: center;
   align-items: center;
-  z-index: 1000;
+  justify-content: center;
+  z-index: 2000; /* 사이드바(1000)보다 높은 z-index 값 */
 }
 
 .popup {
@@ -27,13 +27,33 @@
   z-index: 1001;
 }
 
+.popupHeader {
+  font-size: 14px;
+  font-weight: bold;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex: 0;
+}
+
+.popupHeader h2{
+  margin: 10px;
+  flex: 10;
+}
+
+.popupHeader button {
+  flex: 1;
+}
+
 .popupContent {
   padding: 10px;
-  max-height: 400px; /* 최대 높이 제한 */
-  overflow-y: auto;  /* 내용이 넘칠 때만 스크롤 */
+  overflow-y: auto;
   border-top: 1px solid #ddd;
   border-bottom: 1px solid #ddd;
   box-sizing: border-box;
+  flex: 2;
+  max-height: 400px;
 }
 
 .popupContent ul {
@@ -58,24 +78,6 @@
 
 .popupContent li:hover {
   background-color: rgba(0, 0, 0, 0.1);
-}
-
-.popupHeader {
-  font-size: 14px;
-  font-weight: bold;
-  margin-bottom: 10px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.popupHeader h2{
-  margin: 10px;
-  flex: 10;
-}
-
-.popupHeader button {
-  flex: 1;
 }
 
 .popupFooter {
@@ -105,6 +107,8 @@
     border: 1px solid #ccc;
     border-radius: 4px;
     padding: 7px;
+    -webkit-appearance: none;
+    appearance: none;
 }
 
 .infoRow input[type="checkbox"] {
@@ -114,6 +118,9 @@
 .infoRow input[type="datetime-local"] {
   padding-inline-start: 7px;
   padding-inline-end: 0px;
+  -webkit-appearance: none;
+  appearance: none;
+  min-height: 10px;
 }
 
 .infoRow textarea {
@@ -129,6 +136,8 @@
     border: 1px solid #ccc;
     border-radius: 4px;
     padding: 7px;
+    -webkit-appearance: none;
+    appearance: none;
 }
 
 .infoRow select[type="unit"] {
@@ -146,35 +155,6 @@
     padding: 7px;
     margin: 0px;
     color: #07f;
-}
-
-
-
-.notificationRow {
-  display: flex;
-  align-items: center;
-  margin-bottom: 10px;
-  justify-content: flex-start;
-}
-
-.notificationRow input {
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  padding: 7px;
-  margin-right: 10px;
-}
-
-.notificationRow select {
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    padding: 7px;
-    margin-right: 10px;
-}
-
-.notificationRow button {
-    width: 20px;
-    padding: 0px;
-    border-radius: 20px;
 }
 
 .radioGroup {
@@ -303,10 +283,19 @@
   border: none;
 }
 
+/* Google Footer: fixed at bottom above popupFooter */
 .googleFooter {
   display: flex;
+  justify-content: flex-end;
   align-items: center;
-  margin: 5px 10px 0px 10px;
+  margin: 10px 10px 0px 10px;
+  gap: 5px;
+  box-sizing: border-box;
+  padding: 0;
+}
+
+.googleFooterHidden {
+  display: none;
 }
 
 .googleFooter span {
@@ -319,6 +308,7 @@
 .googleFooter button {
     text-align: center;
     flex: 1;
+    min-width: 65px;
 }
 
 @media (max-width: 600px) {
@@ -330,20 +320,18 @@
     bottom: 0;
     border-radius: 0;
     max-width: 100%;
-    max-height: 100%;
     display: flex;
     flex-direction: column;
     box-sizing: border-box;
-    height: 100%;
-    padding: 10px;
+    padding: 5px 0 0 0;
   }
 
-  .popupContent {
-    flex: 1;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    padding: 15px 10px;
-    margin-bottom: env(safe-area-inset-bottom);
+  .popupHeader {
+    flex: 0;
+  }
+
+  .popupOverlay {
+    background-color: rgba(0, 0, 0, 0);
   }
 
   .infoRow {
@@ -352,17 +340,13 @@
   }
 
   .infoRow label {
-    min-width: 80px;
     font-size: 0.85em;
-    margin-right: 8px;
   }
 
   /* 모든 입력 필드의 기본 스타일 통일 */
   .infoRow input,
   .infoRow textarea,
-  .infoRow select,
-  .notificationRow input,
-  .notificationRow select {
+  .infoRow select {
     width: calc(100% - 100px);
     max-width: none;
     min-height: 34px;
@@ -388,7 +372,6 @@
     background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23333'%3E%3Cpath d='M6 9L1 4h10z'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: right 8px center;
-    padding-right: 24px;
   }
 
   /* textarea 높이 조정 */
@@ -397,28 +380,9 @@
     resize: vertical;
   }
 
-  /* 알림 설정 행 스타일 조정 */
-  .notificationRow {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 8px;
-    padding: 0 10px;
-  }
-
-  .notificationRow input {
-    width: 80px;
-  }
-
-  .notificationRow select {
-    flex: 1;
-    min-width: 100px;
-  }
-
   /* 그룹 사용자 테이블 스타일 조정 */
   .userTable {
     width: 100%;
-    margin: 8px 0;
   }
 
   .userTable th,
@@ -440,15 +404,7 @@
   .availableUsersContainer,
   .selectedUsersContainer {
     margin: 8px 0;
-    padding: 8px;
     border-radius: 4px;
-  }
-
-  /* 구글 스타일 버튼 조정 */
-  .googleFooter {
-    padding: 10px;
-    margin: 0;
-    border-top: 1px solid #eee;
   }
 
   .googleButton {
@@ -458,28 +414,33 @@
     border-radius: 4px;
   }
 
-  /* 푸터 위치 자동 조절을 위한 스타일 */
-  .popupFooter {
-    position: sticky;
-    bottom: 0;
+  .googleFooter {
+    position: fixed;
+    bottom: 60px;
+    left: 0;
+    right: 0;
     background-color: #fff;
     padding: 10px;
     margin: 0;
-    z-index: 1;
+    z-index: 1002;
     border-top: 1px solid #eee;
     padding-bottom: max(10px, env(safe-area-inset-bottom));
-  }
-}
-
-/* 사파리 특정 스타일 */
-@supports (-webkit-touch-callout: none) {
-  .popup {
-    height: -webkit-fill-available;
+    display: flex;
+    justify-content: space-between;
   }
 
-  .popupContent {
-    height: 100%;
-    padding-bottom: 60px; /* 푸터 높이만큼 여백 추가 */
+  /* 푸터 위치 자동 조절을 위한 스타일 */
+  .popupFooter {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: #fff;
+    padding: 10px;
+    margin: 0;
+    z-index: 1002;
+    border-top: 1px solid #eee;
+    padding-bottom: max(10px, env(safe-area-inset-bottom));
   }
 }
 
@@ -487,5 +448,14 @@
 @media (max-width: 600px) {
   :root {
     --vh: 1vh;
+  }
+}
+@media (max-width: 600px) {
+  .popupContent {
+    max-height: calc(100vh - 230px); /* popupHeader + popupFooter + optional googleFooter */
+  }
+
+  .googleFooterHidden + .popupFooter + .popupContent {
+    max-height: calc(100vh - 170px); /* no googleFooter */
   }
 }

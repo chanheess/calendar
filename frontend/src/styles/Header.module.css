@@ -176,19 +176,19 @@
 
 .notificationSelect {
   position: fixed;
-  right: 10px;
-  top: auto;
-  margin-top: 8px;
   display: flex;
   flex-direction: column;
   background-color: #fff;
   border: 1px solid #ddd;
   border-radius: 4px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-  z-index: 999;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  z-index: 10000;
   min-width: 120px;
   max-width: calc(100vw - 20px);
   animation: fadeIn 0.3s ease forwards;
+  overflow: auto;
+  max-height: calc(100vh - 20px);
+  margin-top: 10px;
 }
 
 .notificationSelect button {

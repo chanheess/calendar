@@ -123,14 +123,14 @@ const SidebarComponent = forwardRef(({
     onCalendarChange(allCalendars);
   };
 
-  // "일정" 드롭다운 항목 클릭 시: 오늘 날짜 기준으로 SchedulePopup 생성 (일정 생성 팝업 열기)
+  // 캘린더 관리 팝업 열기
+  const openManageCalendarPopup = (calendar, sectionId) => {
+    setManagePopupCalendar({ ...calendar, category: sectionId });
+    setManagePopupVisible(true);
+  };
+
+  // 일정 생성 팝업 열기
   const handleCreateSchedule = () => {
-    if (typeof onCloseSidebarPopups === "function") {
-      onCloseSidebarPopups();
-    }
-    if (typeof onClose === "function") {
-      onClose();
-    }
     const now = new Date();
     const hh = now.getHours();
     const mm = now.getMinutes();
@@ -150,39 +150,28 @@ const SidebarComponent = forwardRef(({
       endAt: fmt(endAt),
       title: "",
       description: "",
-      calendarId: "", // 사용자가 선택하도록 비워둠
+      calendarId: "",
     });
     setSchedulePopupMode("create");
     setSchedulePopupVisible(true);
     setDropdownOpen(false);
   };
 
+  // 캘린더 추가 팝업 열기
   const openAddCalendarPopup = () => {
-    if (typeof onCloseSidebarPopups === "function") {
-      onCloseSidebarPopups();
-    }
-    if (typeof onClose === "function") {
-      onClose();
-    }
     setAddCalendarPopupVisible(true);
     setDropdownOpen(false);
   };
 
-  const openManageCalendarPopup = (calendar, sectionId) => {
-    if (typeof onCloseSidebarPopups === "function") {
-      onCloseSidebarPopups();
-    }
-    if (typeof onClose === "function") {
-      onClose();
-    }
-    setManagePopupVisible(true);
-    setManagePopupCalendar({ ...calendar, category: sectionId });
-  };
-
-  function handleClose() {
+  // 팝업 닫기 핸들러
+  const handlePopupClose = (shouldRefresh = false) => {
     setAddCalendarPopupVisible(false);
     setManagePopupVisible(false);
-  }
+    setSchedulePopupVisible(false);
+    if (shouldRefresh && typeof refreshSchedules === "function") {
+      refreshSchedules();
+    }
+  };
 
   // 전체 캘린더 목록
   const calendarsArray = Object.entries(selectedCalendarList || {}).map(
@@ -199,14 +188,14 @@ const SidebarComponent = forwardRef(({
       {addCalendarPopupVisible && (
         <AddCalendarPopup
           isOpen={addCalendarPopupVisible}
-          onClose={handleClose}
+          onClose={handlePopupClose}
           onCalendarAdded={handleCalendarAdded}
         />
       )}
       {managePopupVisible && (
         <ManageCalendarPopup
           isOpen={managePopupVisible}
-          onClose={handleClose}
+          onClose={handlePopupClose}
           calendarInfo={managePopupCalendar}
           selectedCalendarList={selectedCalendarList}
           onCalendarChange={onCalendarChange}
@@ -218,10 +207,7 @@ const SidebarComponent = forwardRef(({
           mode={schedulePopupMode}
           eventDetails={schedulePopupData}
           onClose={(updated) => {
-            setSchedulePopupVisible(false);
-            if (updated && typeof refreshSchedules === "function") {
-              refreshSchedules();
-            }
+            handlePopupClose(updated);
           }}
           selectedCalendarList={selectedCalendarList}
           currentUserId={userId}
@@ -248,12 +234,7 @@ const SidebarComponent = forwardRef(({
           <Button
             variant="blue"
             size=""
-            onClick={() => {
-              if (!dropdownOpen && typeof onCloseSidebarPopups === "function") {
-                onCloseSidebarPopups();
-              }
-              setDropdownOpen(!dropdownOpen);
-            }}
+            onClick={() => setDropdownOpen(!dropdownOpen)}
           >
             +
           </Button>

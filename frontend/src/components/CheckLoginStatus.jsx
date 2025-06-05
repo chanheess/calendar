@@ -1,6 +1,6 @@
 import { useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import axios from 'utils/axiosInstance';
 import { getFirebaseToken } from "components/FirebaseToken";
 
 

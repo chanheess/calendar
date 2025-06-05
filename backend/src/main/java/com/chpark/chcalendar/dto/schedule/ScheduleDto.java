@@ -104,13 +104,6 @@ public class ScheduleDto {
         private ScheduleRepeatDto repeatDto;
         private List<ScheduleGroupDto> groupDto;
 
-        public Response(ScheduleDto scheduleDto, List<ScheduleNotificationDto> notificationDto, List<ScheduleGroupDto> groupDto) {
-            this.scheduleDto = scheduleDto;
-            this.notificationDto = notificationDto;
-            this.repeatDto = null;
-            this.groupDto = groupDto;
-        }
-
         public Response(ScheduleDto scheduleDto, List<ScheduleNotificationDto> notificationDto, ScheduleRepeatDto repeatDto, List<ScheduleGroupDto> groupDto) {
             this.scheduleDto = scheduleDto;
             this.notificationDto = notificationDto;

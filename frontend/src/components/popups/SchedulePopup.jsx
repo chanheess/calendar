@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import styles from "styles/Popup.module.css";
 import Button from "components/Button";
 import Toggle from "components/Toggle";
-import axios from "axios";
+import axios from 'utils/axiosInstance';
 import RepeatPopup from "./RepeatPopup";
 import {
   fetchScheduleNotifications,
@@ -10,7 +10,6 @@ import {
   convertDTOToNotifications,
   convertNotificationsToDTO,
   formatRepeatDetails,
-  getScheduleGroupList,
 } from "components/ScheduleUtility";
 
 
@@ -138,6 +137,7 @@ import {
     ) {
       return;
     }
+
     try {
       // 그룹 내 전체 사용자 가져오기
       const allUsersResponse = await axios.get(
@@ -151,46 +151,64 @@ import {
 
       let invitedUsers = [];
       if (mode === "edit") {
-        invitedUsers = await getScheduleGroupList(scheduleData.id);
+        invitedUsers = await axios.get(`/schedules/${scheduleData.id}/group`, {
+          withCredentials: true,
+          headers: { "Content-Type": "application/json" },
+        }).then(res => res.data);
       }
 
       // create 모드인 경우
       if (mode === "create") {
+
         const mergedUsers = allUsers.map((user) => ({
           ...user,
           selected: false,
           permission: user.userId === currentUserId ? "ADMIN" : "READ",
-          status: "Not selected",
+          status: "PENDING",
           userNickname: user.userNickname || "",
         }));
         setGroupUserList(mergedUsers);
         return;
       }
 
-      // edit 모드인데 invitedUsers가 없다면
+      // edit 모드인데 invitedUsers가 없다면, 서버로부터 다시 fetch 시도
       if (mode === "edit" && invitedUsers.length === 0) {
-        const fallbackUsers = allUsers.map((user) => ({
-          ...user,
-          selected: false,
-          permission: user.userId === currentUserId ? "ADMIN" : "READ",
-          status: "Not selected",
-          userNickname: user.userNickname || "",
-        }));
-        setGroupUserList(fallbackUsers);
-        return;
+        try {
+          const reFetch = await axios.get(`/schedules/${scheduleData.id}/group`, {
+            withCredentials: true,
+            headers: { "Content-Type": "application/json" },
+          }).then(res => res.data);
+
+          if (reFetch.length > 0) {
+            invitedUsers = reFetch;
+          } else {
+            const fallbackUsers = allUsers.map((user) => ({
+              ...user,
+              selected: false,
+              permission: user.userId === currentUserId ? "ADMIN" : "READ",
+              status: "PENDING",
+              userNickname: user.userNickname || "",
+            }));
+            setGroupUserList(fallbackUsers);
+            return;
+          }
+        } catch (e) {
+          console.error("Fallback fetch failed:", e);
+        }
       }
 
       // edit 모드이며 invitedUsers가 있는 경우
       const mergedUsers = allUsers.map((user) => {
         const invited = invitedUsers.find((u) => u.userId === user.userId);
-        if (user.userId === currentUserId) {
-          setParticipationStatus(invited?.status || "Not selected");
+        if (user.userId === currentUserId && invited) {
+          setParticipationStatus(invited.status || "PENDING");
         }
         return {
           ...user,
+          id: invited?.id || null,
           selected: !!invited,
           permission: invited ? (invited.authority || "READ") : "READ",
-          status: invited?.status || "Not selected",
+          status: invited?.status || "PENDING",
           userNickname: user.userNickname || "",
         };
       });
@@ -215,38 +233,38 @@ import {
   }, [isOpen, mode, scheduleData.id, selectedCalendarList, scheduleData.calendarId, loadGroupUsers]);
 
   // 일정/알림/반복 DTO 생성
-  const getScheduleData = () => {
-    const groupDto =
-      selectedCalendarList[scheduleData.calendarId] &&
-      selectedCalendarList[scheduleData.calendarId].category === "GROUP"
-        ? groupUserList
-            .filter((user) => user.selected)
-            .map((user) => ({
-              id: user.id,
-              authority: user.permission,
-              status: "PENDING",
-              userId: user.userId,
-              userNickname: user.userNickname || "",
-            }))
-        : [];
-    return {
-      scheduleDto: {
-        id: scheduleData.id,
-        title: scheduleData.title,
-        description: scheduleData.description,
-        startAt: scheduleData.startAt,
-        endAt: scheduleData.endAt,
-        repeatId: scheduleData.repeatId,
-        userId: scheduleData.userId,
-        calendarId: scheduleData.calendarId,
-      },
-      notificationDto: isNotificationEnabled
-        ? convertNotificationsToDTO(scheduleData.notifications, scheduleData.startAt)
-        : [],
-      repeatDto: isRepeatEnabled ? formatRepeatDetails(scheduleData.repeatDetails) : null,
-      groupDto: groupDto,
+    const getScheduleData = () => {
+      const groupDto =
+        selectedCalendarList[scheduleData.calendarId] &&
+        selectedCalendarList[scheduleData.calendarId].category === "GROUP"
+          ? groupUserList
+              .filter((user) => user.selected)
+              .map((user) => ({
+                id: user.id,
+                authority: user.permission,
+                status: user.status || "PENDING",
+                userId: user.userId,
+                userNickname: user.userNickname || "",
+              }))
+          : [];
+      return {
+        scheduleDto: {
+          id: scheduleData.id,
+          title: scheduleData.title,
+          description: scheduleData.description,
+          startAt: scheduleData.startAt,
+          endAt: scheduleData.endAt,
+          repeatId: scheduleData.repeatId,
+          userId: scheduleData.userId,
+          calendarId: scheduleData.calendarId,
+        },
+        notificationDto: isNotificationEnabled
+          ? convertNotificationsToDTO(scheduleData.notifications, scheduleData.startAt)
+          : [],
+        repeatDto: isRepeatEnabled ? formatRepeatDetails(scheduleData.repeatDetails) : null,
+        groupDto: groupDto,
+      };
     };
-  };
 
   // 참여 여부 수정
   const handleParticipation = async (newStatus) => {
@@ -259,6 +277,7 @@ import {
         withCredentials: true,
         headers: { "Content-Type": "application/json" },
       });
+
       const updatedGroup = response.data;
       setGroupUserList((prevList) =>
         prevList.map((user) =>
@@ -285,12 +304,12 @@ import {
           headers: { "Content-Type": "application/json" },
         });
         alert("일정이 생성되었습니다.");
-        onClose(true, response.data.scheduleDto);
+        onClose(true, response.data.scheduleDto, isRepeatEnabled);
       } else if (mode === "edit") {
         if (scheduleData.repeatId) {
           openRepeatPopup("save");
         } else {
-          await axios.patch(`/schedules/${scheduleData.id}?repeat=false`, scheduleDTO, {
+          await axios.patch(`/schedules/${scheduleData.id}?repeat=${isRepeatEnabled}`, scheduleDTO, {
               withCredentials: true,
               headers: { "Content-Type": "application/json" },
           });
@@ -335,7 +354,7 @@ import {
           headers: { "Content-Type": "application/json" },
         });
         alert("일정이 수정되었습니다.");
-        onClose(true);
+        onClose(true, null, isRepeatEnabled);
       }
     } catch (error) {
       console.error("Error saving schedule:", error.response?.data || error.message);
@@ -351,7 +370,7 @@ import {
           withCredentials: true,
         });
         alert("일정이 삭제되었습니다.");
-        onClose(true);
+        onClose(true, null, isRepeatEnabled);
       }
     } catch (error) {
       alert("Failed to delete schedule.");
@@ -421,13 +440,6 @@ import {
       return newList;
     });
   };
-  const handleRemoveGroupUser = (index) => {
-    setGroupUserList((prevList) => {
-      const newList = [...prevList];
-      newList[index] = { ...newList[index], selected: false };
-      return newList;
-    });
-  };
 
   const selectedUsers = groupUserList.filter((user) => user.selected);
 
@@ -441,6 +453,21 @@ import {
       default:
         return "미정";
     }
+  };
+
+  // 참석 상태 통계 계산
+  const getParticipationStats = () => {
+    const stats = {
+      ACCEPTED: 0,
+      DECLINED: 0,
+      PENDING: 0
+    };
+
+    selectedUsers.forEach(user => {
+      stats[user.status] = (stats[user.status] || 0) + 1;
+    });
+
+    return `참석: ${stats.ACCEPTED}  불참: ${stats.DECLINED}  미정: ${stats.PENDING}`;
   };
 
   return (
@@ -468,7 +495,7 @@ import {
 
           <fieldset
             disabled={isReadOnly && mode === "edit"}
-            style={{ border: "none", padding: 0, margin: 0 }}
+            style={{ border: "none", padding: 0, margin: 0, height: "" }}
           >
             <div className={styles.popupContent}>
               <form>
@@ -529,8 +556,10 @@ import {
                 {isNotificationEnabled && (
                   <div>
                     {scheduleData.notifications.map((notification, index) => (
-                      <div key={index} className={styles.notificationRow}>
+                      <div key={index} className={styles.infoRow}>
+                        <label></label>
                         <input
+                          style={{maxWidth: "211px"}}
                           type="number"
                           value={notification.time}
                           onChange={(e) =>
@@ -540,6 +569,7 @@ import {
                           min="1"
                         />
                         <select
+                          style={{maxWidth: "145px"}}
                           value={notification.unit}
                           onChange={(e) =>
                             handleUpdateNotification(index, "unit", e.target.value)
@@ -550,7 +580,14 @@ import {
                           <option value="hours">시간</option>
                           <option value="days">일</option>
                         </select>
-                        <Button variant="close" size="" onClick={() => handleRemoveNotification(index)}>×</Button>
+                        <Button
+                          style={{ maxWidth: "30px", flex: "1", padding: "5px" }}
+                          variant="close"
+                          size=""
+                          onClick={() => handleRemoveNotification(index)}
+                        >
+                          ×
+                        </Button>
                       </div>
                     ))}
                     <div className={styles.infoRow}>
@@ -581,6 +618,7 @@ import {
                     <div className={styles.infoRow}>
                       <label>반복 간격:</label>
                       <input
+                        style={{maxWidth: "211px"}}
                         type="number"
                         value={scheduleData.repeatDetails.repeatInterval}
                         onChange={(e) =>
@@ -594,6 +632,7 @@ import {
                         }
                       />
                       <select
+                        style={{maxWidth: "186px"}}
                         value={scheduleData.repeatDetails.repeatType}
                         onChange={(e) =>
                           setScheduleData((prevData) => ({
@@ -642,7 +681,6 @@ import {
                           const newShowValue = !showGroupUsers;
                           setShowGroupUsers(newShowValue);
                           if (!newShowValue) {
-                            // 토글 끄면 모든 사용자의 선택 해제
                             setGroupUserList((prevList) =>
                               prevList.map((user) => ({ ...user, selected: false }))
                             );
@@ -655,86 +693,91 @@ import {
                       <div style={{ marginTop: "10px" }}>
                         {(mode === "create" || canManageGroup) ? (
                           <>
-                            {/* 관리 가능(ADMIN/소유자) 또는 create 모드 → Available + Selected */}
                             <div style={{ marginBottom: "5px" }}>
-                              <div style={{ marginBottom: "5px" }}>참석 가능 인원:</div>
+                              <div className={styles.infoRow}>
+                                <label>참석자 관리:</label>
+                                {selectedUsers.length > 0 && (
+                                  <span style={{ 
+                                    fontSize: "14px",
+                                    color: "#666",
+                                    marginLeft: "8px"
+                                  }}>
+                                    {getParticipationStats()}
+                                  </span>
+                                )}
+                              </div>
                               <div className={styles.availableUsersContainer}>
                                 <table className={styles.userTable}>
-                                  <thead><tr><th>선택</th><th>닉네임</th></tr></thead>
+                                  <thead>
+                                    <tr>
+                                      <th>
+                                        <input
+                                          type="checkbox"
+                                          checked={groupUserList.every(user => user.selected)}
+                                          onChange={(e) => {
+                                            const isChecked = e.target.checked;
+                                            setGroupUserList(prevList =>
+                                              prevList.map(user => ({
+                                                ...user,
+                                                selected: isChecked,
+                                                status: isChecked ? "PENDING" : user.status
+                                              }))
+                                            );
+                                          }}
+                                          disabled={isReadOnly}
+                                        />
+                                      </th>
+                                      <th>닉네임</th>
+                                      <th>권한</th>
+                                      <th>상태</th>
+                                    </tr>
+                                  </thead>
                                   <tbody>
-                                    {groupUserList.filter((user) => !user.selected).length > 0 ? (
-                                      groupUserList
-                                        .filter((user) => !user.selected)
-                                        .map((user, index) => (
-                                          <tr key={user.id || index}>
-                                            <td>
-                                              <input
-                                                type="checkbox"
-                                                checked={user.selected || false}
+                                    {groupUserList.length > 0 ? (
+                                      groupUserList.map((user, index) => (
+                                        <tr key={user.id || index}>
+                                          <td>
+                                            <input
+                                              type="checkbox"
+                                              checked={user.selected || false}
+                                              onChange={(e) =>
+                                                handleIndividualSelect(
+                                                  groupUserList.findIndex(
+                                                    (u) => u.userId === user.userId
+                                                  ),
+                                                  e.target.checked
+                                                )
+                                              }
+                                              disabled={isReadOnly || (currentUserId === user.userId && mode === "edit")}
+                                            />
+                                          </td>
+                                          <td>{user.userNickname}</td>
+                                          <td>
+                                            {user.selected && (
+                                              <select
+                                                value={user.permission || "READ"}
                                                 onChange={(e) =>
-                                                  handleIndividualSelect(
-                                                    groupUserList.findIndex(
-                                                      (u) => u.userId === user.userId
-                                                    ),
-                                                    e.target.checked
+                                                  handlePermissionChange(
+                                                    groupUserList.findIndex((u) => u.userId === user.userId),
+                                                    e.target.value
                                                   )
                                                 }
-                                                disabled={isReadOnly}
-                                              />
-                                            </td>
-                                            <td>{user.userNickname}</td>
-                                          </tr>
-                                        ))
+                                                disabled={isReadOnly || currentUserId === user.userId}
+                                              >
+                                                <option value="READ">읽기</option>
+                                                <option value="WRITE">일정 수정</option>
+                                                <option value="ADMIN">관리자</option>
+                                              </select>
+                                            )}
+                                          </td>
+                                          <td>
+                                            {user.selected ? getUserStatus(user.status) : "-"}
+                                          </td>
+                                        </tr>
+                                      ))
                                     ) : (
-                                      <tr><td colSpan="2">추가 가능한 사용자가 없습니다</td></tr>
+                                      <tr><td colSpan="4">사용자가 없습니다</td></tr>
                                     )}
-                                  </tbody>
-                                </table>
-                              </div>
-                            </div>
-                            <div style={{ marginTop: "10px" }}>
-                              <div style={{ marginBottom: "5px" }}>일정 참석자:</div>
-                              <div className={styles.selectedUsersContainer}>
-                                <table className={styles.userTable}>
-                                  <thead><tr><th>닉네임</th><th>권한</th><th>상태</th><th style={{ textAlign: "center" }}>x</th></tr></thead>
-                                  <tbody>
-                                    {groupUserList.filter((user) => user.selected).map((user, index) => (
-                                      <tr key={user.id || index}>
-                                        <td>{user.userNickname}</td>
-                                        <td>
-                                          <select
-                                            value={user.permission || "READ"}
-                                            onChange={(e) =>
-                                              handlePermissionChange(
-                                                groupUserList.findIndex((u) => u.userId === user.userId),
-                                                e.target.value
-                                              )
-                                            }
-                                            disabled={isReadOnly || currentUserId === user.userId}
-                                          >
-                                            <option value="READ">읽기</option>
-                                            <option value="WRITE">일정 수정</option>
-                                            <option value="ADMIN">관리자</option>
-                                          </select>
-                                        </td>
-                                        <td>{getUserStatus(user.status)}</td>
-                                        <td>
-                                          <Button
-                                            variant="close"
-                                            size="verySmall"
-                                            type="button"
-                                            onClick={() =>
-                                              handleRemoveGroupUser(
-                                                groupUserList.findIndex((u) => u.userId === user.userId)
-                                              )
-                                            }
-                                            disabled={isReadOnly}
-                                          >
-                                            ×
-                                          </Button>
-                                        </td>
-                                      </tr>
-                                    ))}
                                   </tbody>
                                 </table>
                               </div>
@@ -769,40 +812,44 @@ import {
             </div>
           </fieldset>
 
-          {/* 현재 사용자가 Selected Users에 포함되면 참여 여부 버튼 노출 */}
-          {selectedUsers.some(
-            (user) =>
-              user.userId === currentUserId &&
-              user.status !== "Not selected"
-          ) && (
-            <div className={styles.googleFooter}>
-              <span style={{ marginRight: "8px" }}>참여 여부:</span>
-              <button
-                className={`${styles.googleButton} ${
-                  participationStatus === "ACCEPTED" ? styles.activeGoogleButton : ""
-                }`}
-                onClick={() => handleParticipation("ACCEPTED")}
-              >
-                예
-              </button>
-              <button
-                className={`${styles.googleButton} ${
-                  participationStatus === "DECLINED" ? styles.activeGoogleButton : ""
-                }`}
-                onClick={() => handleParticipation("DECLINED")}
-              >
-                아니오
-              </button>
-              <button
-                className={`${styles.googleButton} ${
-                  participationStatus === "PENDING" ? styles.activeGoogleButton : ""
-                }`}
-                onClick={() => handleParticipation("PENDING")}
-              >
-                미정
-              </button>
-            </div>
-          )}
+          {/* 현재 사용자가 Selected Users에 포함되면 참여 여부 버튼 노출, 아니면 footer 숨김 */}
+          <div
+            className={
+              selectedUsers.some(
+                (user) =>
+                  user.userId === currentUserId &&
+                  user.status !== "Not selected"
+              )
+                ? styles.googleFooter
+                : styles.googleFooterHidden
+            }
+          >
+            <span style={{ marginRight: "8px" }}>참여 여부:</span>
+            <button
+              className={`${styles.googleButton} ${
+                participationStatus === "ACCEPTED" ? styles.activeGoogleButton : ""
+              }`}
+              onClick={() => handleParticipation("ACCEPTED")}
+            >
+              예
+            </button>
+            <button
+              className={`${styles.googleButton} ${
+                participationStatus === "DECLINED" ? styles.activeGoogleButton : ""
+              }`}
+              onClick={() => handleParticipation("DECLINED")}
+            >
+              아니오
+            </button>
+            <button
+              className={`${styles.googleButton} ${
+                participationStatus === "PENDING" ? styles.activeGoogleButton : ""
+              }`}
+              onClick={() => handleParticipation("PENDING")}
+            >
+              미정
+            </button>
+          </div>
 
           {/* readOnly가 아니면 Save/Delete 버튼 노출 */}
           {!isReadOnly && (

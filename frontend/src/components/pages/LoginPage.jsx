@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import axios from 'utils/axiosInstance';
 import styles from "styles/Login.module.css";
 import Button from "../Button";
 import PasswordResetPopup from "../popups/PasswordResetPopup";

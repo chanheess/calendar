@@ -4,7 +4,8 @@
     "paths": {
       "styles/*": ["styles/*"],
       "components/*": ["components/*"],
-      "popups/*": ["components/popups/*"]
+      "popups/*": ["components/popups/*"],
+      "utils/*": ["utils/*"]
     }
   },
   "include": ["src"]

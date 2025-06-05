@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { onMessage } from "firebase/messaging";
 import { messaging } from "./firebase";
-import axios from "axios";
+import axios from 'utils/axiosInstance';
 import styles from "styles/PushNotification.module.css";
 import { getFirebaseToken } from "components/FirebaseToken";
 import platform from 'platform';

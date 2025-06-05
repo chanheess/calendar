@@ -143,7 +143,6 @@ public class ScheduleController {
         long userId = jwtTokenProvider.getUserIdFromToken(token);
 
         scheduleService.deleteById(scheduleId, calendarId, userId);
-        scheduleGroupService.deleteScheduleGroup(scheduleId);
 
         return new ResponseEntity<>("Schedule deleted successfully.", HttpStatus.OK);
     }
@@ -161,14 +160,12 @@ public class ScheduleController {
         //삭제할 범위
         switch (scheduleRepeatScope){
             case CURRENT -> {
-                scheduleService.deleteScheduleGroupCurrentOnly(userId, scheduleId);
                 scheduleService.deleteCurrentOnlyRepeatSchedule(scheduleId);
                 //repeat를 지워주기 위한 update
                 scheduleService.update(scheduleId, new ScheduleDto(), true, userId);
                 scheduleService.deleteById(scheduleId, calendarId, userId);
             }
             case FUTURE -> {
-                scheduleService.deleteScheduleGroupCurrentAndFuture(scheduleId);
                 scheduleService.deleteFutureRepeatSchedules(scheduleId, userId);
                 //repeat를 지워주기 위한 update
                 scheduleService.update(scheduleId, new ScheduleDto(), true, userId);

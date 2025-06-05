@@ -39,8 +39,8 @@ const RepeatPopup = ({ isOpen, onClose, mode, scheduleId, calendarId, repeatChec
   };
 
   return (
-    <div className={styles.popupOverlay} style={{ zIndex: 1001 }} onClick={onClose}>
-      <div className={styles.popup} onClick={(e) => e.stopPropagation()}>
+    <div className={styles.popupOverlay} style={{ zIndex: 2001 }} onClick={onClose}>
+      <div className={styles.popup} onClick={(e) => e.stopPropagation()} style={{ zIndex: 2002 }}>
         <div className={styles.popupHeader}>
           <h2>반복 일정 수정</h2>
           <Button variant="close" size="" onClick={onClose}>×</Button>

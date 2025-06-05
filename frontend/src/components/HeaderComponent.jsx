@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef, forwardRef, useImperativeHandle } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate, useLocation } from "react-router-dom"; // useLocation 추가
 import Nickname from "./Nickname";
-import axios from "axios";
+import axios from 'utils/axiosInstance';
 import styles from "styles/Header.module.css";
 import Button from "./Button";
 import { getFirebaseToken } from "components/FirebaseToken";
@@ -52,9 +53,9 @@ const HeaderComponent = forwardRef(({ mode, onSidebarToggle, onCloseSidebarPopup
 
   // 외부 클릭 감지
   useEffect(() => {
-    const handleClickOutside = (event) => {
+    const handleOutsideClick = (event) => {
       // 알림 버튼과 더보기 버튼 클릭은 무시
-      if (event.target.closest(`.${styles.notificationBell}`) || 
+      if (event.target.closest(`.${styles.notificationBell}`) ||
           event.target.closest(`.${styles.moreButton}`)) {
         return;
       }
@@ -68,12 +69,9 @@ const HeaderComponent = forwardRef(({ mode, onSidebarToggle, onCloseSidebarPopup
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    document.addEventListener('touchstart', handleClickOutside);
-
+    document.addEventListener("click", handleOutsideClick);
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('touchstart', handleClickOutside);
+      document.removeEventListener("click", handleOutsideClick);
     };
   }, [showDropdown, showMoreMenu]);
 
@@ -108,6 +106,7 @@ const HeaderComponent = forwardRef(({ mode, onSidebarToggle, onCloseSidebarPopup
   }
 
   const handleNotificationAction = async (notification, action) => {
+
     let url = "";
     let method = "";
 
@@ -338,13 +337,23 @@ const HeaderComponent = forwardRef(({ mode, onSidebarToggle, onCloseSidebarPopup
   );
 });
 
+const notificationSelectRoot = typeof window !== "undefined"
+  ? (document.getElementById("notification-select-root") ||
+      (() => {
+        const el = document.createElement("div");
+        el.id = "notification-select-root";
+        document.body.appendChild(el);
+        return el;
+      })())
+  : null;
+
 function MoreActions({ notification, index, onAction, onToggle }) {
   const [open, setOpen] = useState(false);
   const containerRef = useRef(null);
   const selectRef = useRef(null);
 
   const toggleDropdown = () => {
-    setOpen(!open);
+    setOpen((prev) => !prev);
   };
 
   useEffect(() => {
@@ -354,40 +363,68 @@ function MoreActions({ notification, index, onAction, onToggle }) {
   }, [open, onToggle]);
 
   useEffect(() => {
-    const handleClickOutside = (event) => {
+    const handleOutsideClick = (event) => {
       if (selectRef.current && !selectRef.current.contains(event.target)) {
         setOpen(false);
       }
     };
-
     if (open) {
-      document.addEventListener('mousedown', handleClickOutside);
-      document.addEventListener('touchstart', handleClickOutside);
+      document.addEventListener("mousedown", handleOutsideClick);
     }
-
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('touchstart', handleClickOutside);
+      document.removeEventListener("mousedown", handleOutsideClick);
     };
   }, [open]);
 
-  const handleClick = (action) => {
-    onAction(notification, action);
-    setOpen(false);
+  const handleClick = async (action) => {
+    try {
+      await onAction(notification, action);
+      setOpen(false);
+    } catch (error) {
+      console.error("Action failed:", error);
+      alert("요청 처리에 실패했습니다. 다시 시도해주세요.");
+    }
   };
+
+  const [coords, setCoords] = useState(null);
+  useEffect(() => {
+    if (open && containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      setCoords({
+        top: rect.bottom,
+        left: rect.left + rect.width / 2,
+      });
+    }
+  }, [open]);
 
   return (
     <div className={styles.notificationContainer} ref={containerRef}>
       <button onClick={toggleDropdown}>더보기</button>
-      {open && (
-        <div className={styles.notificationSelect} ref={selectRef}>
-          <button onClick={() => handleClick("accept")}>예</button>
-          <button onClick={() => handleClick("reject")}>아니오</button>
-          {notification.category === 'SCHEDULE' && (
-            <button onClick={() => handleClick("maybe")}>미정</button>
-          )}
-        </div>
-      )}
+      {open && notificationSelectRoot &&
+        createPortal(
+          <div
+            className={styles.notificationSelect}
+            ref={selectRef}
+            style={
+              coords
+                ? {
+                    position: "fixed",
+                    top: Math.min(coords.top, window.innerHeight - 150),
+                    left: Math.min(coords.left, window.innerWidth - 160),
+                    transform: "translate(-50%, 8px)",
+                  }
+                : undefined
+            }
+          >
+            <button onClick={() => handleClick("accept")}>예</button>
+            <button onClick={() => handleClick("reject")}>아니오</button>
+            {notification.category === 'SCHEDULE' && (
+              <button onClick={() => handleClick("maybe")}>미정</button>
+            )}
+          </div>,
+          notificationSelectRoot
+        )
+      }
     </div>
   );
 }

@@ -1,5 +1,5 @@
 // ScheduleUtility.jsx
-import axios from "axios";
+import axios from 'utils/axiosInstance';
 
 export async function fetchScheduleNotifications(eventId) {
   try {
