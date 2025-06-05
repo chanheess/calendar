@@ -4,10 +4,7 @@ import com.chpark.chcalendar.dto.schedule.ScheduleGroupDto;
 import com.chpark.chcalendar.enumClass.FileAuthority;
 import com.chpark.chcalendar.enumClass.InvitationStatus;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -17,6 +14,7 @@ import java.util.stream.Collectors;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
+@Builder
 @Table(name="schedule_group")
 public class ScheduleGroupEntity {
     @Id
@@ -39,7 +37,6 @@ public class ScheduleGroupEntity {
 
     @Column(name = "user_nickname")
     private String userNickname;
-
 
     public ScheduleGroupEntity(long scheduleId, ScheduleGroupDto scheduleGroupDto) {
         this.authority = scheduleGroupDto.getAuthority();

@@ -4,7 +4,7 @@ import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import koLocale from "@fullcalendar/core/locales/ko";
-import axios from "axios";
+import axios from 'utils/axiosInstance';
 
 import styles from "styles/Calendar.module.css";
 import Popup from "./popups/Popup";

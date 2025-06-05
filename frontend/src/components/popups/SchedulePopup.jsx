@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import styles from "styles/Popup.module.css";
 import Button from "components/Button";
 import Toggle from "components/Toggle";
-import axios from "axios";
+import axios from 'utils/axiosInstance';
 import RepeatPopup from "./RepeatPopup";
 import {
   fetchScheduleNotifications,
@@ -10,7 +10,6 @@ import {
   convertDTOToNotifications,
   convertNotificationsToDTO,
   formatRepeatDetails,
-  getScheduleGroupList,
 } from "components/ScheduleUtility";
 
 
@@ -138,6 +137,7 @@ import {
     ) {
       return;
     }
+
     try {
       // 그룹 내 전체 사용자 가져오기
       const allUsersResponse = await axios.get(
@@ -151,46 +151,64 @@ import {
 
       let invitedUsers = [];
       if (mode === "edit") {
-        invitedUsers = await getScheduleGroupList(scheduleData.id);
+        invitedUsers = await axios.get(`/schedules/${scheduleData.id}/group`, {
+          withCredentials: true,
+          headers: { "Content-Type": "application/json" },
+        }).then(res => res.data);
       }
 
       // create 모드인 경우
       if (mode === "create") {
+
         const mergedUsers = allUsers.map((user) => ({
           ...user,
           selected: false,
           permission: user.userId === currentUserId ? "ADMIN" : "READ",
-          status: "Not selected",
+          status: "PENDING",
           userNickname: user.userNickname || "",
         }));
         setGroupUserList(mergedUsers);
         return;
       }
 
-      // edit 모드인데 invitedUsers가 없다면
+      // edit 모드인데 invitedUsers가 없다면, 서버로부터 다시 fetch 시도
       if (mode === "edit" && invitedUsers.length === 0) {
-        const fallbackUsers = allUsers.map((user) => ({
-          ...user,
-          selected: false,
-          permission: user.userId === currentUserId ? "ADMIN" : "READ",
-          status: "Not selected",
-          userNickname: user.userNickname || "",
-        }));
-        setGroupUserList(fallbackUsers);
-        return;
+        try {
+          const reFetch = await axios.get(`/schedules/${scheduleData.id}/group`, {
+            withCredentials: true,
+            headers: { "Content-Type": "application/json" },
+          }).then(res => res.data);
+
+          if (reFetch.length > 0) {
+            invitedUsers = reFetch;
+          } else {
+            const fallbackUsers = allUsers.map((user) => ({
+              ...user,
+              selected: false,
+              permission: user.userId === currentUserId ? "ADMIN" : "READ",
+              status: "PENDING",
+              userNickname: user.userNickname || "",
+            }));
+            setGroupUserList(fallbackUsers);
+            return;
+          }
+        } catch (e) {
+          console.error("Fallback fetch failed:", e);
+        }
       }
 
       // edit 모드이며 invitedUsers가 있는 경우
       const mergedUsers = allUsers.map((user) => {
         const invited = invitedUsers.find((u) => u.userId === user.userId);
-        if (user.userId === currentUserId) {
-          setParticipationStatus(invited?.status || "Not selected");
+        if (user.userId === currentUserId && invited) {
+          setParticipationStatus(invited.status || "PENDING");
         }
         return {
           ...user,
+          id: invited?.id || null,
           selected: !!invited,
           permission: invited ? (invited.authority || "READ") : "READ",
-          status: invited?.status || "Not selected",
+          status: invited?.status || "PENDING",
           userNickname: user.userNickname || "",
         };
       });
@@ -215,38 +233,38 @@ import {
   }, [isOpen, mode, scheduleData.id, selectedCalendarList, scheduleData.calendarId, loadGroupUsers]);
 
   // 일정/알림/반복 DTO 생성
-  const getScheduleData = () => {
-    const groupDto =
-      selectedCalendarList[scheduleData.calendarId] &&
-      selectedCalendarList[scheduleData.calendarId].category === "GROUP"
-        ? groupUserList
-            .filter((user) => user.selected)
-            .map((user) => ({
-              id: user.id,
-              authority: user.permission,
-              status: "PENDING",
-              userId: user.userId,
-              userNickname: user.userNickname || "",
-            }))
-        : [];
-    return {
-      scheduleDto: {
-        id: scheduleData.id,
-        title: scheduleData.title,
-        description: scheduleData.description,
-        startAt: scheduleData.startAt,
-        endAt: scheduleData.endAt,
-        repeatId: scheduleData.repeatId,
-        userId: scheduleData.userId,
-        calendarId: scheduleData.calendarId,
-      },
-      notificationDto: isNotificationEnabled
-        ? convertNotificationsToDTO(scheduleData.notifications, scheduleData.startAt)
-        : [],
-      repeatDto: isRepeatEnabled ? formatRepeatDetails(scheduleData.repeatDetails) : null,
-      groupDto: groupDto,
+    const getScheduleData = () => {
+      const groupDto =
+        selectedCalendarList[scheduleData.calendarId] &&
+        selectedCalendarList[scheduleData.calendarId].category === "GROUP"
+          ? groupUserList
+              .filter((user) => user.selected)
+              .map((user) => ({
+                id: user.id,
+                authority: user.permission,
+                status: user.status || "PENDING",
+                userId: user.userId,
+                userNickname: user.userNickname || "",
+              }))
+          : [];
+      return {
+        scheduleDto: {
+          id: scheduleData.id,
+          title: scheduleData.title,
+          description: scheduleData.description,
+          startAt: scheduleData.startAt,
+          endAt: scheduleData.endAt,
+          repeatId: scheduleData.repeatId,
+          userId: scheduleData.userId,
+          calendarId: scheduleData.calendarId,
+        },
+        notificationDto: isNotificationEnabled
+          ? convertNotificationsToDTO(scheduleData.notifications, scheduleData.startAt)
+          : [],
+        repeatDto: isRepeatEnabled ? formatRepeatDetails(scheduleData.repeatDetails) : null,
+        groupDto: groupDto,
+      };
     };
-  };
 
   // 참여 여부 수정
   const handleParticipation = async (newStatus) => {
@@ -259,6 +277,7 @@ import {
         withCredentials: true,
         headers: { "Content-Type": "application/json" },
       });
+
       const updatedGroup = response.data;
       setGroupUserList((prevList) =>
         prevList.map((user) =>
@@ -290,7 +309,7 @@ import {
         if (scheduleData.repeatId) {
           openRepeatPopup("save");
         } else {
-          await axios.patch(`/schedules/${scheduleData.id}?repeat=false`, scheduleDTO, {
+          await axios.patch(`/schedules/${scheduleData.id}?repeat=${isRepeatEnabled}`, scheduleDTO, {
               withCredentials: true,
               headers: { "Content-Type": "application/json" },
           });
@@ -529,8 +548,10 @@ import {
                 {isNotificationEnabled && (
                   <div>
                     {scheduleData.notifications.map((notification, index) => (
-                      <div key={index} className={styles.notificationRow}>
+                      <div key={index} className={styles.infoRow}>
+                        <label></label>
                         <input
+                          style={{maxWidth: "211px"}}
                           type="number"
                           value={notification.time}
                           onChange={(e) =>
@@ -540,6 +561,7 @@ import {
                           min="1"
                         />
                         <select
+                          style={{maxWidth: "145px"}}
                           value={notification.unit}
                           onChange={(e) =>
                             handleUpdateNotification(index, "unit", e.target.value)
@@ -550,7 +572,14 @@ import {
                           <option value="hours">시간</option>
                           <option value="days">일</option>
                         </select>
-                        <Button style={{ width: "15%" }} variant="close" size="" onClick={() => handleRemoveNotification(index)}>×</Button>
+                        <Button
+                          style={{ maxWidth: "30px", flex: "1", padding: "5px" }}
+                          variant="close"
+                          size=""
+                          onClick={() => handleRemoveNotification(index)}
+                        >
+                          ×
+                        </Button>
                       </div>
                     ))}
                     <div className={styles.infoRow}>
@@ -581,6 +610,7 @@ import {
                     <div className={styles.infoRow}>
                       <label>반복 간격:</label>
                       <input
+                        style={{maxWidth: "211px"}}
                         type="number"
                         value={scheduleData.repeatDetails.repeatInterval}
                         onChange={(e) =>
@@ -594,6 +624,7 @@ import {
                         }
                       />
                       <select
+                        style={{maxWidth: "186px"}}
                         value={scheduleData.repeatDetails.repeatType}
                         onChange={(e) =>
                           setScheduleData((prevData) => ({

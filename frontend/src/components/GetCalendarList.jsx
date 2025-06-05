@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios from 'utils/axiosInstance';
 
 const GetCalendarList = async (category) => {
   try {

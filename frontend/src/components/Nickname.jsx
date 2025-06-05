@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import styles from "styles/Nickname.module.css";
-import axios from "axios";
+import axios from 'utils/axiosInstance';
 
 const Nickname = ({ variant = "primary", size = "medium", ...props }) => {
   const [nickname, setNickname] = useState(null);

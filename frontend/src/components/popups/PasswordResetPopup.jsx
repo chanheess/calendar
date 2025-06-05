@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import styles from "styles/Popup.module.css";
-import axios from "axios";
+import axios from 'utils/axiosInstance';
 import Button from "components/Button";
 
 const PasswordResetPopup = ({ isOpen, onClose }) => {
