@@ -354,7 +354,7 @@ import {
           headers: { "Content-Type": "application/json" },
         });
         alert("일정이 수정되었습니다.");
-        onClose(true);
+        onClose(true, null, isRepeatEnabled);
       }
     } catch (error) {
       console.error("Error saving schedule:", error.response?.data || error.message);
@@ -370,7 +370,7 @@ import {
           withCredentials: true,
         });
         alert("일정이 삭제되었습니다.");
-        onClose(true);
+        onClose(true, null, isRepeatEnabled);
       }
     } catch (error) {
       alert("Failed to delete schedule.");
@@ -437,13 +437,6 @@ import {
     setGroupUserList((prevList) => {
       const newList = [...prevList];
       newList[index] = { ...newList[index], permission };
-      return newList;
-    });
-  };
-  const handleRemoveGroupUser = (index) => {
-    setGroupUserList((prevList) => {
-      const newList = [...prevList];
-      newList[index] = { ...newList[index], selected: false };
       return newList;
     });
   };
@@ -686,90 +679,82 @@ import {
                       <div style={{ marginTop: "10px" }}>
                         {(mode === "create" || canManageGroup) ? (
                           <>
-                            {/* 관리 가능(ADMIN/소유자) 또는 create 모드 → Available + Selected */}
                             <div style={{ marginBottom: "5px" }}>
                               <div className={styles.infoRow}>
-                              <label>참석 가능 인원:</label>
+                                <label>참석자 관리:</label>
                               </div>
                               <div className={styles.availableUsersContainer}>
                                 <table className={styles.userTable}>
-                                  <thead><tr><th>선택</th><th>닉네임</th></tr></thead>
+                                  <thead>
+                                    <tr>
+                                      <th>
+                                        <input
+                                          type="checkbox"
+                                          checked={groupUserList.every(user => user.selected)}
+                                          onChange={(e) => {
+                                            const isChecked = e.target.checked;
+                                            setGroupUserList(prevList =>
+                                              prevList.map(user => ({
+                                                ...user,
+                                                selected: isChecked,
+                                                status: isChecked ? "PENDING" : user.status
+                                              }))
+                                            );
+                                          }}
+                                          disabled={isReadOnly}
+                                        />
+                                      </th>
+                                      <th>닉네임</th>
+                                      <th>권한</th>
+                                      <th>상태</th>
+                                    </tr>
+                                  </thead>
                                   <tbody>
-                                    {groupUserList.filter((user) => !user.selected).length > 0 ? (
-                                      groupUserList
-                                        .filter((user) => !user.selected)
-                                        .map((user, index) => (
-                                          <tr key={user.id || index}>
-                                            <td>
-                                              <input
-                                                type="checkbox"
-                                                checked={user.selected || false}
+                                    {groupUserList.length > 0 ? (
+                                      groupUserList.map((user, index) => (
+                                        <tr key={user.id || index}>
+                                          <td>
+                                            <input
+                                              type="checkbox"
+                                              checked={user.selected || false}
+                                              onChange={(e) =>
+                                                handleIndividualSelect(
+                                                  groupUserList.findIndex(
+                                                    (u) => u.userId === user.userId
+                                                  ),
+                                                  e.target.checked
+                                                )
+                                              }
+                                              disabled={isReadOnly || (currentUserId === user.userId && mode === "edit")}
+                                            />
+                                          </td>
+                                          <td>{user.userNickname}</td>
+                                          <td>
+                                            {user.selected && (
+                                              <select
+                                                value={user.permission || "READ"}
                                                 onChange={(e) =>
-                                                  handleIndividualSelect(
-                                                    groupUserList.findIndex(
-                                                      (u) => u.userId === user.userId
-                                                    ),
-                                                    e.target.checked
+                                                  handlePermissionChange(
+                                                    groupUserList.findIndex((u) => u.userId === user.userId),
+                                                    e.target.value
                                                   )
                                                 }
-                                                disabled={isReadOnly}
-                                              />
-                                            </td>
-                                            <td>{user.userNickname}</td>
-                                          </tr>
-                                        ))
+                                                disabled={isReadOnly || currentUserId === user.userId}
+                                              >
+                                                <option value="READ">읽기</option>
+                                                <option value="WRITE">일정 수정</option>
+                                                <option value="ADMIN">관리자</option>
+                                              </select>
+                                            )}
+                                          </td>
+                                          <td>
+                                            {user.selected ? getUserStatus(user.status) : "-"}
+                                          </td>
+                                        </tr>
+                                      ))
                                     ) : (
-                                      <tr><td colSpan="2">추가 가능한 사용자가 없습니다</td></tr>
+                                      <tr><td colSpan="4">사용자가 없습니다</td></tr>
                                     )}
-                                  </tbody>
-                                </table>
-                              </div>
-                            </div>
-                            <div style={{ marginTop: "10px" }}>
-                              <div className={styles.infoRow}>
-                              <label>일정 참석자:</label>
-                              </div>
-                              <div className={styles.selectedUsersContainer}>
-                                <table className={styles.userTable}>
-                                  <thead><tr><th>닉네임</th><th>권한</th><th>상태</th><th style={{ textAlign: "center" }}>x</th></tr></thead>
-                                  <tbody>
-                                    {groupUserList.filter((user) => user.selected).map((user, index) => (
-                                      <tr key={user.id || index}>
-                                        <td>{user.userNickname}</td>
-                                        <td>
-                                          <select
-                                            value={user.permission || "READ"}
-                                            onChange={(e) =>
-                                              handlePermissionChange(
-                                                groupUserList.findIndex((u) => u.userId === user.userId),
-                                                e.target.value
-                                              )
-                                            }
-                                            disabled={isReadOnly || currentUserId === user.userId}
-                                          >
-                                            <option value="READ">읽기</option>
-                                            <option value="WRITE">일정 수정</option>
-                                            <option value="ADMIN">관리자</option>
-                                          </select>
-                                        </td>
-                                        <td>{getUserStatus(user.status)}</td>
-                                        <td>
-                                          <Button
-                                            variant="close"
-                                            size="verySmall"
-                                            type="button"
-                                            onClick={() =>
-                                              handleRemoveGroupUser(
-                                                groupUserList.findIndex((u) => u.userId === user.userId)
-                                              )
-                                            }
-                                            disabled={isReadOnly}
-                                          >
-                                            ×
-                                          </Button>
-                                        </td>
-                                      </tr>
-                                    ))}
                                   </tbody>
                                 </table>
                               </div>
