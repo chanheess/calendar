@@ -382,7 +382,15 @@ const CalendarComponent = forwardRef(({ selectedCalendarList, refreshKey, refres
   }, []);
 
   // 새로운 일정을 기존 이벤트 배열에 추가하는 함수
-  const addNewEventToCalendar = (newEventData) => {
+  const addNewEventToCalendar = (newEventData, isRepeatEnabled) => {
+    // 반복 일정이거나 반복 설정이 활성화된 경우 전체 리프레시
+    if (newEventData.repeatId || isRepeatEnabled) {
+      if (typeof refreshSchedules === "function") {
+        refreshSchedules();
+      }
+      return;
+    }
+
     const formattedEvent = {
       id: newEventData.id,
       title: newEventData.title,
@@ -606,11 +614,11 @@ const CalendarComponent = forwardRef(({ selectedCalendarList, refreshKey, refres
           isOpen={schedulePopupVisible}
           mode={schedulePopupMode}
           eventDetails={schedulePopupData}
-          onClose={(updated, newEventData) => {
+          onClose={(updated, newEventData, isRepeatEnabled) => {
             setSchedulePopupVisible(false);
             if (updated) {
               if (schedulePopupMode === 'create' && newEventData) {
-                addNewEventToCalendar(newEventData);
+                addNewEventToCalendar(newEventData, isRepeatEnabled);
               } else {
                 // 수정이나 삭제의 경우는 전체 리프레시
                 if (typeof refreshSchedules === "function") {

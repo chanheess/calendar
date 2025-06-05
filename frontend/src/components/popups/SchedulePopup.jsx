@@ -304,7 +304,7 @@ import {
           headers: { "Content-Type": "application/json" },
         });
         alert("일정이 생성되었습니다.");
-        onClose(true, response.data.scheduleDto);
+        onClose(true, response.data.scheduleDto, isRepeatEnabled);
       } else if (mode === "edit") {
         if (scheduleData.repeatId) {
           openRepeatPopup("save");
