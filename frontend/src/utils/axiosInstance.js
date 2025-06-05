@@ -14,7 +14,7 @@ axios.interceptors.response.use(
       !originalRequest._retry
     ) {
       if (!refreshPromise) {
-        refreshPromise = axios.post('/auth/refresh')
+        refreshPromise = axios.post('/auth/refresh', null, { withCredentials: true })
           .then(res => {
             const newToken = res.data.accessToken;
             axios.defaults.headers.common['Authorization'] = 'Bearer ' + newToken;
