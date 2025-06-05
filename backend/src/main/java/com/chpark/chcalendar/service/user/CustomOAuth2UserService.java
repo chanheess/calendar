@@ -11,6 +11,7 @@ import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserServ
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
+import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -48,7 +49,9 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
                 .anyMatch(p -> p.getProvider().equalsIgnoreCase(provider));
 
         if (!matched) {
-            throw new OAuth2AuthenticationException("해당 이메일은 다른 로그인 방식으로 이미 가입되어 있습니다.");
+            throw new OAuth2AuthenticationException(
+                    new OAuth2Error("invalid_provider", "해당 이메일은 다른 로그인 방식으로 이미 가입되어 있습니다.", null)
+            );
         }
     }
 

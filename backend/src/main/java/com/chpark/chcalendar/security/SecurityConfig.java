@@ -25,6 +25,7 @@ public class SecurityConfig {
     private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
     private final CustomOAuth2UserService customOAuth2UserService;
     private final OAuth2SuccessHandler oAuth2SuccessHandler;
+    private final OAuth2FailureHandler oAuth2FailureHandler;
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
@@ -52,7 +53,7 @@ public class SecurityConfig {
                         .userService(customOAuth2UserService)
                     )
                     .successHandler(oAuth2SuccessHandler)
-//                    .failureHandler()
+                    .failureHandler(oAuth2FailureHandler)
                 )
                 .cors(cors -> cors
                     .configurationSource(request -> {

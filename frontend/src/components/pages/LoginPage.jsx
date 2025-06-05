@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from 'utils/axiosInstance';
 import styles from "styles/Login.module.css";
@@ -12,6 +12,19 @@ const LoginPage = () => {
   const [passwordResetPopupVisible, setPasswordResetPopupVisible] = useState(false);
 
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const cookies = document.cookie.split(";").map(c => c.trim());
+    const errorCookie = cookies.find(c => c.startsWith("login_error="));
+    if (errorCookie) {
+      const rawValue = errorCookie.split("=")[1];
+      const decodedValue = decodeURIComponent(rawValue.replace(/\+/g, " "));
+      alert(decodedValue);
+
+      // Clear the cookie
+      document.cookie = "login_error=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    }
+  }, []);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -30,7 +43,7 @@ const LoginPage = () => {
       navigate("/"); // 로그인 성공 시 리다이렉트
     } catch (error) {
       if (error.response && error.response.data) {
-        alert("Invalid email or password.");
+        alert("로그인에 실패했습니다. 다시 시도해주세요.");
         setErrorMessage(error.response.data.message || "Unknown error occurred");
       } else {
         setErrorMessage(error.message);
