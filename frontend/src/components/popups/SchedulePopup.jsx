@@ -455,6 +455,21 @@ import {
     }
   };
 
+  // 참석 상태 통계 계산
+  const getParticipationStats = () => {
+    const stats = {
+      ACCEPTED: 0,
+      DECLINED: 0,
+      PENDING: 0
+    };
+
+    selectedUsers.forEach(user => {
+      stats[user.status] = (stats[user.status] || 0) + 1;
+    });
+
+    return `참석: ${stats.ACCEPTED}  불참: ${stats.DECLINED}  미정: ${stats.PENDING}`;
+  };
+
   return (
     <>
       {repeatPopupVisible && (
@@ -666,7 +681,6 @@ import {
                           const newShowValue = !showGroupUsers;
                           setShowGroupUsers(newShowValue);
                           if (!newShowValue) {
-                            // 토글 끄면 모든 사용자의 선택 해제
                             setGroupUserList((prevList) =>
                               prevList.map((user) => ({ ...user, selected: false }))
                             );
@@ -682,6 +696,15 @@ import {
                             <div style={{ marginBottom: "5px" }}>
                               <div className={styles.infoRow}>
                                 <label>참석자 관리:</label>
+                                {selectedUsers.length > 0 && (
+                                  <span style={{ 
+                                    fontSize: "14px",
+                                    color: "#666",
+                                    marginLeft: "8px"
+                                  }}>
+                                    {getParticipationStats()}
+                                  </span>
+                                )}
                               </div>
                               <div className={styles.availableUsersContainer}>
                                 <table className={styles.userTable}>
