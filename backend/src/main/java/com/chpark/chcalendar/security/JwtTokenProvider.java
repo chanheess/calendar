@@ -65,6 +65,12 @@ public class JwtTokenProvider {
 
     // 쿠키에서 JWT 토큰 추출
     public String resolveToken(HttpServletRequest request, String tokenName) {
+        // Authorization 헤더 먼저 확인
+        String bearerToken = request.getHeader("Authorization");
+        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
+            return bearerToken.substring(7); // "Bearer " 이후 토큰
+        }
+
         if (request.getCookies() != null) {
             for (Cookie cookie : request.getCookies()) {
                 if (tokenName.equals(cookie.getName())) {
@@ -101,14 +107,14 @@ public class JwtTokenProvider {
         return new UsernamePasswordAuthenticationToken(username, "", Collections.emptyList());
     }
 
-    public int getUserIdFromToken(String token) {
+    public Long getUserIdFromToken(String token) {
         Claims claims = Jwts.parserBuilder()
                 .setSigningKey(key)
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
 
-        Integer userId = claims.get("userId", Integer.class);
+        Long userId = claims.get("userId", Long.class);
         return userId != null ? userId : 0;
     }
 

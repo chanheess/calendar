@@ -24,11 +24,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
-        if (request.getRequestURI().startsWith("/api/auth/login") || request.getRequestURI().startsWith("/api/auth/refresh")) {
-            filterChain.doFilter(request, response);
-            return;
-        }
-
         String token = jwtTokenProvider.resolveToken(request, JwtTokenType.ACCESS.getValue());
 
         if (token != null && jwtTokenProvider.validateToken(token, JwtTokenType.ACCESS)) {
@@ -37,6 +32,19 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+        String path = request.getRequestURI();
+        return path.startsWith("/swagger-ui") ||
+               path.startsWith("/v3/api-docs") ||
+               path.startsWith("/swagger-resources") ||
+               path.startsWith("/webjars") ||
+               path.equals("/swagger-ui.html") ||
+               path.equals("/swagger-ui/index.html") ||
+               path.contains("/swagger-ui/") ||
+               path.contains("/v3/api-docs/");
     }
 
 }

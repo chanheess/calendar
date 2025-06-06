@@ -62,7 +62,7 @@ class UserControllerTest {
         when(jwtTokenProvider.resolveToken(any(HttpServletRequest.class), eq(JwtTokenType.ACCESS.getValue())))
                 .thenReturn("mockedToken");
         when(jwtTokenProvider.getUserIdFromToken("mockedToken"))
-                .thenReturn(1234);
+                .thenReturn(1234L);
 
         // MockMvc 설정
         mockMvc = MockMvcBuilders.webAppContextSetup(context).build();
