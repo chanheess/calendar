@@ -24,6 +24,7 @@ const ProfilePage = () => {
     } catch (error) {
       console.error("Failed to fetch user info:", error);
       alert("사용자 정보를 가져오지 못했습니다. 다시 시도해주세요.");
+
     }
   };
 
@@ -160,6 +161,15 @@ const ProfilePage = () => {
             비밀번호 변경
           </Button>
         </form>
+
+        <hr className={styles.divider} />
+        <button
+          className={styles.googleButton}
+          onClick={() => window.location.href = `${process.env.REACT_APP_DOMAIN}/oauth2/authorization/google`}
+        >
+          <img src="/images/google-logo.svg" alt="Google" className={styles.googleIcon} />
+          <span className={styles.googleText}>Google 계정 연동</span>
+        </button>
       </div>
     </div>
   );

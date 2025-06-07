@@ -95,7 +95,7 @@ const LoginPage = () => {
       <hr className={styles.divider} />
       <button
         className={styles.googleButton}
-        onClick={() => window.location.href = "https://localhost/oauth2/authorization/google"}
+        onClick={() => window.location.href = `${process.env.REACT_APP_DOMAIN}/oauth2/authorization/google`}
       >
         <img src="/images/google-logo.svg" alt="Google" className={styles.googleIcon} />
         <span className={styles.googleText}>Google 계정으로 로그인</span>
