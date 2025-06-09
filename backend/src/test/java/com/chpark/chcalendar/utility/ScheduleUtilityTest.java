@@ -1,6 +1,6 @@
 package com.chpark.chcalendar.utility;
 
-import com.chpark.chcalendar.dto.UserDto;
+import com.chpark.chcalendar.dto.user.UserDto;
 import com.chpark.chcalendar.entity.UserEntity;
 import com.chpark.chcalendar.enumClass.ScheduleRepeatType;
 import org.junit.jupiter.api.Test;

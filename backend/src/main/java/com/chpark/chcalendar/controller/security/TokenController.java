@@ -1,4 +1,4 @@
-package com.chpark.chcalendar.controller;
+package com.chpark.chcalendar.controller.security;
 
 import com.chpark.chcalendar.dto.security.JwtAuthenticationResponseDto;
 import com.chpark.chcalendar.enumClass.JwtTokenType;

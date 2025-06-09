@@ -1,6 +1,6 @@
 package com.chpark.chcalendar.service;
 
-import com.chpark.chcalendar.dto.UserDto;
+import com.chpark.chcalendar.dto.user.UserDto;
 import com.chpark.chcalendar.dto.calendar.CalendarInfoDto;
 import com.chpark.chcalendar.dto.security.JwtAuthenticationResponseDto;
 import com.chpark.chcalendar.entity.UserEntity;

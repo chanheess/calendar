@@ -1,4 +1,4 @@
-package com.chpark.chcalendar.dto;
+package com.chpark.chcalendar.dto.user;
 
 import com.chpark.chcalendar.entity.UserEntity;
 import jakarta.validation.constraints.Email;

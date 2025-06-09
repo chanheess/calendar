@@ -1,10 +1,12 @@
 package com.chpark.chcalendar.service.user;
 
-import com.chpark.chcalendar.dto.UserDto;
+import com.chpark.chcalendar.dto.user.UserDto;
 import com.chpark.chcalendar.entity.UserEntity;
+import com.chpark.chcalendar.entity.UserProviderEntity;
 import com.chpark.chcalendar.repository.user.UserRepository;
 import com.chpark.chcalendar.service.calendar.UserCalendarService;
 import com.chpark.chcalendar.utility.KeyGeneratorUtility;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
@@ -15,6 +17,8 @@ import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 @RequiredArgsConstructor
 @Service
@@ -31,13 +35,29 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
 
         String registrationId = userRequest.getClientRegistration().getRegistrationId();
         String email = oauth2User.getAttribute("email");
+        
+        // 세션에서 요청 타입 확인
+        HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
+        String type = (String) request.getSession().getAttribute("oauth2_type");
 
         UserEntity user = userRepository.findByEmail(email)
                 .orElse(null);
 
         if (user != null) {
-            validateUser(user, registrationId);
+            if ("link".equals(type)) {
+                // 계정 연동 요청인 경우 - 기존 사용자에 provider 추가
+                addUserProvider(user, registrationId);
+            } else {
+                // 일반 로그인인 경우 - provider 확인
+                validateUser(user, registrationId);
+            }
         } else {
+            // 신규 사용자인 경우
+            if ("link".equals(type)) {
+                throw new OAuth2AuthenticationException(
+                    new OAuth2Error("invalid_request", "연동할 계정이 존재하지 않습니다.", null)
+                );
+            }
             registerUser(email, registrationId);
         }
 
@@ -56,20 +76,33 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
     }
 
     private void registerUser(String email, String provider) {
-        //랜덤 닉네임, 패스워드 생성
         String nickname = KeyGeneratorUtility.generateRandomString(20);
-        String password = KeyGeneratorUtility.generateRandomString(100);
+        String password = KeyGeneratorUtility.generateRandomString(20);
 
         UserDto.RegisterRequest registerDto = UserDto.RegisterRequest.builder()
                 .email(email)
                 .password(password)
                 .nickname(nickname)
-                .emailCode("") // 이메일 인증 코드 없이 가입
+                .emailCode("")
                 .provider(provider)
                 .build();
 
         UserEntity user = userRepository.save(UserEntity.createWithEncodedPassword(registerDto, passwordEncoder));
-
         userCalendarService.create(user.getId(), "내 캘린더");
+    }
+
+    private void addUserProvider(UserEntity user, String provider) {
+        boolean matched = user.getProviders().stream()
+                .anyMatch(p -> p.getProvider().equalsIgnoreCase(provider));
+
+        if (matched) {
+            return; // 이미 연동된 경우
+        }
+
+        UserProviderEntity providerEntity = new UserProviderEntity();
+        providerEntity.setProvider(provider);
+        user.addProvider(providerEntity);
+
+        userRepository.save(user);
     }
 }

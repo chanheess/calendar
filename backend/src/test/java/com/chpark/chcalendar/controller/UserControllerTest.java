@@ -1,7 +1,7 @@
 package com.chpark.chcalendar.controller;
 
 import com.chpark.chcalendar.DotenvInitializer;
-import com.chpark.chcalendar.dto.UserDto;
+import com.chpark.chcalendar.dto.user.UserDto;
 import com.chpark.chcalendar.enumClass.JwtTokenType;
 import com.chpark.chcalendar.security.JwtAuthenticationFilter;
 import com.chpark.chcalendar.security.JwtTokenProvider;

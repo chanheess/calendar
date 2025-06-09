@@ -1,6 +1,6 @@
 package com.chpark.chcalendar.entity;
 
-import com.chpark.chcalendar.dto.UserDto;
+import com.chpark.chcalendar.dto.user.UserDto;
 import com.chpark.chcalendar.exception.authentication.PasswordAuthenticationException;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -9,9 +9,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 @Getter

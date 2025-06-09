@@ -24,6 +24,17 @@ const LoginPage = () => {
       // Clear the cookie
       document.cookie = "login_error=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
     }
+
+    // OAuth 에러 처리
+    const oauthErrorCookie = cookies.find(c => c.startsWith("oauth_error="));
+    if (oauthErrorCookie) {
+      const rawValue = oauthErrorCookie.split("=")[1];
+      const decodedValue = decodeURIComponent(rawValue.replace(/\+/g, " "));
+      alert(decodedValue);
+
+      // Clear the cookie
+      document.cookie = "oauth_error=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    }
   }, []);
 
   const handleSubmit = async (event) => {
@@ -48,6 +59,20 @@ const LoginPage = () => {
       } else {
         setErrorMessage(error.message);
       }
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    try {
+      const response = await axios.post("/auth/oauth2/login", null, {
+        withCredentials: true
+      });
+      
+      // 응답으로 받은 URL로 리다이렉트
+      window.location.href = `${process.env.REACT_APP_DOMAIN}${response.data}`;
+    } catch (error) {
+      console.error("Failed to initiate Google login:", error);
+      alert("Google 로그인을 시작할 수 없습니다. 다시 시도해주세요.");
     }
   };
 
@@ -95,7 +120,7 @@ const LoginPage = () => {
       <hr className={styles.divider} />
       <button
         className={styles.googleButton}
-        onClick={() => window.location.href = `${process.env.REACT_APP_DOMAIN}/oauth2/authorization/google`}
+        onClick={handleGoogleLogin}
       >
         <img src="/images/google-logo.svg" alt="Google" className={styles.googleIcon} />
         <span className={styles.googleText}>Google 계정으로 로그인</span>

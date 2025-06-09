@@ -28,8 +28,18 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
                                         Authentication authentication) throws IOException {
         OAuth2User oauth2User = (OAuth2User) authentication.getPrincipal();
         String email = oauth2User.getAttribute("email");
+        String type = (String) request.getSession().getAttribute("oauth2_type");
 
-        // 사용자로부터 JWT 발급
+        // 세션에서 타입 정보 제거
+        request.getSession().removeAttribute("oauth2_type");
+
+        if ("link".equals(type)) {
+            // 계정 연동인 경우 JWT 토큰 발급하지 않고 프로필 페이지로 리다이렉트
+            response.sendRedirect(homeUrl + "/user/profile");
+            return;
+        }
+
+        // 로그인인 경우 - JWT 토큰 발급
         String accessToken = oAuth2JwtTokenProvider.generateToken(email, JwtTokenType.ACCESS);
         String refreshToken = oAuth2JwtTokenProvider.generateToken(email, JwtTokenType.REFRESH);
 
@@ -49,7 +59,7 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
                 .build();
         response.addHeader("Set-Cookie", refreshCookie.toString());
 
-        // 리다이렉트
-        response.sendRedirect(homeUrl); // 로그인 후 이동할 페이지
+        // 로그인 후 홈으로 리다이렉트
+        response.sendRedirect(homeUrl);
     }
 }

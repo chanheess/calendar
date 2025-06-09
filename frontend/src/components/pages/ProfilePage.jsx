@@ -11,10 +11,26 @@ const ProfilePage = () => {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isNicknameChanged, setIsNicknameChanged] = useState(false);
+  const [providers, setProviders] = useState([]);
 
   useEffect(() => {
     fetchUserInfo();
+    fetchProviders();
+    checkOAuthError();
   }, []);
+
+  const checkOAuthError = () => {
+    const cookies = document.cookie.split(";").map(c => c.trim());
+    const errorCookie = cookies.find(c => c.startsWith("oauth_error="));
+    if (errorCookie) {
+      const rawValue = errorCookie.split("=")[1];
+      const decodedValue = decodeURIComponent(rawValue.replace(/\+/g, " "));
+      alert(decodedValue);
+
+      // Clear the cookie
+      document.cookie = "oauth_error=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+    }
+  };
 
   const fetchUserInfo = async () => {
     try {
@@ -23,8 +39,15 @@ const ProfilePage = () => {
       setNickname(response.data.nickname);
     } catch (error) {
       console.error("Failed to fetch user info:", error);
-      alert("사용자 정보를 가져오지 못했습니다. 다시 시도해주세요.");
+    }
+  };
 
+  const fetchProviders = async () => {
+    try {
+      const response = await axios.get("/check/provider", { withCredentials: true });
+      setProviders(response.data);
+    } catch (error) {
+      console.error("Failed to fetch providers:", error);
     }
   };
 
@@ -79,6 +102,22 @@ const ProfilePage = () => {
     setNickname(value);
     setIsNicknameChanged(value !== email && value.trim() !== "");
   };
+
+  const handleGoogleLink = async () => {
+    try {
+      const response = await axios.post("/auth/oauth2/link", null, {
+        withCredentials: true
+      });
+      
+      // 응답으로 받은 URL로 리다이렉트
+      window.location.href = `${process.env.REACT_APP_DOMAIN}${response.data}`;
+    } catch (error) {
+      console.error("Failed to initiate Google account linking:", error);
+      alert("Google 계정 연동을 시작할 수 없습니다. 다시 시도해주세요.");
+    }
+  };
+
+  const isGoogleLinked = providers.some(provider => provider.provider.toLowerCase() === "google");
 
   return (
     <div>
@@ -163,12 +202,16 @@ const ProfilePage = () => {
         </form>
 
         <hr className={styles.divider} />
+        
         <button
           className={styles.googleButton}
-          onClick={() => window.location.href = `${process.env.REACT_APP_DOMAIN}/oauth2/authorization/google`}
+          onClick={isGoogleLinked ? undefined : handleGoogleLink}
+          disabled={isGoogleLinked}
         >
           <img src="/images/google-logo.svg" alt="Google" className={styles.googleIcon} />
-          <span className={styles.googleText}>Google 계정 연동</span>
+          <span className={styles.googleText}>
+            {isGoogleLinked ? "Google 계정 연동됨" : "Google 계정 연동"}
+          </span>
         </button>
       </div>
     </div>

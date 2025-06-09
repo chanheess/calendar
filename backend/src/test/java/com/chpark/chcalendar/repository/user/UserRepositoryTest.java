@@ -1,7 +1,7 @@
 package com.chpark.chcalendar.repository.user;
 
 import com.chpark.chcalendar.DotenvInitializer;
-import com.chpark.chcalendar.dto.UserDto;
+import com.chpark.chcalendar.dto.user.UserDto;
 import com.chpark.chcalendar.entity.UserEntity;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;

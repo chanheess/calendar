@@ -1,7 +1,7 @@
 package com.chpark.chcalendar.service;
 
 import com.chpark.chcalendar.DotenvInitializer;
-import com.chpark.chcalendar.dto.UserDto;
+import com.chpark.chcalendar.dto.user.UserDto;
 import com.chpark.chcalendar.entity.UserEntity;
 import com.chpark.chcalendar.repository.user.UserRepository;
 import com.chpark.chcalendar.service.user.UserService;
