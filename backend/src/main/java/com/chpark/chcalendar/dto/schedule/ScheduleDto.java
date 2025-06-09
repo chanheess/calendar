@@ -38,7 +38,7 @@ public class ScheduleDto {
     private long userId;    //create에서는 필요하지 않음
 
     @NotNull(groups = ValidGroup.CreateGroup.class)
-    private long calendarId;
+    private Long calendarId;
 
     public ScheduleDto(String title, String description, LocalDateTime startAt, LocalDateTime endAt, Long calendarId) {
         this.title = title;
