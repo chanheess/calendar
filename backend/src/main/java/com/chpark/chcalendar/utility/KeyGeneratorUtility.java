@@ -1,8 +1,5 @@
 package com.chpark.chcalendar.utility;
 
-import com.chpark.chcalendar.enumClass.JwtTokenType;
-import org.springframework.http.ResponseCookie;
-
 import java.security.SecureRandom;
 import java.util.UUID;
 

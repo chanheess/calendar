@@ -7,10 +7,13 @@ import com.chpark.chcalendar.entity.CalendarInfoEntity;
 import com.chpark.chcalendar.entity.GroupUserEntity;
 import com.chpark.chcalendar.enumClass.CalendarCategory;
 import com.chpark.chcalendar.enumClass.GroupAuthority;
+import com.chpark.chcalendar.enumClass.JwtTokenType;
 import com.chpark.chcalendar.repository.CalendarInfoRepository;
+import com.chpark.chcalendar.security.JwtTokenProvider;
 import com.chpark.chcalendar.service.user.GroupUserService;
 import com.chpark.chcalendar.service.user.UserService;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -20,6 +23,7 @@ import java.util.List;
 @Service
 public class GroupCalendarService implements CalendarService {
 
+    private final JwtTokenProvider jwtTokenProvider;
     private final CalendarInfoRepository calendarInfoRepository;
     private final GroupUserService groupUserService;
     private final UserService userService;
@@ -51,7 +55,10 @@ public class GroupCalendarService implements CalendarService {
     }
 
     @Override
-    public List<CalendarInfoDto.Response> findCalendarList(long userId) {
+    public List<CalendarInfoDto.Response> findCalendarList(HttpServletRequest request) {
+        String token = jwtTokenProvider.resolveToken(request, JwtTokenType.ACCESS.getValue());
+        long userId = jwtTokenProvider.getUserIdFromToken(token);
+
         return groupUserService.findMyGroup(userId);
     }
 

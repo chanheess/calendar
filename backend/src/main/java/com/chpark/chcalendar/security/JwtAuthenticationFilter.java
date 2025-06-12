@@ -5,8 +5,10 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -24,9 +26,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
+
+        String googleToken = jwtTokenProvider.resolveToken(request, JwtTokenType.GOOGLE_ACCESS.getValue());
         String token = jwtTokenProvider.resolveToken(request, JwtTokenType.ACCESS.getValue());
 
-        if (token != null && jwtTokenProvider.validateToken(token, JwtTokenType.ACCESS)) {
+        if (googleToken != null) {
+            Authentication googleAuth = new UsernamePasswordAuthenticationToken("google_user", null, null);
+            SecurityContextHolder.getContext().setAuthentication(googleAuth);
+        } else if (token != null && jwtTokenProvider.validateToken(token, JwtTokenType.ACCESS)) {
             Authentication auth = jwtTokenProvider.getAuthentication(token);
             SecurityContextHolder.getContext().setAuthentication(auth);
         }

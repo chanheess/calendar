@@ -1,8 +1,10 @@
 package com.chpark.chcalendar.security;
 
 import com.chpark.chcalendar.dto.security.JwtAuthenticationResponseDto;
+import com.chpark.chcalendar.entity.UserEntity;
 import com.chpark.chcalendar.enumClass.JwtTokenType;
 import com.chpark.chcalendar.exception.authentication.TokenAuthenticationException;
+import com.chpark.chcalendar.repository.user.UserRepository;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -10,16 +12,19 @@ import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
 import java.util.Collections;
 import java.util.Date;
 
+@RequiredArgsConstructor
 @Component
 public class JwtTokenProvider {
     @Value("${JWT_SECRET}")
@@ -42,12 +47,14 @@ public class JwtTokenProvider {
         this.key = Keys.hmacShaKeyFor(Decoders.BASE64.decode(SECRET_KEY));
     }
 
+    private final UserRepository userRepository;
+
     // JWT 토큰 생성
     public String generateToken(Authentication authentication, long userId, JwtTokenType tokenType) {
         String username;
         Object principal = authentication.getPrincipal();
-        if (principal instanceof org.springframework.security.core.userdetails.UserDetails) {
-            username = ((org.springframework.security.core.userdetails.UserDetails) principal).getUsername();
+        if (principal instanceof UserDetails) {
+            username = ((UserDetails) principal).getUsername();
         } else {
             username = principal.toString();
         }
@@ -60,6 +67,26 @@ public class JwtTokenProvider {
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + expirationTime))
                 .signWith(key, signatureAlgorithm)
+                .compact();
+    }
+
+    public String generateToken(String email, JwtTokenType tokenType) {
+        UserEntity userEntity = userRepository.findByEmail(email).orElseThrow(
+                () -> new OAuth2AuthenticationException("존재하지 않는 사용자입니다.")
+        );
+
+        long expiration = switch (tokenType) {
+            case ACCESS -> getEXPIRATION_TIME();
+            case REFRESH -> getREFRESH_EXPIRATION_TIME();
+            case GOOGLE_ACCESS, GOOGLE_REFRESH -> 0L;
+        };
+
+        return Jwts.builder()
+                .setSubject(email)
+                .claim("userId", userEntity.getId())
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + expiration))
+                .signWith(getKey(), getSignatureAlgorithm())
                 .compact();
     }
 

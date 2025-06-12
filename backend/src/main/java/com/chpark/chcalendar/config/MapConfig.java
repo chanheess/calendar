@@ -17,10 +17,12 @@ public class MapConfig {
     @Bean
     public Map<CalendarCategory, CalendarService> calendarServiceMap(
             @Qualifier("userCalendarService") CalendarService userCalendarService,
-            @Qualifier("groupCalendarService") CalendarService groupCalendarService) {
+            @Qualifier("groupCalendarService") CalendarService groupCalendarService,
+            @Qualifier("googleCalendarService") CalendarService googleCalendarService) {
         Map<CalendarCategory, CalendarService> serviceMap = new HashMap<>();
         serviceMap.put(CalendarCategory.USER, userCalendarService);
         serviceMap.put(CalendarCategory.GROUP, groupCalendarService);
+        serviceMap.put(CalendarCategory.GOOGLE, googleCalendarService);
         return serviceMap;
     }
 

@@ -26,13 +26,9 @@ public class CalendarController {
     @GetMapping("/calendars")
     public ResponseEntity<List<CalendarInfoDto.Response>> getCalendarList(@RequestParam(value = "category", required = false) CalendarCategory category,
                                                            HttpServletRequest request) {
-
-        String token = jwtTokenProvider.resolveToken(request, JwtTokenType.ACCESS.getValue());
-        long userId = jwtTokenProvider.getUserIdFromToken(token);
-
         CalendarService calendar = calendarService.get(category);
 
-        return ResponseEntity.ok(calendar.findCalendarList(userId));
+        return ResponseEntity.ok(calendar.findCalendarList(request));
     }
 
     @PostMapping("/calendars")

@@ -5,8 +5,11 @@ import com.chpark.chcalendar.dto.calendar.CalendarColorDto;
 import com.chpark.chcalendar.dto.calendar.CalendarInfoDto;
 import com.chpark.chcalendar.entity.CalendarInfoEntity;
 import com.chpark.chcalendar.enumClass.CalendarCategory;
+import com.chpark.chcalendar.enumClass.JwtTokenType;
 import com.chpark.chcalendar.repository.CalendarInfoRepository;
+import com.chpark.chcalendar.security.JwtTokenProvider;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -17,6 +20,7 @@ import java.util.List;
 public class UserCalendarService implements CalendarService {
 
     private final CalendarInfoRepository calendarInfoRepository;
+    private final JwtTokenProvider jwtTokenProvider;
 
     @Override
     public CalendarInfoDto.Response create(long userId, String title) {
@@ -33,7 +37,9 @@ public class UserCalendarService implements CalendarService {
     }
 
     @Override
-    public List<CalendarInfoDto.Response> findCalendarList(long userId) {
+    public List<CalendarInfoDto.Response> findCalendarList(HttpServletRequest request) {
+        String token = jwtTokenProvider.resolveToken(request, JwtTokenType.ACCESS.getValue());
+        long userId = jwtTokenProvider.getUserIdFromToken(token);
 
         return CalendarInfoDto.Response.fromCalendarEntityList(
                 calendarInfoRepository.findByAdminIdAndCategory(userId, CalendarCategory.USER)

@@ -80,6 +80,9 @@ public class UserService {
 
             redisService.deleteVerificationData(RequestType.LOGIN, ipAddress);
 
+            //추가해야 됨
+
+
             // JWT 토큰 생성 후 반환
             return new JwtAuthenticationResponseDto(
                     jwtTokenProvider.generateToken(authentication, userEntity.getId(), JwtTokenType.ACCESS),

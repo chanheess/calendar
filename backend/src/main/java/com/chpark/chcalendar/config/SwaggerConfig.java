@@ -17,7 +17,8 @@ public class SwaggerConfig {
     @Bean
     public OpenAPI customOpenAPI() {
         final String securitySchemeName = "bearerAuth";
-        
+        final String googleSchemeName = "googleAccessToken";
+
         return new OpenAPI()
                 .info(new Info()
                         .title("API 문서")
@@ -35,7 +36,17 @@ public class SwaggerConfig {
                                         .bearerFormat("JWT")
                                         .description("JWT 토큰을 입력해주세요. (Bearer 제외)")
                         )
+                        .addSecuritySchemes(googleSchemeName,
+                                new SecurityScheme()
+                                        .name(googleSchemeName)
+                                        .type(SecurityScheme.Type.HTTP)
+                                        .scheme("bearer")
+                                        .bearerFormat("Google Access Token")
+                                        .description("구글 액세스 토큰을 입력해주세요. (Bearer 제외)")
+                        )
                 )
-                .addSecurityItem(new SecurityRequirement().addList(securitySchemeName));
+                .addSecurityItem(new SecurityRequirement()
+                        .addList(securitySchemeName)
+                        .addList(googleSchemeName));
     }
 }

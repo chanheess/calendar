@@ -107,7 +107,9 @@ public class ScheduleService {
             schedule.setRepeatId(null);
         }
 
-        schedule.setCalendarId(scheduleDto.getCalendarId());
+        if (scheduleDto.getCalendarId() != null) {
+            schedule.setCalendarId(scheduleDto.getCalendarId());
+        }
 
         return new ScheduleDto(scheduleRepository.save(schedule));
     }

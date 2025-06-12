@@ -6,6 +6,7 @@ import com.chpark.chcalendar.enumClass.CalendarCategory;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -31,13 +32,20 @@ public class CalendarInfoDto {
     }
 
     @Getter
-    @AllArgsConstructor
     @NoArgsConstructor
     public static class Response extends CalendarInfoDto {
 
         private long id;
         private String color;
         private CalendarCategory category;
+
+        @Builder
+        public Response(@Size(min = 1, max = 20) String title, long id, String color, CalendarCategory category) {
+            super(title);
+            this.id = id;
+            this.color = color;
+            this.category = category;
+        }
 
         public Response(CalendarInfoEntity entity) {
             super(entity.getTitle());

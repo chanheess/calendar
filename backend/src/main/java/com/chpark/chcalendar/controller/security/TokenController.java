@@ -3,6 +3,7 @@ package com.chpark.chcalendar.controller.security;
 import com.chpark.chcalendar.dto.security.JwtAuthenticationResponseDto;
 import com.chpark.chcalendar.enumClass.JwtTokenType;
 import com.chpark.chcalendar.security.JwtTokenProvider;
+import com.chpark.chcalendar.utility.CookieUtility;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -23,21 +24,8 @@ public class TokenController {
     public ResponseEntity<String> renewAccessToken(HttpServletRequest request, HttpServletResponse response) {
         JwtAuthenticationResponseDto responseTokenDto = jwtTokenProvider.renewAccessToken(request);
 
-        ResponseCookie cookie = ResponseCookie.from(JwtTokenType.ACCESS.getValue(), responseTokenDto.getAccessToken())
-                .httpOnly(true)
-                .secure(true)
-                .path("/")
-                .maxAge(60 * 60)
-                .build();
-        response.addHeader("Set-Cookie", cookie.toString());
-
-        ResponseCookie refreshCookie = ResponseCookie.from(JwtTokenType.REFRESH.getValue(), responseTokenDto.getRefreshToken())
-                .httpOnly(true)
-                .secure(true)
-                .path("/")
-                .maxAge(14 * 24 * 60 * 60)
-                .build();
-        response.addHeader("Set-Cookie", refreshCookie.toString());
+        CookieUtility.setCookie(JwtTokenType.ACCESS, responseTokenDto.getAccessToken(), 60 * 60, response);
+        CookieUtility.setCookie(JwtTokenType.REFRESH, responseTokenDto.getRefreshToken(), 14 * 24 * 60 * 60, response);
 
         return ResponseEntity.ok(responseTokenDto.getMessage());
     }

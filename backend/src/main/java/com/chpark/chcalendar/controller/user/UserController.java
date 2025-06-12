@@ -6,9 +6,11 @@ import com.chpark.chcalendar.dto.security.JwtAuthenticationResponseDto;
 import com.chpark.chcalendar.enumClass.JwtTokenType;
 import com.chpark.chcalendar.enumClass.RequestType;
 import com.chpark.chcalendar.security.JwtTokenProvider;
+import com.chpark.chcalendar.service.OAuthTokenService;
 import com.chpark.chcalendar.service.notification.FirebaseService;
 import com.chpark.chcalendar.service.redis.RedisService;
 import com.chpark.chcalendar.service.user.UserService;
+import com.chpark.chcalendar.utility.CookieUtility;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +27,7 @@ public class UserController {
     private final RedisService redisService;
     private final FirebaseService firebaseService;
     private final JwtTokenProvider jwtTokenProvider;
+    private final OAuthTokenService oAuthTokenService;
 
     @PostMapping("/auth/login")
     public ResponseEntity<String> loginUser(@Validated @RequestBody UserDto userRequest, HttpServletRequest request, HttpServletResponse response) {
@@ -32,73 +35,36 @@ public class UserController {
         String ipAddress = getIpAddress(request);
         JwtAuthenticationResponseDto responseTokenDto = userService.login(userRequest, ipAddress);
 
-        // JWT 토큰을 HttpOnly 쿠키로 저장
-        ResponseCookie cookie = ResponseCookie.from(JwtTokenType.ACCESS.getValue(), responseTokenDto.getAccessToken())
-                .httpOnly(true)
-                .secure(true)
-                .path("/")
-                .maxAge(60 * 60)
-                .build();
-        response.addHeader("Set-Cookie", cookie.toString());
-
-        ResponseCookie refreshCookie = ResponseCookie.from(JwtTokenType.REFRESH.getValue(), responseTokenDto.getRefreshToken())
-                .httpOnly(true)
-                .secure(true)
-                .path("/")
-                .maxAge(14 * 24 * 60 * 60)
-                .build();
-        response.addHeader("Set-Cookie", refreshCookie.toString());
+        CookieUtility.setCookie(JwtTokenType.ACCESS, responseTokenDto.getAccessToken(), 60 * 60, response);
+        CookieUtility.setCookie(JwtTokenType.REFRESH, responseTokenDto.getRefreshToken(), 14 * 24 * 60 * 60, response);
 
         return ResponseEntity.ok().body(responseTokenDto.getMessage());
     }
 
     @PostMapping("/auth/logout/{fcmToken}")
     public ResponseEntity<String> logoutUser(@PathVariable("fcmToken") String fcmToken,
+                                            HttpServletRequest request,
                                             HttpServletResponse response) {
-        // jwtToken 쿠키 삭제
-        ResponseCookie cookie = ResponseCookie.from(JwtTokenType.ACCESS.getValue(), null)
-                .httpOnly(true)
-                .secure(true)
-                .path("/")
-                .maxAge(0)  // 만료 시간 0으로 설정하여 쿠키 삭제
-                .build();
-        response.addHeader("Set-Cookie", cookie.toString());
-
-        ResponseCookie refreshCookie = ResponseCookie.from(JwtTokenType.REFRESH.getValue(), null)
-                .httpOnly(true)
-                .secure(true)
-                .path("/")
-                .maxAge(0)  // 만료 시간 0으로 설정하여 쿠키 삭제
-                .build();
-        response.addHeader("Set-Cookie", refreshCookie.toString());
-
+        revokeTokens(request, response);
         firebaseService.deleteToken(fcmToken);
-
-
 
         return ResponseEntity.ok().body("Logged out successfully");
     }
 
     @PostMapping("/auth/logout")
-    public ResponseEntity<String> logoutUser(HttpServletResponse response) {
-        // jwtToken 쿠키 삭제
-        ResponseCookie cookie = ResponseCookie.from(JwtTokenType.ACCESS.getValue(), null)
-                .httpOnly(true)
-                .secure(true)
-                .path("/")
-                .maxAge(0)  // 만료 시간 0으로 설정하여 쿠키 삭제
-                .build();
-        response.addHeader("Set-Cookie", cookie.toString());
-
-        ResponseCookie refreshCookie = ResponseCookie.from(JwtTokenType.REFRESH.getValue(), null)
-                .httpOnly(true)
-                .secure(true)
-                .path("/")
-                .maxAge(0)  // 만료 시간 0으로 설정하여 쿠키 삭제
-                .build();
-        response.addHeader("Set-Cookie", refreshCookie.toString());
+    public ResponseEntity<String> logoutUser(HttpServletRequest request,
+                                             HttpServletResponse response) {
+        revokeTokens(request, response);
 
         return ResponseEntity.ok().body("Logged out successfully");
+    }
+
+    public void revokeTokens(HttpServletRequest request, HttpServletResponse response) {
+        CookieUtility.setCookie(JwtTokenType.ACCESS, null, 0, response);
+        CookieUtility.setCookie(JwtTokenType.REFRESH, null, 0, response);
+
+        CookieUtility.setCookie(JwtTokenType.GOOGLE_ACCESS, null, 0, response);
+        CookieUtility.setCookie(JwtTokenType.GOOGLE_REFRESH, null, 0, response);
     }
 
     @GetMapping("/auth/check/{fcmToken}")
