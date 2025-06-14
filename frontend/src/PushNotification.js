@@ -9,29 +9,42 @@ import platform from 'platform';
 const PushNotification = () => {
   const [notifications, setNotifications] = useState([]);
   const tokenRequested = useRef(false); // 토큰 요청 여부를 저장하는 ref
+  const tokenRequestPromise = useRef(null); // 토큰 요청 Promise를 저장하는 ref
 
   useEffect(() => {
     const requestToken = async () => {
-      // 이미 토큰 요청한 경우 중복 실행 방지
-      if (tokenRequested.current) return;
-      tokenRequested.current = true;
-
-      await Notification.requestPermission();
-
-      try {
-        const token = await getFirebaseToken();
-        // platform을 사용하려면 미리 platform 라이브러리를 import 하거나, navigator.userAgent를 사용할 수 있습니다.
-        const platformId = (platform.os?.family || 'Unknown OS') + " " + (platform.name || 'Unknown Browser');
-
-        if (token) {
-          await axios.post("/notifications/token", {
-            firebaseToken: token,
-            platformId: platformId,
-          });
+      // 이미 토큰 요청 중이거나 완료된 경우 중복 실행 방지
+      if (tokenRequested.current || tokenRequestPromise.current) {
+        if (tokenRequestPromise.current) {
+          await tokenRequestPromise.current;
         }
-      } catch (err) {
-        console.error("Error getting FCM token:", err);
+        return;
       }
+      
+      tokenRequested.current = true;
+      
+      // 토큰 요청 Promise를 저장
+      tokenRequestPromise.current = (async () => {
+        await Notification.requestPermission();
+
+        try {
+          const token = await getFirebaseToken();
+          const platformId = (platform.os?.family || 'Unknown OS') + " " + (platform.name || 'Unknown Browser');
+
+          if (token) {
+            await axios.post("/notifications/token", {
+              firebaseToken: token,
+              platformId: platformId,
+            });
+          }
+        } catch (err) {
+          console.error("Error getting FCM token:", err);
+        } finally {
+          tokenRequestPromise.current = null;
+        }
+      })();
+
+      await tokenRequestPromise.current;
     };
 
     requestToken();

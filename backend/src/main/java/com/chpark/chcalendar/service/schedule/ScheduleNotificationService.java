@@ -2,14 +2,13 @@ package com.chpark.chcalendar.service.schedule;
 
 import com.chpark.chcalendar.dto.group.GroupUserDto;
 import com.chpark.chcalendar.dto.schedule.ScheduleNotificationDto;
-import com.chpark.chcalendar.entity.CalendarInfoEntity;
+import com.chpark.chcalendar.entity.calendar.CalendarEntity;
 import com.chpark.chcalendar.entity.schedule.ScheduleEntity;
 import com.chpark.chcalendar.entity.schedule.ScheduleNotificationEntity;
 import com.chpark.chcalendar.enumClass.CalendarCategory;
-import com.chpark.chcalendar.repository.CalendarInfoRepository;
+import com.chpark.chcalendar.repository.CalendarRepository;
 import com.chpark.chcalendar.repository.schedule.ScheduleNotificationRepository;
 import com.chpark.chcalendar.repository.schedule.ScheduleRepository;
-import com.chpark.chcalendar.service.calendar.CalendarService;
 import com.chpark.chcalendar.service.notification.FirebaseService;
 import com.chpark.chcalendar.service.user.GroupUserService;
 import com.chpark.chcalendar.utility.ScheduleUtility;
@@ -33,7 +32,7 @@ public class ScheduleNotificationService {
 
     private final FirebaseService firebaseService;
     private final GroupUserService groupUserService;
-    private final CalendarInfoRepository calendarInfoRepository;
+    private final CalendarRepository calendarRepository;
 
     @Value("${home_url}")
     String homeUrl;
@@ -166,7 +165,7 @@ public class ScheduleNotificationService {
 
     public List<Long> getUserIdList(long userId, ScheduleEntity scheduleEntity) {
         List<GroupUserDto> groupUserList = null;
-        CalendarInfoEntity calendarInfo = calendarInfoRepository.findById(scheduleEntity.getCalendarId()).orElseThrow(
+        CalendarEntity calendarInfo = calendarRepository.findById(scheduleEntity.getCalendarId()).orElseThrow(
                 () -> new EntityNotFoundException("유효한 캘린더가 아닙니다.")
         );
 

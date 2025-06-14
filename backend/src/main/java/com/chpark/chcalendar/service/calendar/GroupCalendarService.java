@@ -1,18 +1,17 @@
 package com.chpark.chcalendar.service.calendar;
 
 import com.chpark.chcalendar.dto.calendar.CalendarColorDto;
-import com.chpark.chcalendar.dto.calendar.CalendarInfoDto;
+import com.chpark.chcalendar.dto.calendar.CalendarDto;
 import com.chpark.chcalendar.dto.group.GroupUserDto;
-import com.chpark.chcalendar.entity.CalendarInfoEntity;
+import com.chpark.chcalendar.entity.calendar.CalendarEntity;
 import com.chpark.chcalendar.entity.GroupUserEntity;
 import com.chpark.chcalendar.enumClass.CalendarCategory;
 import com.chpark.chcalendar.enumClass.GroupAuthority;
 import com.chpark.chcalendar.enumClass.JwtTokenType;
-import com.chpark.chcalendar.repository.CalendarInfoRepository;
+import com.chpark.chcalendar.repository.CalendarRepository;
 import com.chpark.chcalendar.security.JwtTokenProvider;
 import com.chpark.chcalendar.service.user.GroupUserService;
 import com.chpark.chcalendar.service.user.UserService;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -24,21 +23,21 @@ import java.util.List;
 public class GroupCalendarService implements CalendarService {
 
     private final JwtTokenProvider jwtTokenProvider;
-    private final CalendarInfoRepository calendarInfoRepository;
+    private final CalendarRepository calendarRepository;
     private final GroupUserService groupUserService;
     private final UserService userService;
 
     @Override
-    public CalendarInfoDto.Response create(long userId, String title) {
+    public CalendarDto.Response create(long userId, String title) {
         int maxAdminCount = 10;
 
-        if (maxAdminCount <= calendarInfoRepository.countAdminGroups(userId)) {
+        if (maxAdminCount <= calendarRepository.countAdminGroups(userId)) {
             throw new IllegalArgumentException("You have reached the maximum limit for creating groups.");
         }
 
-        CalendarInfoEntity groupEntity = new CalendarInfoEntity(title, userId, CalendarCategory.GROUP);
+        CalendarEntity groupEntity = new CalendarEntity(title, userId, CalendarCategory.GROUP);
 
-        calendarInfoRepository.save(groupEntity);
+        calendarRepository.save(groupEntity);
 
         String nickname = userService.findNickname(userId);
 
@@ -46,16 +45,16 @@ public class GroupCalendarService implements CalendarService {
                 groupEntity.getTitle(),
                 groupEntity.getId(),
                 nickname,
-                groupEntity.getAdminId(),
+                groupEntity.getUserId(),
                 GroupAuthority.ADMIN,
-                groupEntity.getColor())
+                groupEntity.getCalendarSetting().getColor())
         );
 
-        return new CalendarInfoDto.Response(groupEntity);
+        return new CalendarDto.Response(groupEntity);
     }
 
     @Override
-    public List<CalendarInfoDto.Response> findCalendarList(HttpServletRequest request) {
+    public List<CalendarDto.Response> findCalendarList(HttpServletRequest request) {
         String token = jwtTokenProvider.resolveToken(request, JwtTokenType.ACCESS.getValue());
         long userId = jwtTokenProvider.getUserIdFromToken(token);
 
@@ -68,9 +67,9 @@ public class GroupCalendarService implements CalendarService {
         return new CalendarColorDto(groupUser.getGroupId(), groupUser.getColor(), CalendarCategory.GROUP);
     }
 
-    public List<CalendarInfoDto.Response> findGroup(String title) {
-        List<CalendarInfoEntity> groupEntity = calendarInfoRepository.findByTitleAndCategory(title, CalendarCategory.GROUP);
+    public List<CalendarDto.Response> findGroup(String title) {
+        List<CalendarEntity> groupEntity = calendarRepository.findByTitleAndCategory(title, CalendarCategory.GROUP);
 
-        return CalendarInfoDto.Response.fromCalendarEntityList(groupEntity);
+        return CalendarDto.Response.fromCalendarEntityList(groupEntity);
     }
 }

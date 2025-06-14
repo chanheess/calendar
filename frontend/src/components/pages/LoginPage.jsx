@@ -40,7 +40,13 @@ const LoginPage = () => {
         }
       );
 
-      navigate("/"); // 로그인 성공 시 리다이렉트
+      // 로그인 성공 후 OAuth 계정 연동 상태 확인
+      const hasOAuthLink = await checkAndRequestOAuthLink();
+
+      // OAuth 연동이 없을 때만 메인 페이지로 이동
+      if (!hasOAuthLink) {
+        navigate("/");
+      }
     } catch (error) {
       if (error.response && error.response.data) {
         alert("로그인에 실패했습니다. 다시 시도해주세요.");
@@ -48,6 +54,34 @@ const LoginPage = () => {
       } else {
         setErrorMessage(error.message);
       }
+    }
+  };
+
+  // OAuth 계정 연동 상태 확인 및 연동 요청
+  const checkAndRequestOAuthLink = async () => {
+    try {
+      // OAuth 연동 상태 확인
+      const providerResponse = await axios.get("/check/provider", {
+        withCredentials: true,
+        headers: { "Content-Type": "application/json" },
+      });
+      
+      const isGoogleLinked = providerResponse.data.some(
+        provider => provider.provider.toLowerCase() === "google"
+      );
+
+      if (isGoogleLinked) {
+        const response = await axios.post("/auth/oauth2/login", { type: "local"}, {
+          withCredentials: true
+        });
+
+        window.location.href = `${process.env.REACT_APP_DOMAIN}${response.data}`;
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error("OAuth 연동 상태 확인 중 오류:", error);
+      return false;
     }
   };
 
@@ -95,7 +129,18 @@ const LoginPage = () => {
       <hr className={styles.divider} />
       <button
         className={styles.googleButton}
-        onClick={() => window.location.href = `${process.env.REACT_APP_DOMAIN}/oauth2/authorization/google`}
+        onClick={async () => {
+          try {
+            const response = await axios.post("/auth/oauth2/login", { type: "oauth" }, {
+              withCredentials: true
+            });
+            window.location.href = `${process.env.REACT_APP_DOMAIN}${response.data}`;
+          } catch (error) {
+            console.error("OAuth 로그인 요청 중 오류:", error);
+            // 에러 발생 시 직접 호출
+            window.location.href = `${process.env.REACT_APP_DOMAIN}/oauth2/authorization/google`;
+          }
+        }}
       >
         <img src="/images/google-logo.svg" alt="Google" className={styles.googleIcon} />
         <span className={styles.googleText}>Google 계정으로 로그인</span>

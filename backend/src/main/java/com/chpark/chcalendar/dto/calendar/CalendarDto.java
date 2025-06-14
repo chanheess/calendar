@@ -1,6 +1,6 @@
 package com.chpark.chcalendar.dto.calendar;
 
-import com.chpark.chcalendar.entity.CalendarInfoEntity;
+import com.chpark.chcalendar.entity.calendar.CalendarEntity;
 import com.chpark.chcalendar.entity.GroupUserEntity;
 import com.chpark.chcalendar.enumClass.CalendarCategory;
 import jakarta.validation.constraints.NotNull;
@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class CalendarInfoDto {
+public class CalendarDto {
 
     @Size(min = 1, max = 20)
     private String title;
@@ -25,7 +25,7 @@ public class CalendarInfoDto {
     @Getter
     @AllArgsConstructor
     @NoArgsConstructor
-    public static class Request extends CalendarInfoDto {
+    public static class Request extends CalendarDto {
 
         @NotNull
         private CalendarCategory category;
@@ -33,7 +33,7 @@ public class CalendarInfoDto {
 
     @Getter
     @NoArgsConstructor
-    public static class Response extends CalendarInfoDto {
+    public static class Response extends CalendarDto {
 
         private long id;
         private String color;
@@ -47,10 +47,10 @@ public class CalendarInfoDto {
             this.category = category;
         }
 
-        public Response(CalendarInfoEntity entity) {
+        public Response(CalendarEntity entity) {
             super(entity.getTitle());
             this.id = entity.getId();
-            this.color = entity.getColor();
+            this.color = entity.getCalendarSetting().getColor();
             this.category = entity.getCategory();
         }
 
@@ -61,21 +61,21 @@ public class CalendarInfoDto {
             this.category = CalendarCategory.GROUP;
         }
 
-        public static List<CalendarInfoDto.Response> fromCalendarEntityList(List<CalendarInfoEntity> entityList) {
+        public static List<CalendarDto.Response> fromCalendarEntityList(List<CalendarEntity> entityList) {
             if (entityList == null) {
                 return Collections.emptyList();
             }
             return entityList.stream()
-                    .map(CalendarInfoDto.Response::new)
+                    .map(CalendarDto.Response::new)
                     .collect(Collectors.toList());
         }
 
-        public static List<CalendarInfoDto.Response> fromGroupUserEntityList(List<GroupUserEntity> entityList) {
+        public static List<CalendarDto.Response> fromGroupUserEntityList(List<GroupUserEntity> entityList) {
             if (entityList == null) {
                 return Collections.emptyList();
             }
             return entityList.stream()
-                    .map(CalendarInfoDto.Response::new)
+                    .map(CalendarDto.Response::new)
                     .collect(Collectors.toList());
         }
     }

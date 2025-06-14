@@ -144,7 +144,7 @@ const SidebarComponent = forwardRef(({
     };
 
     fetchAllCalendars();
-  }, [onCalendarChange]);
+  }, []);
 
   useEffect(() => {
     const merged = { ...myCalendars, ...groupCalendars, ...googleCalendars };
@@ -288,16 +288,16 @@ const SidebarComponent = forwardRef(({
           onManageClick={openManageCalendarPopup}
         />
         {isGoogleLinked && (
-          <CalendarList
-            title="구글 캘린더"
+        <CalendarList
+          title="구글 캘린더"
             calendars={Object.entries(googleCalendars).map(([id, calendar]) => ({
               id,
               ...calendar,
             }))}
             sectionId="GOOGLE"
-            onCalendarSelection={handleCalendarSelection}
-            onManageClick={openManageCalendarPopup}
-          />
+          onCalendarSelection={handleCalendarSelection}
+          onManageClick={openManageCalendarPopup}
+        />
         )}
 
         <div className={styles.dropdownWrapper} ref={dropdownRef}>

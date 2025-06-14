@@ -3,6 +3,7 @@ package com.chpark.chcalendar.service.user;
 import com.chpark.chcalendar.dto.user.UserDto;
 import com.chpark.chcalendar.entity.UserEntity;
 import com.chpark.chcalendar.entity.UserProviderEntity;
+import com.chpark.chcalendar.enumClass.OAuthLoginType;
 import com.chpark.chcalendar.repository.user.UserRepository;
 import com.chpark.chcalendar.service.calendar.UserCalendarService;
 import com.chpark.chcalendar.utility.KeyGeneratorUtility;
@@ -38,27 +39,43 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
         
         // 세션에서 요청 타입 확인
         HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
-        String type = (String) request.getSession().getAttribute("oauth2_type");
+        
+        // 세션에서 OAuthLoginType 안전하게 가져오기
+        Object sessionAttribute = request.getSession().getAttribute("oauth_login_type");
+        OAuthLoginType type;
+        
+        if (sessionAttribute instanceof OAuthLoginType) {
+            type = (OAuthLoginType) sessionAttribute;
+        } else if (sessionAttribute instanceof String) {
+            // String인 경우 enum으로 변환 시도
+            try {
+                type = OAuthLoginType.valueOf(((String) sessionAttribute).toUpperCase());
+            } catch (IllegalArgumentException e) {
+                // 잘못된 값인 경우 기본값 사용
+                type = OAuthLoginType.OAUTH;
+            }
+        } else {
+            // null이거나 다른 타입인 경우 기본값 사용
+            type = OAuthLoginType.OAUTH;
+        }
 
         UserEntity user = userRepository.findByEmail(email)
                 .orElse(null);
 
         if (user != null) {
-            if ("link".equals(type)) {
-                // 계정 연동 요청인 경우 - 기존 사용자에 provider 추가
-                addUserProvider(user, registrationId);
-            } else {
-                // 일반 로그인인 경우 - provider 확인
-                validateUser(user, registrationId);
+            switch (type) {
+                case LINK -> addUserProvider(user, registrationId);
+                case OAUTH ->  validateUser(user, registrationId);
+                case LOCAL -> {}
+                default -> throw new OAuth2AuthenticationException("잘못된 요청입니다.");
             }
         } else {
-            // 신규 사용자인 경우
-            if ("link".equals(type)) {
-                throw new OAuth2AuthenticationException(
-                    new OAuth2Error("invalid_request", "연동할 계정이 존재하지 않습니다.", null)
+            switch (type) {
+                case OAUTH ->  registerUser(email, registrationId);
+                default -> throw new OAuth2AuthenticationException(
+                        new OAuth2Error("invalid_request", "연동할 계정이 존재하지 않습니다.", null)
                 );
             }
-            registerUser(email, registrationId);
         }
 
         return oauth2User;

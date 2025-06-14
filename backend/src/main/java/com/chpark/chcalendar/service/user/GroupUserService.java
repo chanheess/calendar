@@ -1,13 +1,13 @@
 package com.chpark.chcalendar.service.user;
 
-import com.chpark.chcalendar.dto.calendar.CalendarInfoDto;
+import com.chpark.chcalendar.dto.calendar.CalendarDto;
 import com.chpark.chcalendar.dto.group.GroupUserDto;
-import com.chpark.chcalendar.entity.CalendarInfoEntity;
+import com.chpark.chcalendar.entity.calendar.CalendarEntity;
 import com.chpark.chcalendar.entity.GroupUserEntity;
 import com.chpark.chcalendar.enumClass.CalendarCategory;
 import com.chpark.chcalendar.enumClass.GroupAuthority;
 import com.chpark.chcalendar.exception.authentication.GroupAuthenticationException;
-import com.chpark.chcalendar.repository.CalendarInfoRepository;
+import com.chpark.chcalendar.repository.CalendarRepository;
 import com.chpark.chcalendar.repository.GroupUserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -20,7 +20,7 @@ import java.util.List;
 public class GroupUserService {
 
     private final GroupUserRepository groupUserRepository;
-    private final CalendarInfoRepository calendarInfoRepository;
+    private final CalendarRepository calendarRepository;
 
     public GroupUserDto create(GroupUserDto groupUserDto) {
         GroupUserEntity groupUserEntity = new GroupUserEntity(groupUserDto);
@@ -29,10 +29,10 @@ public class GroupUserService {
         return new GroupUserDto(groupUserEntity);
     }
 
-    public List<CalendarInfoDto.Response> findMyGroup(long userId) {
+    public List<CalendarDto.Response> findMyGroup(long userId) {
         List<GroupUserEntity> result = groupUserRepository.findByUserId(userId);
 
-        return CalendarInfoDto.Response.fromGroupUserEntityList(result);
+        return CalendarDto.Response.fromGroupUserEntityList(result);
     }
 
     public List<Long> findMyGroupsId(long userId) {
@@ -70,7 +70,7 @@ public class GroupUserService {
 
     @Transactional
     public void addUser(long userId, String nickname, long groupId) {
-        CalendarInfoEntity entity = calendarInfoRepository.findByIdAndCategory(groupId, CalendarCategory.GROUP).orElseThrow(
+        CalendarEntity entity = calendarRepository.findByIdAndCategory(groupId, CalendarCategory.GROUP).orElseThrow(
                 () -> new IllegalArgumentException("존재하지 않는 그룹입니다.")
         );
 

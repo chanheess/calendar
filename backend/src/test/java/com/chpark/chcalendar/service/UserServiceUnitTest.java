@@ -1,7 +1,7 @@
 package com.chpark.chcalendar.service;
 
 import com.chpark.chcalendar.dto.user.UserDto;
-import com.chpark.chcalendar.dto.calendar.CalendarInfoDto;
+import com.chpark.chcalendar.dto.calendar.CalendarDto;
 import com.chpark.chcalendar.dto.security.JwtAuthenticationResponseDto;
 import com.chpark.chcalendar.entity.UserEntity;
 import com.chpark.chcalendar.enumClass.JwtTokenType;
@@ -71,7 +71,7 @@ class UserServiceUnitTest {
                 .build();
 
         when(userRepository.save(any(UserEntity.class))).thenReturn(savedUser);
-        when(userCalendarService.create(0L, "내 캘린더")).thenReturn(new CalendarInfoDto.Response());
+        when(userCalendarService.create(0L, "내 캘린더")).thenReturn(new CalendarDto.Response());
 
         //when
         userService.create(userDto);

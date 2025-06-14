@@ -1,6 +1,7 @@
 package com.chpark.chcalendar.security;
 
 import com.chpark.chcalendar.enumClass.JwtTokenType;
+import com.chpark.chcalendar.enumClass.OAuthLoginType;
 import com.chpark.chcalendar.utility.CookieUtility;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -41,9 +42,26 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
 
         OAuth2User oauth2User = (OAuth2User) authentication.getPrincipal();
         String email = oauth2User.getAttribute("email");
-        String type = (String) request.getSession().getAttribute("oauth2_type");
+        
+        // 세션에서 OAuthLoginType 안전하게 가져오기
+        Object sessionAttribute = request.getSession().getAttribute("oauth_login_type");
+        OAuthLoginType type;
+        
+        if (sessionAttribute instanceof OAuthLoginType) {
+            type = (OAuthLoginType) sessionAttribute;
+        } else if (sessionAttribute instanceof String) {
+            // String인 경우 enum으로 변환 시도
+            try {
+                type = OAuthLoginType.valueOf(((String) sessionAttribute).toUpperCase());
+            } catch (IllegalArgumentException e) {
+                // 잘못된 값인 경우 기본값 사용
+                type = OAuthLoginType.OAUTH;
+            }
+        } else {
+            // null이거나 다른 타입인 경우 기본값 사용
+            type = OAuthLoginType.OAUTH;
+        }
 
-        // OAuth API용 토큰 저장
         String oauthAccessToken = client.getAccessToken().getTokenValue();
         String oauthRefreshToken = client.getRefreshToken() != null ? client.getRefreshToken().getTokenValue() : null;
 
@@ -61,19 +79,24 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
             );
         }
 
-        if ("link".equals(type)) {
-            request.getSession().removeAttribute("oauth2_type");
-            return;
+        switch (type) {
+            case LINK -> {
+                request.getSession().removeAttribute("oauth_login_type");
+                response.sendRedirect(homeUrl);
+            }
+            case LOCAL -> {
+                request.getSession().removeAttribute("oauth_login_type");
+                response.sendRedirect(homeUrl);
+            }
+            case OAUTH -> {
+                String accessToken = jwtTokenProvider.generateToken(email, JwtTokenType.ACCESS);
+                String refreshToken = jwtTokenProvider.generateToken(email, JwtTokenType.REFRESH);
+
+                CookieUtility.setCookie(JwtTokenType.ACCESS, accessToken, 60 * 60, response);
+                CookieUtility.setCookie(JwtTokenType.REFRESH, refreshToken, 14 * 24 * 60 * 60, response);
+
+                response.sendRedirect(homeUrl); // 로그인 후 이동할 페이지
+            }
         }
-
-        // 사용자로부터 local login JWT 발급
-        String accessToken = jwtTokenProvider.generateToken(email, JwtTokenType.ACCESS);
-        String refreshToken = jwtTokenProvider.generateToken(email, JwtTokenType.REFRESH);
-
-        CookieUtility.setCookie(JwtTokenType.ACCESS, accessToken, 60 * 60, response);
-        CookieUtility.setCookie(JwtTokenType.REFRESH, refreshToken, 14 * 24 * 60 * 60, response);
-
-        // 리다이렉트
-        response.sendRedirect(homeUrl); // 로그인 후 이동할 페이지
     }
 }

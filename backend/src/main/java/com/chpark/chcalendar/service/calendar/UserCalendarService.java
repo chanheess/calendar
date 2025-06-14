@@ -2,11 +2,11 @@ package com.chpark.chcalendar.service.calendar;
 
 
 import com.chpark.chcalendar.dto.calendar.CalendarColorDto;
-import com.chpark.chcalendar.dto.calendar.CalendarInfoDto;
-import com.chpark.chcalendar.entity.CalendarInfoEntity;
+import com.chpark.chcalendar.dto.calendar.CalendarDto;
+import com.chpark.chcalendar.entity.calendar.CalendarEntity;
 import com.chpark.chcalendar.enumClass.CalendarCategory;
 import com.chpark.chcalendar.enumClass.JwtTokenType;
-import com.chpark.chcalendar.repository.CalendarInfoRepository;
+import com.chpark.chcalendar.repository.CalendarRepository;
 import com.chpark.chcalendar.security.JwtTokenProvider;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -19,50 +19,50 @@ import java.util.List;
 @Service
 public class UserCalendarService implements CalendarService {
 
-    private final CalendarInfoRepository calendarInfoRepository;
+    private final CalendarRepository calendarRepository;
     private final JwtTokenProvider jwtTokenProvider;
 
     @Override
-    public CalendarInfoDto.Response create(long userId, String title) {
+    public CalendarDto.Response create(long userId, String title) {
         int maxCalendarCount = 10;
 
-        if (maxCalendarCount <= calendarInfoRepository.findByAdminIdAndCategory(userId, CalendarCategory.USER).size()) {
+        if (maxCalendarCount <= calendarRepository.findByUserIdAndCategory(userId, CalendarCategory.USER).size()) {
             throw new IllegalArgumentException("You have reached the maximum limit for creating calendar.");
         }
 
-        CalendarInfoEntity result = new CalendarInfoEntity(title, userId, CalendarCategory.USER);
-        calendarInfoRepository.save(result);
+        CalendarEntity result = new CalendarEntity(title, userId, CalendarCategory.USER);
+        calendarRepository.save(result);
 
-        return new CalendarInfoDto.Response(result);
+        return new CalendarDto.Response(result);
     }
 
     @Override
-    public List<CalendarInfoDto.Response> findCalendarList(HttpServletRequest request) {
+    public List<CalendarDto.Response> findCalendarList(HttpServletRequest request) {
         String token = jwtTokenProvider.resolveToken(request, JwtTokenType.ACCESS.getValue());
         long userId = jwtTokenProvider.getUserIdFromToken(token);
 
-        return CalendarInfoDto.Response.fromCalendarEntityList(
-                calendarInfoRepository.findByAdminIdAndCategory(userId, CalendarCategory.USER)
+        return CalendarDto.Response.fromCalendarEntityList(
+                calendarRepository.findByUserIdAndCategory(userId, CalendarCategory.USER)
         );
     }
 
     @Override
     public CalendarColorDto changeColor(long userId, CalendarColorDto calendarColorDto) {
-        CalendarInfoEntity calendarInfo = calendarInfoRepository.findByIdAndAdminId(calendarColorDto.getCalendarId(), userId).orElseThrow(
+        CalendarEntity calendar = calendarRepository.findByIdAndUserId(calendarColorDto.getCalendarId(), userId).orElseThrow(
                 () -> new EntityNotFoundException("Calendar not found.")
         );
 
-        calendarInfo.setColor(calendarColorDto.getColor());
-        calendarInfoRepository.save(calendarInfo);
-        return new CalendarColorDto(calendarInfo.getId(), calendarInfo.getColor(), CalendarCategory.USER);
+        calendar.getCalendarSetting().setColor(calendarColorDto.getColor());
+        calendarRepository.save(calendar);
+        return new CalendarColorDto(calendar.getId(), calendar.getCalendarSetting().getColor(), CalendarCategory.USER);
     }
 
     public List<Long> findCalendarIdList(long userId) {
-        return calendarInfoRepository.findIdByAdminIdAndCategory(userId, CalendarCategory.USER);
+        return calendarRepository.findIdByUserIdAndCategory(userId, CalendarCategory.USER);
     }
 
     public void checkCalendarAdminUser(long calendarId, long userId) {
-        calendarInfoRepository.findByIdAndAdminId(calendarId, userId).orElseThrow(
+        calendarRepository.findByIdAndUserId(calendarId, userId).orElseThrow(
                 () -> new EntityNotFoundException("You do not have permission.")
         );
     }

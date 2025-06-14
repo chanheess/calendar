@@ -1,7 +1,7 @@
 package com.chpark.chcalendar.controller;
 
 import com.chpark.chcalendar.dto.calendar.CalendarColorDto;
-import com.chpark.chcalendar.dto.calendar.CalendarInfoDto;
+import com.chpark.chcalendar.dto.calendar.CalendarDto;
 import com.chpark.chcalendar.enumClass.CalendarCategory;
 import com.chpark.chcalendar.enumClass.JwtTokenType;
 import com.chpark.chcalendar.security.JwtTokenProvider;
@@ -24,16 +24,16 @@ public class CalendarController {
     private final JwtTokenProvider jwtTokenProvider;
 
     @GetMapping("/calendars")
-    public ResponseEntity<List<CalendarInfoDto.Response>> getCalendarList(@RequestParam(value = "category", required = false) CalendarCategory category,
-                                                           HttpServletRequest request) {
+    public ResponseEntity<List<CalendarDto.Response>> getCalendarList(@RequestParam(value = "category", required = false) CalendarCategory category,
+                                                                      HttpServletRequest request) {
         CalendarService calendar = calendarService.get(category);
 
         return ResponseEntity.ok(calendar.findCalendarList(request));
     }
 
     @PostMapping("/calendars")
-    public ResponseEntity<CalendarInfoDto.Response> createCalendar(@Validated @RequestBody CalendarInfoDto.Request calendarInfoDto,
-                                                                   HttpServletRequest request) {
+    public ResponseEntity<CalendarDto.Response> createCalendar(@Validated @RequestBody CalendarDto.Request calendarInfoDto,
+                                                               HttpServletRequest request) {
 
         String token = jwtTokenProvider.resolveToken(request, JwtTokenType.ACCESS.getValue());
         long userId = jwtTokenProvider.getUserIdFromToken(token);
