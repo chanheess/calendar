@@ -65,6 +65,9 @@ out/
 hs_err_pid*
 replay_pid*
 
+# QueryDSL Q-classes
+src/main/generated/
+
 # SSL 인증서 및 키 파일 제외
 *.crt
 *.key
