@@ -9,6 +9,7 @@ import com.chpark.chcalendar.enumClass.JwtTokenType;
 import com.chpark.chcalendar.enumClass.RequestType;
 import com.chpark.chcalendar.repository.user.UserRepository;
 import com.chpark.chcalendar.security.JwtTokenProvider;
+import com.chpark.chcalendar.service.calendar.CalendarMemberService;
 import com.chpark.chcalendar.service.calendar.UserCalendarService;
 import com.chpark.chcalendar.service.redis.RedisService;
 import com.chpark.chcalendar.utility.ScheduleUtility;
@@ -28,7 +29,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final UserCalendarService userCalendarService;
     private final PasswordEncoder passwordEncoder;
-    private final GroupUserService groupUserService;
+    private final CalendarMemberService calendarMemberService;
     private final RedisService redisService;
 
     private final AuthenticationManager authenticationManager;
@@ -127,9 +128,6 @@ public class UserService {
                 .nickname(userInfo.getNickname())
                 .build();
         userRepository.updateUserInfo(userId, userEntity);
-
-        //닉네임 수정시 동기화
-        groupUserService.updateGroupUserNickname(userId, userEntity.getNickname());
     }
 
     @Transactional

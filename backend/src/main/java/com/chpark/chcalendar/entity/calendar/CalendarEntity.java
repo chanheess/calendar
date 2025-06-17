@@ -6,6 +6,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Getter
 @Setter
 @NoArgsConstructor
@@ -15,26 +18,24 @@ public class CalendarEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long id;
 
     @Column(nullable = false, length = 20)
     private String title;
 
     @Column(name = "user_id", nullable = false)
-    private long userId;
+    private Long userId;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private CalendarCategory category;
 
-    @OneToOne(mappedBy = "calendar")
-    private CalendarSettingEntity calendarSetting;
+    @OneToMany(mappedBy = "calendar", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private List<CalendarSettingEntity> calendarSettings = new ArrayList<>();
 
-    public void setCalendarSetting(CalendarSettingEntity setting) {
-        this.calendarSetting = setting;
-        if (setting != null && setting.getCalendar() != this) {
-            setting.setCalendar(this);
-        }
+    public void addCalendarSetting(CalendarSettingEntity setting) {
+        this.calendarSettings.add(setting);
+        setting.setCalendar(this);
     }
 
     public CalendarEntity(String title, long userId, CalendarCategory category) {
@@ -42,13 +43,13 @@ public class CalendarEntity {
         this.userId = userId;
         this.category = category;
 
-        setCalendarSetting(new CalendarSettingEntity(this.getUserId()));
+        addCalendarSetting(new CalendarSettingEntity(this.getUserId()));
     }
 
     public CalendarEntity(String title, long userId, CalendarCategory category, CalendarSettingEntity calendarSetting) {
         this.title = title;
         this.userId = userId;
         this.category = category;
-        this.setCalendarSetting(calendarSetting);
+        this.addCalendarSetting(calendarSetting);
     }
 }

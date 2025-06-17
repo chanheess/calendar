@@ -1,6 +1,6 @@
-package com.chpark.chcalendar.controller;
+package com.chpark.chcalendar.controller.calendar;
 
-import com.chpark.chcalendar.dto.calendar.CalendarColorDto;
+import com.chpark.chcalendar.dto.calendar.CalendarSettingDto;
 import com.chpark.chcalendar.dto.calendar.CalendarDto;
 import com.chpark.chcalendar.enumClass.CalendarCategory;
 import com.chpark.chcalendar.enumClass.JwtTokenType;
@@ -43,18 +43,16 @@ public class CalendarController {
         return ResponseEntity.ok(calendar.create(userId, calendarInfoDto.getTitle()));
     }
 
-    @PatchMapping("/calendars/{calendarId}/color")
-    public ResponseEntity<CalendarColorDto> updateCalendarColor(@PathVariable(value = "calendarId") Long calendarId,
-                                                                @Validated @RequestBody CalendarColorDto requestCalendarInfo,
-                                                                HttpServletRequest request) {
+    @PatchMapping("/calendars/{calendarId}")
+    public ResponseEntity<CalendarSettingDto> updateCalendar(@PathVariable(value = "calendarId") Long calendarId,
+                                                                  @Validated @RequestBody CalendarSettingDto calendarSettingDto,
+                                                                  HttpServletRequest request) {
         String token = jwtTokenProvider.resolveToken(request, JwtTokenType.ACCESS.getValue());
         long userId = jwtTokenProvider.getUserIdFromToken(token);
 
-        CalendarService calendar = calendarService.get(requestCalendarInfo.getCategory());
-        requestCalendarInfo.setCalendarId(calendarId);
+        CalendarService calendar = calendarService.get(calendarSettingDto.getCategory());
+        calendarSettingDto.setCalendarId(calendarId);
 
-        CalendarColorDto result = calendar.changeColor(userId, requestCalendarInfo);
-
-        return ResponseEntity.ok(result);
+        return ResponseEntity.ok(calendar.updateSetting(userId, calendarSettingDto));
     }
 }

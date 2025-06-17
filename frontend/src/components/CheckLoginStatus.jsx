@@ -25,7 +25,7 @@ const CheckLoginStatus = ({ children }) => {
       console.error("로그인 상태를 확인할 수 없습니다.", error);
       navigate("/auth/login");
     }
-  }, []);
+  }, [navigate]);
 
   useEffect(() => {
     checkLoginStatus();

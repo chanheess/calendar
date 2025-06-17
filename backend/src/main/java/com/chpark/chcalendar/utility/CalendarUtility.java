@@ -5,7 +5,7 @@ import com.chpark.chcalendar.exception.authentication.CalendarAuthenticationExce
 import com.chpark.chcalendar.exception.authentication.GroupAuthenticationException;
 import com.chpark.chcalendar.service.calendar.UserCalendarService;
 import com.chpark.chcalendar.service.schedule.ScheduleGroupService;
-import com.chpark.chcalendar.service.user.GroupUserService;
+import com.chpark.chcalendar.service.calendar.CalendarMemberService;
 import jakarta.persistence.EntityNotFoundException;
 
 import java.util.ArrayList;
@@ -17,22 +17,22 @@ public class CalendarUtility {
         throw new UnsupportedOperationException("Utility class");
     }
 
-    public static List<Long> getUserCalendars(long userId, GroupUserService groupUserService, UserCalendarService userCalendarService) {
+    public static List<Long> getUserCalendars(long userId, CalendarMemberService calendarMemberService, UserCalendarService userCalendarService) {
 
         List<Long> resultList = new ArrayList<>();
 
-        resultList.addAll(groupUserService.findMyGroupsId(userId));
+        resultList.addAll(calendarMemberService.findCalendarIdList(userId));
         resultList.addAll(userCalendarService.findCalendarIdList(userId));
 
         return resultList;
     }
 
-    public static void checkCalendarAuthority(long userId, long createdUserId, long calendarId, Long scheduleId, GroupUserService groupUserService, UserCalendarService userCalendarService, ScheduleGroupService scheduleGroupService) {
+    public static void checkCalendarAuthority(long userId, long createdUserId, long calendarId, Long scheduleId, CalendarMemberService calendarMemberService, UserCalendarService userCalendarService, ScheduleGroupService scheduleGroupService) {
 
         int checkCount = 0;
 
         try {
-            groupUserService.getGroupUser(userId, calendarId);
+            calendarMemberService.getCalendarMember(userId, calendarId);
         } catch (GroupAuthenticationException ex) {
             checkCount++;
         }
@@ -54,11 +54,11 @@ public class CalendarUtility {
         }
     }
 
-    public static List<Long> getAuthorizedCalendars(long userId, List<Long> calendarIdList, GroupUserService groupUserService, UserCalendarService userCalendarService) {
+    public static List<Long> getAuthorizedCalendars(long userId, List<Long> calendarIdList, CalendarMemberService calendarMemberService, UserCalendarService userCalendarService) {
 
         List<Long> resultList = new ArrayList<>(calendarIdList);
 
-        resultList.retainAll(groupUserService.findMyGroupsId(userId));
+        resultList.retainAll(calendarMemberService.findCalendarIdList(userId));
         calendarIdList.retainAll(userCalendarService.findCalendarIdList(userId));
 
         resultList.addAll(calendarIdList);

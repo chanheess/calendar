@@ -1,24 +1,31 @@
 package com.chpark.chcalendar.service.calendar;
 
-import com.chpark.chcalendar.dto.calendar.CalendarColorDto;
+import com.chpark.chcalendar.dto.calendar.CalendarSettingDto;
 import com.chpark.chcalendar.dto.calendar.CalendarDto;
 import com.chpark.chcalendar.enumClass.CalendarCategory;
 import com.chpark.chcalendar.enumClass.JwtTokenType;
+import com.chpark.chcalendar.repository.calendar.CalendarRepository;
+import com.chpark.chcalendar.repository.calendar.CalendarSettingRepository;
 import com.chpark.chcalendar.utility.CookieUtility;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
-import lombok.RequiredArgsConstructor;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@RequiredArgsConstructor
 @Service
-public class GoogleCalendarService implements CalendarService {
+public class GoogleCalendarService extends CalendarService {
+
+    public GoogleCalendarService(CalendarRepository calendarRepository, CalendarSettingRepository calendarSettingRepository) {
+        super(calendarRepository, calendarSettingRepository);
+    }
 
     @Override
     public CalendarDto.Response create(long userId, String title) {
@@ -46,6 +53,11 @@ public class GoogleCalendarService implements CalendarService {
         } catch (Exception e) {
             return List.of();
         }
+    }
+
+    @Override
+    public List<Long> findCalendarIdList(long userId) {
+        return List.of();
     }
 
     private List<CalendarDto.Response> parseGoogleCalendarList(String json) {
@@ -102,7 +114,7 @@ public class GoogleCalendarService implements CalendarService {
     }
 
     @Override
-    public CalendarColorDto changeColor(long userId, CalendarColorDto calendarColorDto) {
+    public CalendarSettingDto updateSetting(long userId, CalendarSettingDto calendarSettingDto) {
         return null;
     }
 }

@@ -36,7 +36,7 @@ public class NotificationController {
     }
 
     @PostMapping("/notifications/groups/{group-id}/invite")
-    public ResponseEntity<String> sendGroupInviteNotification(@NotNull @PathVariable("group-id") Long groupId,
+    public ResponseEntity<String> sendGroupInviteNotification(@NotNull @PathVariable("group-id") Long calendarId,
                                                               @RequestParam(value = "nickname", required = false) String nickname,
                                                               HttpServletRequest request) {
 
@@ -44,7 +44,7 @@ public class NotificationController {
         long userId = jwtTokenProvider.getUserIdFromToken(token);
 
         NotificationService notification =  notificationService.get(NotificationCategory.GROUP);
-        notification.sendInviteNotification(userId, groupId, NotificationCategory.GROUP, nickname);
+        notification.sendInviteNotification(userId, calendarId, NotificationCategory.GROUP, nickname);
 
         return ResponseEntity.ok().build();
     }

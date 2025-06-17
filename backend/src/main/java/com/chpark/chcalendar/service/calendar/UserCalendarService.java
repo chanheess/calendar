@@ -1,39 +1,48 @@
 package com.chpark.chcalendar.service.calendar;
 
-
-import com.chpark.chcalendar.dto.calendar.CalendarColorDto;
 import com.chpark.chcalendar.dto.calendar.CalendarDto;
 import com.chpark.chcalendar.entity.calendar.CalendarEntity;
 import com.chpark.chcalendar.enumClass.CalendarCategory;
 import com.chpark.chcalendar.enumClass.JwtTokenType;
-import com.chpark.chcalendar.repository.CalendarRepository;
+import com.chpark.chcalendar.repository.calendar.CalendarQueryRepository;
+import com.chpark.chcalendar.repository.calendar.CalendarRepository;
+import com.chpark.chcalendar.repository.calendar.CalendarSettingRepository;
 import com.chpark.chcalendar.security.JwtTokenProvider;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-@RequiredArgsConstructor
 @Service
-public class UserCalendarService implements CalendarService {
+public class UserCalendarService extends CalendarService {
 
-    private final CalendarRepository calendarRepository;
     private final JwtTokenProvider jwtTokenProvider;
+    private final CalendarQueryRepository calendarQueryRepository;
+
+    public UserCalendarService(CalendarRepository calendarRepository, CalendarSettingRepository calendarSettingRepository, JwtTokenProvider jwtTokenProvider, CalendarQueryRepository calendarQueryRepository) {
+        super(calendarRepository, calendarSettingRepository);
+        this.jwtTokenProvider = jwtTokenProvider;
+        this.calendarQueryRepository = calendarQueryRepository;
+    }
 
     @Override
     public CalendarDto.Response create(long userId, String title) {
         int maxCalendarCount = 10;
 
         if (maxCalendarCount <= calendarRepository.findByUserIdAndCategory(userId, CalendarCategory.USER).size()) {
-            throw new IllegalArgumentException("You have reached the maximum limit for creating calendar.");
+            throw new IllegalArgumentException("You have reached the maximum limit for creating calendarId.");
         }
 
         CalendarEntity result = new CalendarEntity(title, userId, CalendarCategory.USER);
         calendarRepository.save(result);
 
-        return new CalendarDto.Response(result);
+        return CalendarDto.Response.builder()
+                .id(result.getId())
+                .title(result.getTitle())
+                .category(result.getCategory())
+                .color(result.getCalendarSettings().get(0).getColor())
+                .build();
     }
 
     @Override
@@ -41,20 +50,7 @@ public class UserCalendarService implements CalendarService {
         String token = jwtTokenProvider.resolveToken(request, JwtTokenType.ACCESS.getValue());
         long userId = jwtTokenProvider.getUserIdFromToken(token);
 
-        return CalendarDto.Response.fromCalendarEntityList(
-                calendarRepository.findByUserIdAndCategory(userId, CalendarCategory.USER)
-        );
-    }
-
-    @Override
-    public CalendarColorDto changeColor(long userId, CalendarColorDto calendarColorDto) {
-        CalendarEntity calendar = calendarRepository.findByIdAndUserId(calendarColorDto.getCalendarId(), userId).orElseThrow(
-                () -> new EntityNotFoundException("Calendar not found.")
-        );
-
-        calendar.getCalendarSetting().setColor(calendarColorDto.getColor());
-        calendarRepository.save(calendar);
-        return new CalendarColorDto(calendar.getId(), calendar.getCalendarSetting().getColor(), CalendarCategory.USER);
+        return calendarQueryRepository.findCalendarsByUserId(userId);
     }
 
     public List<Long> findCalendarIdList(long userId) {

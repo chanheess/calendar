@@ -135,9 +135,9 @@ public class ScheduleController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    @DeleteMapping("/{schedule-id}/calendars/{calendar-id}")
+    @DeleteMapping("/{schedule-id}/calendars/{calendarId-id}")
     public ResponseEntity<String> deleteSchedule(@PathVariable("schedule-id") long scheduleId,
-                                                 @PathVariable("calendar-id") long calendarId,
+                                                 @PathVariable("calendarId-id") long calendarId,
                                                  HttpServletRequest request) {
         String token = jwtTokenProvider.resolveToken(request, JwtTokenType.ACCESS.getValue());
         long userId = jwtTokenProvider.getUserIdFromToken(token);
@@ -147,10 +147,10 @@ public class ScheduleController {
         return new ResponseEntity<>("Schedule deleted successfully.", HttpStatus.OK);
     }
 
-    @DeleteMapping("/{schedule-id}/{delete-scope}/calendars/{calendar-id}")
+    @DeleteMapping("/{schedule-id}/{delete-scope}/calendars/{calendarId-id}")
     public ResponseEntity<String> deleteRepeatSchedule(@PathVariable("schedule-id") long scheduleId,
                                                        @PathVariable("delete-scope") String repeatStringScope,
-                                                       @PathVariable("calendar-id") long calendarId,
+                                                       @PathVariable("calendarId-id") long calendarId,
                                                        HttpServletRequest request) {
         ScheduleRepeatScope scheduleRepeatScope = ScheduleRepeatScope.fromValue(repeatStringScope);
 

@@ -88,7 +88,7 @@ const SidebarComponent = forwardRef(({
                 title: calendar.title, 
                 color: calendar.color, 
                 category: "GOOGLE",
-                isSelected: true 
+                isSelected: calendar.checked !== false
               };
               return acc;
             },
@@ -120,14 +120,14 @@ const SidebarComponent = forwardRef(({
 
         const userCalWithSelected = Object.entries(userCalendars).reduce(
           (acc, [id, data]) => {
-            acc[id] = { ...data, isSelected: true, category: "USER" };
+            acc[id] = { ...data, category: "USER" };
             return acc;
           },
           {}
         );
         const groupCalWithSelected = Object.entries(groupCalendars).reduce(
           (acc, [id, data]) => {
-            acc[id] = { ...data, isSelected: true, category: "GROUP" };
+            acc[id] = { ...data, category: "GROUP" };
             return acc;
           },
           {}
@@ -152,15 +152,41 @@ const SidebarComponent = forwardRef(({
   }, [myCalendars, groupCalendars, googleCalendars, onCalendarChange]);
 
   // 캘린더 선택 토글
-  const handleCalendarSelection = (id, checked) => {
-    const updatedList = {
-      ...selectedCalendarList,
-      [id]: {
-        ...selectedCalendarList[id],
-        isSelected: checked,
-      },
-    };
-    onCalendarChange(updatedList);
+  const handleCalendarSelection = async (id, checked) => {
+    try {
+      // 데이터베이스에 상태 저장
+      const calendar = selectedCalendarList[id];
+      if (calendar && calendar.category !== "GOOGLE") {
+        await axios.patch(`/calendars/${id}`, {
+          checked: checked,
+          category: calendar.category
+        }, {
+          withCredentials: true,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+
+      // 로컬 상태 업데이트
+      const updatedList = {
+        ...selectedCalendarList,
+        [id]: {
+          ...selectedCalendarList[id],
+          isSelected: checked,
+        },
+      };
+      onCalendarChange(updatedList);
+    } catch (error) {
+      console.error("Error updating calendar selection:", error);
+      // 에러 발생 시 원래 상태로 되돌리기
+      const revertedList = {
+        ...selectedCalendarList,
+        [id]: {
+          ...selectedCalendarList[id],
+          isSelected: !checked,
+        },
+      };
+      onCalendarChange(revertedList);
+    }
   };
 
   // 새 캘린더 추가

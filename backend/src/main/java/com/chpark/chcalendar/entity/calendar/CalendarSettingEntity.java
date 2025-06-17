@@ -18,14 +18,14 @@ public class CalendarSettingEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long id;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "calendar_id", referencedColumnName = "id")
     private CalendarEntity calendar;
 
     @Column(name = "user_id", nullable = false)
-    private long userId;
+    private Long userId;
 
     @Column(length = 10)
     private String color = generateRandomColor();

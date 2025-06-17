@@ -1,4 +1,4 @@
-package com.chpark.chcalendar.repository;
+package com.chpark.chcalendar.repository.calendar;
 
 import com.chpark.chcalendar.entity.calendar.CalendarEntity;
 import com.chpark.chcalendar.enumClass.CalendarCategory;
@@ -15,7 +15,6 @@ public interface CalendarRepository extends JpaRepository<CalendarEntity, Long> 
     @Query("SELECT COUNT(s) FROM CalendarEntity s WHERE s.userId = :userId")
     Integer countAdminGroups(@Param("userId")Long userId);
 
-    List<CalendarEntity> findByTitleAndCategory(String title, CalendarCategory category);
     List<CalendarEntity> findByUserIdAndCategory(Long userId, CalendarCategory category);
 
     @Query("SELECT c.id FROM CalendarEntity c WHERE c.userId = :userId AND c.category = :category")

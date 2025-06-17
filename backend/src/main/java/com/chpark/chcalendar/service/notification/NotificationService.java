@@ -2,12 +2,12 @@ package com.chpark.chcalendar.service.notification;
 
 import com.chpark.chcalendar.dto.notification.NotificationDto;
 import com.chpark.chcalendar.dto.notification.NotificationScheduleDto;
-import com.chpark.chcalendar.entity.GroupUserEntity;
 import com.chpark.chcalendar.entity.NotificationEntity;
+import com.chpark.chcalendar.entity.calendar.CalendarMemberEntity;
 import com.chpark.chcalendar.enumClass.NotificationCategory;
 import com.chpark.chcalendar.enumClass.NotificationType;
 import com.chpark.chcalendar.repository.NotificationRepository;
-import com.chpark.chcalendar.service.user.GroupUserService;
+import com.chpark.chcalendar.service.calendar.CalendarMemberService;
 import com.chpark.chcalendar.service.user.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -24,7 +24,7 @@ public class NotificationService {
 
     protected final NotificationRepository notificationRepository;
 
-    protected final GroupUserService groupUserService;
+    protected final CalendarMemberService calendarMemberService;
     protected final UserService userService;
 
     protected final RedisTemplate<String, Object> redisTemplate;
@@ -53,18 +53,18 @@ public class NotificationService {
         return result;
     }
 
-    public void sendInviteNotification(long userId, long groupId, NotificationCategory category, String nickname) {
-
+    public void sendInviteNotification(long userId, long calendarId, NotificationCategory category, String nickname) {
         long inviteUserId = userService.findUserId(nickname);
 
-        GroupUserEntity userInfo = groupUserService.checkGroupUserAuthority(userId, groupId);
-        groupUserService.checkGroupUserExists(groupId, inviteUserId);
+        CalendarMemberEntity calendarMember = calendarMemberService.checkCalendarMemberAuthority(userId, calendarId);
+        calendarMemberService.checkCalendarMemberExists(calendarId, inviteUserId);
+        //TODO: 캘린더 최대 가입자 수 추가
 
-        String message = userInfo.getGroupTitle() + messageFrom + nickname + "님을 초대합니다.";
+        String message = calendarMember.getCalendar().getTitle() + messageFrom + nickname + "님을 초대합니다.";
         NotificationEntity entity = new NotificationEntity(
                 inviteUserId,
                 category,
-                groupId,
+                calendarId,
                 NotificationType.INVITE,
                 0L,
                 message,

@@ -75,12 +75,12 @@ const ManageCalendarPopup = ({
 
     const payload = {
       color,
-      category: calendarInfo.category || "USER",
+      category: calendarInfo.category || "USER"
     };
 
     try {
       const response = await axios.patch(
-        `/calendars/${calendarInfo.id}/color`,
+        `/calendars/${calendarInfo.id}`,
         payload,
         {
           withCredentials: true,
