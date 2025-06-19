@@ -1,30 +1,41 @@
 package com.chpark.chcalendar.service.calendar;
 
-import com.chpark.chcalendar.dto.calendar.CalendarSettingDto;
 import com.chpark.chcalendar.dto.calendar.CalendarDto;
+import com.chpark.chcalendar.dto.calendar.CalendarSettingDto;
+import com.chpark.chcalendar.entity.calendar.CalendarExternalEntity;
 import com.chpark.chcalendar.enumClass.CalendarCategory;
 import com.chpark.chcalendar.enumClass.JwtTokenType;
+import com.chpark.chcalendar.repository.calendar.CalendarExternalRepository;
+import com.chpark.chcalendar.repository.calendar.CalendarQueryRepository;
 import com.chpark.chcalendar.repository.calendar.CalendarRepository;
 import com.chpark.chcalendar.repository.calendar.CalendarSettingRepository;
+import com.chpark.chcalendar.security.JwtTokenProvider;
 import com.chpark.chcalendar.utility.CookieUtility;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestClient;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class GoogleCalendarService extends CalendarService {
 
-    public GoogleCalendarService(CalendarRepository calendarRepository, CalendarSettingRepository calendarSettingRepository) {
-        super(calendarRepository, calendarSettingRepository);
+    private final JwtTokenProvider jwtTokenProvider;
+    private final CalendarQueryRepository calendarQueryRepository;
+    private final CalendarExternalRepository calendarExternalRepository;
+    private final RestClient restClient;
+
+    public GoogleCalendarService(CalendarRepository calendarRepository, CalendarSettingRepository calendarSettingRepository, JwtTokenProvider jwtTokenProvider, JwtTokenProvider jwtTokenProvider1, CalendarQueryRepository calendarQueryRepository, CalendarExternalRepository calendarExternalRepository, RestClient restClient) {
+        super(calendarRepository, calendarSettingRepository, jwtTokenProvider);
+        this.jwtTokenProvider = jwtTokenProvider1;
+        this.calendarQueryRepository = calendarQueryRepository;
+        this.calendarExternalRepository = calendarExternalRepository;
+        this.restClient = restClient;
     }
 
     @Override
@@ -33,26 +44,8 @@ public class GoogleCalendarService extends CalendarService {
     }
 
     @Override
-    public List<CalendarDto.Response> findCalendarList(HttpServletRequest request) {
-        String accessToken = CookieUtility.getToken(request, JwtTokenType.GOOGLE_ACCESS);
-        if (accessToken == null) {
-            return List.of();
-        }
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(accessToken);
-
-        HttpEntity<Void> entity = new HttpEntity<>(headers);
-        String url = "https://www.googleapis.com/calendar/v3/users/me/calendarList";
-
-        RestTemplate restTemplate = new RestTemplate();
-        ResponseEntity<String> response;
-        try {
-            response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
-            return parseGoogleCalendarList(response.getBody());
-        } catch (Exception e) {
-            return List.of();
-        }
+    public List<CalendarDto.Response> findCalendarList(long userId) {
+        return calendarQueryRepository.findExternalCalendarsByUserId(userId, CalendarCategory.GOOGLE);
     }
 
     @Override
@@ -60,61 +53,48 @@ public class GoogleCalendarService extends CalendarService {
         return List.of();
     }
 
-    private List<CalendarDto.Response> parseGoogleCalendarList(String json) {
-        List<CalendarDto.Response> calendarList = new ArrayList<>();
-        try {
-            ObjectMapper objectMapper = new ObjectMapper();
-            JsonNode rootNode = objectMapper.readTree(json);
-            JsonNode itemsNode = rootNode.get("items");
-            if (itemsNode != null && itemsNode.isArray()) {
-                for (JsonNode itemNode : itemsNode) {
-                    // Google 캘린더의 고유 ID 사용 (etag의 숫자 부분 추출)
-                    String etag = itemNode.path("etag").asText("");
-                    long calendarId = 0;
+    @Override
+    public CalendarSettingDto updateSetting(HttpServletRequest request, CalendarSettingDto calendarSettingDto) {
+        String googleAccessToken = CookieUtility.getToken(request, JwtTokenType.GOOGLE_ACCESS);
 
-                    if (!etag.isEmpty()) {
-                        try {
-                            // 따옴표 제거 후 숫자 추출
-                            String numericPart = etag.replaceAll("\"", "").replaceAll("[^0-9]", "");
-                            if (!numericPart.isEmpty()) {
-                                // 숫자가 너무 크면 해시값으로 변환
-                                if (numericPart.length() > 15) {
-                                    calendarId = Math.abs(numericPart.hashCode());
-                                } else {
-                                    calendarId = Long.parseLong(numericPart);
-                                }
-                            }
-                        } catch (NumberFormatException e) {
-                            // 파싱 실패 시 해시값 사용
-                            calendarId = Math.abs(etag.hashCode());
-                        }
-                    }
-                    
-                    // 기본 캘린더 ID가 0인 경우 다른 방법으로 고유 ID 생성
-                    if (calendarId == 0) {
-                        String calendarIdStr = itemNode.path("id").asText("");
-                        calendarId = Math.abs(calendarIdStr.hashCode());
-                    }
-                    
-                    calendarList.add(
-                            CalendarDto.Response.builder()
-                                .id(calendarId)
-                                .title(itemNode.path("summary").asText(""))
-                                .color(itemNode.path("backgroundColor").asText(""))
-                                .category(CalendarCategory.GOOGLE)
-                                .build()
-                    );
-                }
-            }
-        } catch (Exception e) {
-            // parsing error, return empty list
-            e.printStackTrace();
+        if (calendarSettingDto.getTitle() != null) {
+            updateGoogleCalendarTitle(googleAccessToken, calendarSettingDto);
         }
-        return calendarList;
+
+        return super.updateSetting(request, calendarSettingDto);
     }
 
-    @Override
-    public CalendarSettingDto updateSetting(long userId, CalendarSettingDto calendarSettingDto) {
-        return null;
+    @Transactional
+    public void updateGoogleCalendarTitle(String googleAccessToken, CalendarSettingDto calendarSettingDto) {
+        if (googleAccessToken == null || googleAccessToken.trim().isEmpty()) {
+            throw new IllegalArgumentException("Google Access Token이 필요합니다.");
+        }
+
+        CalendarExternalEntity calendarExternalEntity = calendarExternalRepository.findByCalendarId(calendarSettingDto.getCalendarId())
+                .orElseThrow(() -> new EntityNotFoundException("캘린더를 찾을 수 없습니다."));
+
+        Map<String, Object> body = new HashMap<>();
+        body.put("summary", calendarSettingDto.getTitle());
+
+        try {
+            String response = restClient.patch()
+                    .uri("https://www.googleapis.com/calendar/v3/calendars/{calendarId}",
+                         calendarExternalEntity.getExternalId())
+                    .header("Authorization", "Bearer " + googleAccessToken)
+                    .body(body)
+                    .retrieve()
+                    .onStatus(HttpStatusCode::is4xxClientError, 
+                             (request, clientResponse) -> {
+                                 throw new RuntimeException("Google Calendar API 클라이언트 오류: " + clientResponse.getStatusCode());
+                             })
+                    .onStatus(HttpStatusCode::is5xxServerError, 
+                             (request, serverResponse) -> {
+                                 throw new RuntimeException("Google Calendar API 서버 오류: " + serverResponse.getStatusCode());
+                             })
+                    .body(String.class);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Google Calendar 업데이트에 실패했습니다.", e);
+        }
     }
 }

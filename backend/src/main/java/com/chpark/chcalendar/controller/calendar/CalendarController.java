@@ -26,9 +26,12 @@ public class CalendarController {
     @GetMapping("/calendars")
     public ResponseEntity<List<CalendarDto.Response>> getCalendarList(@RequestParam(value = "category", required = false) CalendarCategory category,
                                                                       HttpServletRequest request) {
+        String token = jwtTokenProvider.resolveToken(request, JwtTokenType.ACCESS.getValue());
+        long userId = jwtTokenProvider.getUserIdFromToken(token);
+
         CalendarService calendar = calendarService.get(category);
 
-        return ResponseEntity.ok(calendar.findCalendarList(request));
+        return ResponseEntity.ok(calendar.findCalendarList(userId));
     }
 
     @PostMapping("/calendars")
@@ -45,14 +48,13 @@ public class CalendarController {
 
     @PatchMapping("/calendars/{calendarId}")
     public ResponseEntity<CalendarSettingDto> updateCalendar(@PathVariable(value = "calendarId") Long calendarId,
-                                                                  @Validated @RequestBody CalendarSettingDto calendarSettingDto,
-                                                                  HttpServletRequest request) {
-        String token = jwtTokenProvider.resolveToken(request, JwtTokenType.ACCESS.getValue());
-        long userId = jwtTokenProvider.getUserIdFromToken(token);
+                                                              @Validated @RequestBody CalendarSettingDto calendarSettingDto,
+                                                              HttpServletRequest request) {
+
 
         CalendarService calendar = calendarService.get(calendarSettingDto.getCategory());
         calendarSettingDto.setCalendarId(calendarId);
 
-        return ResponseEntity.ok(calendar.updateSetting(userId, calendarSettingDto));
+        return ResponseEntity.ok(calendar.updateSetting(request, calendarSettingDto));
     }
 }

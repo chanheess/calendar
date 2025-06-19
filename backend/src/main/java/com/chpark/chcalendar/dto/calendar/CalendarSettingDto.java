@@ -13,6 +13,8 @@ public class CalendarSettingDto {
     @Setter
     Long calendarId;
 
+    String title;
+
     @Size(max = 10)
     String color;
 

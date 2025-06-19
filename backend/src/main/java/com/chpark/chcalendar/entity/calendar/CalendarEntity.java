@@ -2,6 +2,7 @@ package com.chpark.chcalendar.entity.calendar;
 
 import com.chpark.chcalendar.enumClass.CalendarCategory;
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -33,11 +34,15 @@ public class CalendarEntity {
     @OneToMany(mappedBy = "calendar", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<CalendarSettingEntity> calendarSettings = new ArrayList<>();
 
+    @OneToOne(mappedBy = "calendar", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private CalendarExternalEntity calendarExternal;
+
     public void addCalendarSetting(CalendarSettingEntity setting) {
         this.calendarSettings.add(setting);
         setting.setCalendar(this);
     }
 
+    @Builder
     public CalendarEntity(String title, long userId, CalendarCategory category) {
         this.title = title;
         this.userId = userId;

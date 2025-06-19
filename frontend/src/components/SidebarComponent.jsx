@@ -167,14 +167,14 @@ const SidebarComponent = forwardRef(({
       }
 
       // 로컬 상태 업데이트
-      const updatedList = {
-        ...selectedCalendarList,
-        [id]: {
-          ...selectedCalendarList[id],
-          isSelected: checked,
-        },
-      };
-      onCalendarChange(updatedList);
+    const updatedList = {
+      ...selectedCalendarList,
+      [id]: {
+        ...selectedCalendarList[id],
+        isSelected: checked,
+      },
+    };
+    onCalendarChange(updatedList);
     } catch (error) {
       console.error("Error updating calendar selection:", error);
       // 에러 발생 시 원래 상태로 되돌리기

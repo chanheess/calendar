@@ -1,13 +1,14 @@
 package com.chpark.chcalendar.security;
 
+import com.chpark.chcalendar.enumClass.CalendarCategory;
 import com.chpark.chcalendar.enumClass.JwtTokenType;
 import com.chpark.chcalendar.enumClass.OAuthLoginType;
+import com.chpark.chcalendar.service.calendar.sync.CalendarSyncService;
 import com.chpark.chcalendar.utility.CookieUtility;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.ResponseCookie;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Map;
 
 @RequiredArgsConstructor
 @Component
@@ -26,6 +28,7 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
 
     private final JwtTokenProvider jwtTokenProvider;
     private final OAuth2AuthorizedClientService authorizedClientService;
+    private final Map<CalendarCategory, CalendarSyncService> calendarSyncService;
 
     @Value("${home_url}")
     String homeUrl;
@@ -71,6 +74,9 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
                 response
         );
 
+        //sync
+        calendarSyncService.get(CalendarCategory.GOOGLE).syncCalendars(oauthAccessToken, request);
+
         if (oauthRefreshToken != null) {
             CookieUtility.setCookie(JwtTokenType.GOOGLE_REFRESH,
                     oauthRefreshToken,
@@ -80,11 +86,7 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
         }
 
         switch (type) {
-            case LINK -> {
-                request.getSession().removeAttribute("oauth_login_type");
-                response.sendRedirect(homeUrl);
-            }
-            case LOCAL -> {
+            case LINK, LOCAL -> {
                 request.getSession().removeAttribute("oauth_login_type");
                 response.sendRedirect(homeUrl);
             }

@@ -4,12 +4,10 @@ import com.chpark.chcalendar.dto.calendar.CalendarDto;
 import com.chpark.chcalendar.entity.calendar.CalendarEntity;
 import com.chpark.chcalendar.enumClass.CalendarCategory;
 import com.chpark.chcalendar.enumClass.CalendarMemberRole;
-import com.chpark.chcalendar.enumClass.JwtTokenType;
 import com.chpark.chcalendar.repository.calendar.CalendarQueryRepository;
 import com.chpark.chcalendar.repository.calendar.CalendarRepository;
 import com.chpark.chcalendar.repository.calendar.CalendarSettingRepository;
 import com.chpark.chcalendar.security.JwtTokenProvider;
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -17,13 +15,11 @@ import java.util.List;
 @Service
 public class GroupCalendarService extends CalendarService {
 
-    private final JwtTokenProvider jwtTokenProvider;
     private final CalendarMemberService calendarMemberService;
     private final CalendarQueryRepository calendarQueryRepository;
 
     public GroupCalendarService(CalendarRepository calendarRepository, CalendarSettingRepository calendarSettingRepository, JwtTokenProvider jwtTokenProvider, CalendarMemberService calendarMemberService, CalendarQueryRepository calendarQueryRepository) {
-        super(calendarRepository, calendarSettingRepository);
-        this.jwtTokenProvider = jwtTokenProvider;
+        super(calendarRepository, calendarSettingRepository, jwtTokenProvider);
         this.calendarMemberService = calendarMemberService;
         this.calendarQueryRepository = calendarQueryRepository;
     }
@@ -50,10 +46,7 @@ public class GroupCalendarService extends CalendarService {
     }
 
     @Override
-    public List<CalendarDto.Response> findCalendarList(HttpServletRequest request) {
-        String token = jwtTokenProvider.resolveToken(request, JwtTokenType.ACCESS.getValue());
-        long userId = jwtTokenProvider.getUserIdFromToken(token);
-
+    public List<CalendarDto.Response> findCalendarList(long userId) {
         return calendarQueryRepository.findGroupCalendarsByUserId(userId);
     }
 
