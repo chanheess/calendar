@@ -2,10 +2,10 @@ package com.chpark.chcalendar.service.calendar;
 
 import com.chpark.chcalendar.dto.calendar.CalendarDto;
 import com.chpark.chcalendar.dto.calendar.CalendarSettingDto;
-import com.chpark.chcalendar.entity.calendar.CalendarExternalEntity;
+import com.chpark.chcalendar.entity.calendar.CalendarProviderEntity;
 import com.chpark.chcalendar.enumClass.CalendarCategory;
 import com.chpark.chcalendar.enumClass.JwtTokenType;
-import com.chpark.chcalendar.repository.calendar.CalendarExternalRepository;
+import com.chpark.chcalendar.repository.calendar.CalendarProviderRepository;
 import com.chpark.chcalendar.repository.calendar.CalendarQueryRepository;
 import com.chpark.chcalendar.repository.calendar.CalendarRepository;
 import com.chpark.chcalendar.repository.calendar.CalendarSettingRepository;
@@ -27,10 +27,10 @@ public class GoogleCalendarService extends CalendarService {
 
     private final JwtTokenProvider jwtTokenProvider;
     private final CalendarQueryRepository calendarQueryRepository;
-    private final CalendarExternalRepository calendarExternalRepository;
+    private final CalendarProviderRepository calendarExternalRepository;
     private final RestClient restClient;
 
-    public GoogleCalendarService(CalendarRepository calendarRepository, CalendarSettingRepository calendarSettingRepository, JwtTokenProvider jwtTokenProvider, JwtTokenProvider jwtTokenProvider1, CalendarQueryRepository calendarQueryRepository, CalendarExternalRepository calendarExternalRepository, RestClient restClient) {
+    public GoogleCalendarService(CalendarRepository calendarRepository, CalendarSettingRepository calendarSettingRepository, JwtTokenProvider jwtTokenProvider, JwtTokenProvider jwtTokenProvider1, CalendarQueryRepository calendarQueryRepository, CalendarProviderRepository calendarExternalRepository, RestClient restClient) {
         super(calendarRepository, calendarSettingRepository, jwtTokenProvider);
         this.jwtTokenProvider = jwtTokenProvider1;
         this.calendarQueryRepository = calendarQueryRepository;
@@ -70,7 +70,7 @@ public class GoogleCalendarService extends CalendarService {
             throw new IllegalArgumentException("Google Access Token이 필요합니다.");
         }
 
-        CalendarExternalEntity calendarExternalEntity = calendarExternalRepository.findByCalendarId(calendarSettingDto.getCalendarId())
+        CalendarProviderEntity calendarProviderEntity = calendarExternalRepository.findByCalendarId(calendarSettingDto.getCalendarId())
                 .orElseThrow(() -> new EntityNotFoundException("캘린더를 찾을 수 없습니다."));
 
         Map<String, Object> body = new HashMap<>();
@@ -79,7 +79,7 @@ public class GoogleCalendarService extends CalendarService {
         try {
             String response = restClient.patch()
                     .uri("https://www.googleapis.com/calendar/v3/calendars/{calendarId}",
-                         calendarExternalEntity.getExternalId())
+                         calendarProviderEntity.getProviderId())
                     .header("Authorization", "Bearer " + googleAccessToken)
                     .body(body)
                     .retrieve()

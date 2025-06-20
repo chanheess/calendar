@@ -1,13 +1,12 @@
 package com.chpark.chcalendar.service.calendar.sync;
 
 import com.chpark.chcalendar.entity.calendar.CalendarEntity;
-import com.chpark.chcalendar.entity.calendar.CalendarExternalEntity;
+import com.chpark.chcalendar.entity.calendar.CalendarProviderEntity;
 import com.chpark.chcalendar.enumClass.CalendarCategory;
 import com.chpark.chcalendar.enumClass.JwtTokenType;
 import com.chpark.chcalendar.repository.calendar.CalendarQueryRepository;
 import com.chpark.chcalendar.repository.calendar.CalendarRepository;
 import com.chpark.chcalendar.security.JwtTokenProvider;
-import com.chpark.chcalendar.utility.CookieUtility;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
@@ -16,7 +15,6 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -26,15 +24,15 @@ import java.util.Objects;
 
 @RequiredArgsConstructor
 @Service
-public class GoogleCalendarSyncService extends CalendarSyncService {
+public class GoogleCalendarSyncService implements CalendarSyncService {
 
     private final JwtTokenProvider jwtTokenProvider;
     private final CalendarQueryRepository calendarQueryRepository;
     private final CalendarRepository calendarRepository;
 
     @Override
-    public void syncCalendars(String externalAccessToken, HttpServletRequest request) {
-        if (externalAccessToken == null) {
+    public void syncCalendars(String accessToken, HttpServletRequest request) {
+        if (accessToken == null) {
             return;
         }
 
@@ -42,7 +40,7 @@ public class GoogleCalendarSyncService extends CalendarSyncService {
         long userId = jwtTokenProvider.getUserIdFromToken(token);
 
         HttpHeaders headers = new HttpHeaders();
-        headers.setBearerAuth(externalAccessToken);
+        headers.setBearerAuth(accessToken);
 
         HttpEntity<Void> entity = new HttpEntity<>(headers);
         String url = "https://www.googleapis.com/calendar/v3/users/me/calendarList";
@@ -90,16 +88,16 @@ public class GoogleCalendarSyncService extends CalendarSyncService {
                             .category(CalendarCategory.GOOGLE)
                             .build();
 
-                    CalendarExternalEntity calendarExternalEntity = CalendarExternalEntity.builder()
+                    CalendarProviderEntity calendarProviderEntity = CalendarProviderEntity.builder()
                             .calendar(calendarEntity)
-                            .externalId(googleCalendarId)
+                            .providerId(googleCalendarId)
                             .provider("google")
                             .build();
 
                     if (!calendarEntity.getCalendarSettings().isEmpty()) {
                         calendarEntity.getCalendarSettings().get(0).setColor(color);
                     }
-                    calendarEntity.setCalendarExternal(calendarExternalEntity);
+                    calendarEntity.setCalendarProvider(calendarProviderEntity);
 
                     calendarList.put(googleCalendarId, calendarEntity);
                 }

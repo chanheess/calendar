@@ -35,7 +35,7 @@ public class CalendarEntity {
     private List<CalendarSettingEntity> calendarSettings = new ArrayList<>();
 
     @OneToOne(mappedBy = "calendar", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    private CalendarExternalEntity calendarExternal;
+    private CalendarProviderEntity calendarProvider;
 
     public void addCalendarSetting(CalendarSettingEntity setting) {
         this.calendarSettings.add(setting);

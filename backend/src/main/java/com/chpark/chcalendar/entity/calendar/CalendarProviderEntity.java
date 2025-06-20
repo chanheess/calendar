@@ -8,8 +8,8 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name="calendar_external")
-public class CalendarExternalEntity {
+@Table(name="calendar_provider")
+public class CalendarProviderEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -19,16 +19,16 @@ public class CalendarExternalEntity {
     @JoinColumn(name = "calendar_id", referencedColumnName = "id")
     private CalendarEntity calendar;
 
-    @Column(name = "external_id")
-    private String externalId;
+    @Column(name = "provider_id")
+    private String providerId;
 
     @Column
     private String provider;
 
     @Builder
-    public CalendarExternalEntity(CalendarEntity calendar, String externalId, String provider) {
+    public CalendarProviderEntity(CalendarEntity calendar, String providerId, String provider) {
         this.calendar = calendar;
-        this.externalId = externalId;
+        this.providerId = providerId;
         this.provider = provider;
     }
 }
