@@ -9,6 +9,7 @@ import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
@@ -66,7 +67,7 @@ public class CalendarQueryRepository {
                 .where(calendarEntity.userId.eq(userId))
                 .fetch();
     }
-
+    
     public List<CalendarMemberDto> findByCalendarId(Long calendarId) {
         return queryFactory
                 .select(Projections.constructor(
@@ -100,7 +101,7 @@ public class CalendarQueryRepository {
                         tuple -> tuple.get(calendarEntity)
                 ));
     }
-
+    
     public List<CalendarDto.Response> findExternalCalendarsByUserId(Long userId, CalendarCategory category) {
         return queryFactory
                 .select(Projections.constructor(
@@ -124,6 +125,7 @@ public class CalendarQueryRepository {
                 .fetch();
     }
 
+    
     public List<CalendarEntity> findSyncExternalCalendarsByUserId(Long userId, CalendarCategory category) {
         return queryFactory
                 .select(calendarEntity)
@@ -134,6 +136,16 @@ public class CalendarQueryRepository {
                 .on(calendarProviderEntity.calendar.id.eq(calendarEntity.id))
                 .where(
                         calendarEntity.userId.eq(userId)
+                        .and(calendarEntity.category.eq(category))
+                )
+                .fetch();
+    }
+
+    public List<Long> findCalendarIdByUserId(Long userId, CalendarCategory category) {
+        return queryFactory
+                .select(calendarEntity.id)
+                .from(calendarEntity)
+                .where(calendarEntity.userId.eq(userId)
                         .and(calendarEntity.category.eq(category))
                 )
                 .fetch();

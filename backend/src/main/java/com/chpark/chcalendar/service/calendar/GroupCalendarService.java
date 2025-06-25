@@ -54,4 +54,9 @@ public class GroupCalendarService extends CalendarService {
     public List<Long> findCalendarIdList(long userId) {
         return calendarMemberService.findCalendarIdList(userId);
     }
+
+    @Override
+    public void checkAuthority(long userId, long calendarId) {
+        calendarMemberService.checkCalendarMemberAuthority(userId, calendarId, CalendarMemberRole.USER);
+    }
 }

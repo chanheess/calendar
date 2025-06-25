@@ -50,11 +50,10 @@ public class UserCalendarService extends CalendarService {
         return calendarRepository.findIdByUserIdAndCategory(userId, CalendarCategory.USER);
     }
 
-    public void checkCalendarAdminUser(long calendarId, long userId) {
+    @Override
+    public void checkAuthority(long userId, long calendarId) {
         calendarRepository.findByIdAndUserId(calendarId, userId).orElseThrow(
                 () -> new EntityNotFoundException("You do not have permission.")
         );
     }
-
-
 }

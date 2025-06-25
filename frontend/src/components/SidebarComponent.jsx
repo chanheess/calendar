@@ -153,20 +153,37 @@ const SidebarComponent = forwardRef(({
 
   // 캘린더 선택 토글
   const handleCalendarSelection = async (id, checked) => {
-    try {
-      // 데이터베이스에 상태 저장
-      const calendar = selectedCalendarList[id];
-      if (calendar && calendar.category !== "GOOGLE") {
-        await axios.patch(`/calendars/${id}`, {
-          checked: checked,
-          category: calendar.category
-        }, {
-          withCredentials: true,
-          headers: { "Content-Type": "application/json" },
-        });
-      }
-
-      // 로컬 상태 업데이트
+    const calendar = selectedCalendarList[id];
+    // 구글캘린더라면 googleCalendars 상태도 직접 갱신
+    if (calendar && calendar.category === "GOOGLE") {
+      setGoogleCalendars((prev) => ({
+        ...prev,
+        [id]: {
+          ...prev[id],
+          isSelected: checked,
+        },
+      }));
+    }
+    // 일반/그룹 캘린더라면 myCalendars/groupCalendars도 직접 갱신
+    if (calendar && calendar.category === "USER") {
+      setMyCalendars((prev) => ({
+        ...prev,
+        [id]: {
+          ...prev[id],
+          isSelected: checked,
+        },
+      }));
+    }
+    if (calendar && calendar.category === "GROUP") {
+      setGroupCalendars((prev) => ({
+        ...prev,
+        [id]: {
+          ...prev[id],
+          isSelected: checked,
+        },
+      }));
+    }
+    // onCalendarChange로도 즉시 반영
     const updatedList = {
       ...selectedCalendarList,
       [id]: {
@@ -175,9 +192,46 @@ const SidebarComponent = forwardRef(({
       },
     };
     onCalendarChange(updatedList);
+    try {
+      if (calendar) {
+        await axios.patch(`/calendars/${id}`, {
+          checked: checked,
+          category: calendar.category
+        }, {
+          withCredentials: true,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
     } catch (error) {
       console.error("Error updating calendar selection:", error);
-      // 에러 발생 시 원래 상태로 되돌리기
+      // 에러 발생 시 원래 상태로 되돌리기 (구글/일반/그룹 모두)
+      if (calendar && calendar.category === "GOOGLE") {
+        setGoogleCalendars((prev) => ({
+          ...prev,
+          [id]: {
+            ...prev[id],
+            isSelected: !checked,
+          },
+        }));
+      }
+      if (calendar && calendar.category === "USER") {
+        setMyCalendars((prev) => ({
+          ...prev,
+          [id]: {
+            ...prev[id],
+            isSelected: !checked,
+          },
+        }));
+      }
+      if (calendar && calendar.category === "GROUP") {
+        setGroupCalendars((prev) => ({
+          ...prev,
+          [id]: {
+            ...prev[id],
+            isSelected: !checked,
+          },
+        }));
+      }
       const revertedList = {
         ...selectedCalendarList,
         [id]: {

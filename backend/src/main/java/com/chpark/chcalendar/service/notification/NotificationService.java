@@ -4,6 +4,7 @@ import com.chpark.chcalendar.dto.notification.NotificationDto;
 import com.chpark.chcalendar.dto.notification.NotificationScheduleDto;
 import com.chpark.chcalendar.entity.NotificationEntity;
 import com.chpark.chcalendar.entity.calendar.CalendarMemberEntity;
+import com.chpark.chcalendar.enumClass.CalendarMemberRole;
 import com.chpark.chcalendar.enumClass.NotificationCategory;
 import com.chpark.chcalendar.enumClass.NotificationType;
 import com.chpark.chcalendar.repository.NotificationRepository;
@@ -56,7 +57,7 @@ public class NotificationService {
     public void sendInviteNotification(long userId, long calendarId, NotificationCategory category, String nickname) {
         long inviteUserId = userService.findUserId(nickname);
 
-        CalendarMemberEntity calendarMember = calendarMemberService.checkCalendarMemberAuthority(userId, calendarId);
+        CalendarMemberEntity calendarMember = calendarMemberService.checkCalendarMemberAuthority(userId, calendarId, CalendarMemberRole.USER);
         calendarMemberService.checkCalendarMemberExists(calendarId, inviteUserId);
         //TODO: 캘린더 최대 가입자 수 추가
 

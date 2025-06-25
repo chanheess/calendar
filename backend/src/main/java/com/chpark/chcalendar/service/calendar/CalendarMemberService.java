@@ -59,10 +59,10 @@ public class CalendarMemberService {
         );
     }
 
-    public CalendarMemberEntity checkCalendarMemberAuthority(long userId, long calendarId) {
+    public CalendarMemberEntity checkCalendarMemberAuthority(long userId, long calendarId, CalendarMemberRole role) {
         CalendarMemberEntity result = this.getCalendarMember(userId, calendarId);
 
-        if (result.getRole().compareTo(CalendarMemberRole.USER) >= 0) {
+        if (result.getRole().compareTo(role) >= 0) {
             throw new GroupAuthenticationException("그룹에 대한 권한이 없습니다.");
         }
 

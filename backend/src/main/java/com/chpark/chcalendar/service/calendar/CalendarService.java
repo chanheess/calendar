@@ -25,6 +25,7 @@ public abstract class CalendarService {
     public abstract CalendarDto.Response create(long userId, String title);
     public abstract List<CalendarDto.Response> findCalendarList(long userId);
     public abstract List<Long> findCalendarIdList(long userId);
+    public abstract void checkAuthority(long userId, long calendarId);
 
     @Transactional
     public CalendarSettingDto updateSetting(HttpServletRequest request, CalendarSettingDto calendarSettingDto) {

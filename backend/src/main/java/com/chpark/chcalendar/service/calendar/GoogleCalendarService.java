@@ -25,16 +25,14 @@ import java.util.Map;
 @Service
 public class GoogleCalendarService extends CalendarService {
 
-    private final JwtTokenProvider jwtTokenProvider;
     private final CalendarQueryRepository calendarQueryRepository;
-    private final CalendarProviderRepository calendarExternalRepository;
+    private final CalendarProviderRepository calendarProviderRepository;
     private final RestClient restClient;
 
     public GoogleCalendarService(CalendarRepository calendarRepository, CalendarSettingRepository calendarSettingRepository, JwtTokenProvider jwtTokenProvider, JwtTokenProvider jwtTokenProvider1, CalendarQueryRepository calendarQueryRepository, CalendarProviderRepository calendarExternalRepository, RestClient restClient) {
         super(calendarRepository, calendarSettingRepository, jwtTokenProvider);
-        this.jwtTokenProvider = jwtTokenProvider1;
         this.calendarQueryRepository = calendarQueryRepository;
-        this.calendarExternalRepository = calendarExternalRepository;
+        this.calendarProviderRepository = calendarExternalRepository;
         this.restClient = restClient;
     }
 
@@ -50,7 +48,14 @@ public class GoogleCalendarService extends CalendarService {
 
     @Override
     public List<Long> findCalendarIdList(long userId) {
-        return List.of();
+        return calendarQueryRepository.findCalendarIdByUserId(userId, CalendarCategory.GOOGLE);
+    }
+
+    @Override
+    public void checkAuthority(long userId, long calendarId) {
+        calendarRepository.findByIdAndUserId(calendarId, userId).orElseThrow(
+                () -> new EntityNotFoundException("You do not have permission.")
+        );
     }
 
     @Override
@@ -70,7 +75,7 @@ public class GoogleCalendarService extends CalendarService {
             throw new IllegalArgumentException("Google Access Token이 필요합니다.");
         }
 
-        CalendarProviderEntity calendarProviderEntity = calendarExternalRepository.findByCalendarId(calendarSettingDto.getCalendarId())
+        CalendarProviderEntity calendarProviderEntity = calendarProviderRepository.findByCalendarId(calendarSettingDto.getCalendarId())
                 .orElseThrow(() -> new EntityNotFoundException("캘린더를 찾을 수 없습니다."));
 
         Map<String, Object> body = new HashMap<>();
