@@ -63,6 +63,8 @@ public class GoogleCalendarSyncService implements CalendarSyncService {
                 CalendarEntity localCalendar = localCalendarList.get(externalId);
                 if (!Objects.equals(googleCalendar.getTitle(), localCalendar.getTitle())) {
                     updateCalendar(localCalendar, googleCalendar);
+                } else if (!Objects.equals(googleCalendar.getCalendarProvider().getStatus(), localCalendar.getCalendarProvider().getStatus())) {
+                    updateCalendar(localCalendar, googleCalendar);
                 }
             }
         }
@@ -80,7 +82,7 @@ public class GoogleCalendarSyncService implements CalendarSyncService {
                     String googleCalendarId = itemNode.path("id").asText("");
                     String title = itemNode.path("summary").asText("");
                     String color = itemNode.path("backgroundColor").asText("");
-
+                    String status = itemNode.path("accessRole").asText("");
 
                     CalendarEntity calendarEntity = CalendarEntity.builder()
                             .title(title)
@@ -92,6 +94,7 @@ public class GoogleCalendarSyncService implements CalendarSyncService {
                             .calendar(calendarEntity)
                             .providerId(googleCalendarId)
                             .provider("google")
+                            .status(status)
                             .build();
 
                     if (!calendarEntity.getCalendarSettings().isEmpty()) {
@@ -111,6 +114,10 @@ public class GoogleCalendarSyncService implements CalendarSyncService {
     public void updateCalendar(CalendarEntity localCalendar, CalendarEntity googleCalendar) {
         if (!localCalendar.getTitle().equals(googleCalendar.getTitle())) {
             localCalendar.setTitle(googleCalendar.getTitle());
+        }
+        if (!Objects.equals(localCalendar.getCalendarProvider().getStatus(),
+                googleCalendar.getCalendarProvider().getStatus())) {
+            localCalendar.getCalendarProvider().setStatus(googleCalendar.getCalendarProvider().getStatus());
         }
 
         calendarRepository.save(localCalendar);

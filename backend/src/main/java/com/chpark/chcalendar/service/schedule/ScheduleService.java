@@ -9,6 +9,7 @@ import com.chpark.chcalendar.entity.schedule.ScheduleEntity;
 import com.chpark.chcalendar.exception.CustomException;
 import com.chpark.chcalendar.exception.ScheduleException;
 import com.chpark.chcalendar.repository.schedule.ScheduleNotificationRepository;
+import com.chpark.chcalendar.repository.schedule.ScheduleQueryRepository;
 import com.chpark.chcalendar.repository.schedule.ScheduleRepeatRepository;
 import com.chpark.chcalendar.repository.schedule.ScheduleRepository;
 import com.chpark.chcalendar.service.calendar.UserCalendarService;
@@ -37,6 +38,7 @@ public class ScheduleService {
     private final ScheduleRepository scheduleRepository;
     private final ScheduleNotificationRepository scheduleNotificationRepository;
     private final ScheduleRepeatRepository scheduleRepeatRepository;
+    private final ScheduleQueryRepository scheduleQueryRepository;
 
     private final ScheduleRepeatService scheduleRepeatService;
     private final ScheduleNotificationService scheduleNotificationService;
@@ -307,7 +309,7 @@ public class ScheduleService {
         List<Long> calendars = CalendarUtility.getUserCalendars(userId, calendarMemberService, userCalendarService);
 
         Pageable pageable = PageRequest.of(0, pageSize);
-        List<ScheduleEntity> events = scheduleRepository.findSchedulesByCalendarIdAndUser(userId, calendars, start, end, cursorTime, cursorId, pageable);
+        List<ScheduleEntity> events = scheduleQueryRepository.findSchedulesByCalendarIdAndUser(userId, calendars, start, end, cursorTime, cursorId, pageable);
 
         List<ScheduleDto> dtos = events.stream()
                 .map(ScheduleDto::fromScheduleEntity)

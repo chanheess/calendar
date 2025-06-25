@@ -123,4 +123,21 @@ public class CalendarQueryRepository {
                 )
                 .fetch();
     }
+
+    public List<CalendarEntity> findSyncExternalCalendarsByUserId(Long userId, CalendarCategory category) {
+        return queryFactory
+                .select(calendarEntity)
+                .from(calendarEntity)
+                .leftJoin(calendarEntity.calendarSettings, calendarSettingEntity)
+                .on(calendarSettingEntity.calendar.id.eq(calendarEntity.id))
+                .leftJoin(calendarEntity.calendarProvider, calendarProviderEntity)
+                .on(calendarProviderEntity.calendar.id.eq(calendarEntity.id))
+                .where(
+                        calendarEntity.userId.eq(userId)
+                        .and(calendarEntity.category.eq(category))
+                )
+                .fetch();
+    }
+
+
 }

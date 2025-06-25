@@ -25,10 +25,18 @@ public class CalendarProviderEntity {
     @Column
     private String provider;
 
+    @Column(name = "sync_token")
+    private String syncToken;
+
+    @Column
+    private String status = "read";
+
     @Builder
-    public CalendarProviderEntity(CalendarEntity calendar, String providerId, String provider) {
+    public CalendarProviderEntity(String syncToken, String provider, String providerId, String status, CalendarEntity calendar) {
         this.calendar = calendar;
         this.providerId = providerId;
         this.provider = provider;
+        this.syncToken = syncToken;
+        this.status = status;
     }
 }

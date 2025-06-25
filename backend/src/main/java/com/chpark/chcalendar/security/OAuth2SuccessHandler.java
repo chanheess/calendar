@@ -4,6 +4,7 @@ import com.chpark.chcalendar.enumClass.CalendarCategory;
 import com.chpark.chcalendar.enumClass.JwtTokenType;
 import com.chpark.chcalendar.enumClass.OAuthLoginType;
 import com.chpark.chcalendar.service.calendar.sync.CalendarSyncService;
+import com.chpark.chcalendar.service.schedule.sync.ScheduleSyncService;
 import com.chpark.chcalendar.utility.CookieUtility;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -29,6 +30,7 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
     private final JwtTokenProvider jwtTokenProvider;
     private final OAuth2AuthorizedClientService authorizedClientService;
     private final Map<CalendarCategory, CalendarSyncService> calendarSyncService;
+    private final Map<CalendarCategory, ScheduleSyncService> scheduleSyncService;
 
     @Value("${home_url}")
     String homeUrl;
@@ -76,6 +78,7 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
 
         //sync
         calendarSyncService.get(CalendarCategory.GOOGLE).syncCalendars(oauthAccessToken, request);
+        scheduleSyncService.get(CalendarCategory.GOOGLE).syncSchedules(oauthAccessToken, request);
 
         if (oauthRefreshToken != null) {
             CookieUtility.setCookie(JwtTokenType.GOOGLE_REFRESH,

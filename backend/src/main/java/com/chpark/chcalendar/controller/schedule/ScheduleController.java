@@ -6,7 +6,6 @@ import com.chpark.chcalendar.enumClass.JwtTokenType;
 import com.chpark.chcalendar.enumClass.ScheduleRepeatScope;
 import com.chpark.chcalendar.exception.ValidGroup;
 import com.chpark.chcalendar.security.JwtTokenProvider;
-import com.chpark.chcalendar.service.schedule.ScheduleGroupService;
 import com.chpark.chcalendar.service.schedule.ScheduleService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -30,7 +29,6 @@ import java.util.Optional;
 public class ScheduleController {
 
     private final ScheduleService scheduleService;
-    private final ScheduleGroupService scheduleGroupService;
     private final JwtTokenProvider jwtTokenProvider;
 
     @GetMapping
