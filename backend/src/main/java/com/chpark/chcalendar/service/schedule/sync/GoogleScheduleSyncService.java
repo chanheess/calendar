@@ -117,9 +117,7 @@ public class GoogleScheduleSyncService implements ScheduleSyncService{
 
         do {
             String urlString = createUrl(calendarEntity, pageToken);
-            String status = calendarEntity.getCalendarProvider().getStatus();
-
-            String responseBody = getGoogleSchedule(accessToken, urlString, status);
+            String responseBody = getGoogleSchedule(accessToken, urlString);
 
             ObjectMapper objectMapper = new ObjectMapper();
             JsonNode rootNode = objectMapper.readTree(responseBody);
@@ -194,7 +192,7 @@ public class GoogleScheduleSyncService implements ScheduleSyncService{
     }
 
     @Transactional
-    private String getGoogleSchedule(String accessToken, String urlString, String status) throws IOException {
+    private String getGoogleSchedule(String accessToken, String urlString) throws IOException {
         URL url = new URL(urlString);
         HttpURLConnection con = (HttpURLConnection) url.openConnection();
         con.setRequestMethod("GET");
@@ -247,6 +245,7 @@ public class GoogleScheduleSyncService implements ScheduleSyncService{
                         .description(description)
                         .startAt(startAt)
                         .endAt(endAt)
+                        .userId(calendarEntity.getUserId())
                         .calendarId(calendarEntity.getId())
                         .providerId(id)
                         .etag(etag)
