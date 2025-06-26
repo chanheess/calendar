@@ -5,6 +5,7 @@ import com.chpark.chcalendar.entity.calendar.CalendarEntity;
 import com.chpark.chcalendar.entity.schedule.ScheduleEntity;
 import com.chpark.chcalendar.enumClass.CalendarCategory;
 import com.chpark.chcalendar.enumClass.JwtTokenType;
+import com.chpark.chcalendar.exception.authentication.TokenAuthenticationException;
 import com.chpark.chcalendar.repository.calendar.CalendarQueryRepository;
 import com.chpark.chcalendar.repository.calendar.CalendarRepository;
 import com.chpark.chcalendar.repository.schedule.ScheduleQueryRepository;
@@ -70,9 +71,7 @@ public class GoogleScheduleSyncService implements ScheduleSyncService{
             try {
                 List<ScheduleEntity> googleSchedules = pageGoogleSchedule(calendarEntity, accessToken);
 
-                //schedule_provider_id가 같은 것 검색, 없다면 add 있다면 etag확인, 다르다면 update일자 기준으로 덮어쓰기
                 googleSchedules.forEach(googleSchedule -> {
-                    // 1. providerId가 같은 로컬 일정 찾기
                     Optional<ScheduleEntity> localOpt = localSchedules.stream()
                             .filter(local -> googleSchedule.getProviderId().equals(local.getProviderId()))
                             .findFirst();
@@ -116,8 +115,17 @@ public class GoogleScheduleSyncService implements ScheduleSyncService{
         String newSyncToken = null;
 
         do {
-            String urlString = createUrl(calendarEntity, pageToken);
-            String responseBody = getGoogleSchedule(accessToken, urlString);
+            String urlString = "";
+            String responseBody = "";
+            try {
+                urlString = createUrl(calendarEntity, pageToken);
+                responseBody = getGoogleSchedule(accessToken, urlString);
+            } catch (TokenAuthenticationException ex) {
+                //토큰을 만료시켜서 전체 리프레시하도록
+                calendarEntity.getCalendarProvider().setSyncToken(null);
+                urlString = createUrl(calendarEntity, pageToken);
+                responseBody = getGoogleSchedule(accessToken, urlString);
+            }
 
             ObjectMapper objectMapper = new ObjectMapper();
             JsonNode rootNode = objectMapper.readTree(responseBody);
@@ -130,6 +138,9 @@ public class GoogleScheduleSyncService implements ScheduleSyncService{
                 newSyncToken = rootNode.get("nextSyncToken").asText();
             }
         } while (pageToken != null);
+
+
+
 
         if (newSyncToken != null) {
              calendarEntity.getCalendarProvider().setSyncToken(newSyncToken);
@@ -207,6 +218,11 @@ public class GoogleScheduleSyncService implements ScheduleSyncService{
                 while ((inputLine = errorReader.readLine()) != null) {
                     errorResponse.append(inputLine);
                 }
+                if (responseCode == 410 && errorResponse.toString().contains("fullSyncRequired")) {
+                    // 예외를 던지거나, 플래그 반환 또는 로깅
+                    throw new TokenAuthenticationException("Sync token is no longer valid. Full sync is required.");
+                }
+
                 throw new IOException("HTTP error code: " + responseCode + ", response: " + errorResponse.toString());
             }
         }
