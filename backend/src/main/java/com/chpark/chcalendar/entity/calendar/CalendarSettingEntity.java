@@ -28,13 +28,14 @@ public class CalendarSettingEntity {
     private Long userId;
 
     @Column(length = 10)
-    private String color = generateRandomColor();
+    private String color;
 
     @Column(nullable = false)
     private Boolean checked = true;
 
     public CalendarSettingEntity(long userId) {
         this.userId = userId;
+        this.color = generateRandomColor();
     }
 
     private String generateRandomColor() {

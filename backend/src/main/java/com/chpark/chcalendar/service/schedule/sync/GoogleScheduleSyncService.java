@@ -4,17 +4,17 @@ import com.chpark.chcalendar.dto.CursorPage;
 import com.chpark.chcalendar.entity.calendar.CalendarEntity;
 import com.chpark.chcalendar.entity.schedule.ScheduleEntity;
 import com.chpark.chcalendar.enumClass.CalendarCategory;
-import com.chpark.chcalendar.enumClass.JwtTokenType;
 import com.chpark.chcalendar.exception.authentication.TokenAuthenticationException;
 import com.chpark.chcalendar.repository.calendar.CalendarQueryRepository;
 import com.chpark.chcalendar.repository.calendar.CalendarRepository;
 import com.chpark.chcalendar.repository.schedule.ScheduleQueryRepository;
 import com.chpark.chcalendar.repository.schedule.ScheduleRepository;
-import com.chpark.chcalendar.security.JwtTokenProvider;
+import com.chpark.chcalendar.security.OAuth2SuccessHandler;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -40,26 +40,22 @@ import java.util.*;
 @Service
 public class GoogleScheduleSyncService implements ScheduleSyncService{
 
-    private final JwtTokenProvider jwtTokenProvider;
-
     private final CalendarQueryRepository calendarQueryRepository;
     private final ScheduleQueryRepository scheduleQueryRepository;
 
     private final CalendarRepository calendarRepository;
     private final ScheduleRepository scheduleRepository;
 
+    private static final Logger log = LoggerFactory.getLogger(OAuth2SuccessHandler.class);
+
     @Value("${GOOGLE_API_KEY}")
     private String googleAPIKey;
 
     @Transactional
-    public void syncSchedules(String accessToken, HttpServletRequest request) {
+    public void syncSchedules(String accessToken, long userId) {
         if (accessToken == null) return;
 
-        String token = jwtTokenProvider.resolveToken(request, JwtTokenType.ACCESS.getValue());
-        long userId = jwtTokenProvider.getUserIdFromToken(token);
-
         List<CalendarEntity> calendarList = calendarQueryRepository.findSyncExternalCalendarsByUserId(userId, CalendarCategory.GOOGLE);
-
         List<ScheduleEntity> localSchedules = getLocalSchedule(calendarList, userId, 100);
 
         calendarList.forEach(calendarEntity -> {
@@ -103,7 +99,7 @@ public class GoogleScheduleSyncService implements ScheduleSyncService{
                 });
 
             } catch (Exception e) {
-                e.printStackTrace();
+                log.error("Failed", e);
             }
         });
     }
@@ -138,9 +134,6 @@ public class GoogleScheduleSyncService implements ScheduleSyncService{
                 newSyncToken = rootNode.get("nextSyncToken").asText();
             }
         } while (pageToken != null);
-
-
-
 
         if (newSyncToken != null) {
              calendarEntity.getCalendarProvider().setSyncToken(newSyncToken);
@@ -369,7 +362,7 @@ public class GoogleScheduleSyncService implements ScheduleSyncService{
             );
 
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Failed", e);
         }
     }
 }

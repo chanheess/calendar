@@ -4,11 +4,14 @@ import com.chpark.chcalendar.enumClass.CalendarCategory;
 import com.chpark.chcalendar.enumClass.JwtTokenType;
 import com.chpark.chcalendar.enumClass.OAuthLoginType;
 import com.chpark.chcalendar.service.calendar.sync.CalendarSyncService;
+import com.chpark.chcalendar.service.notification.QuartzSchedulerService;
 import com.chpark.chcalendar.service.schedule.sync.ScheduleSyncService;
 import com.chpark.chcalendar.utility.CookieUtility;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
@@ -22,6 +25,7 @@ import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 @RequiredArgsConstructor
 @Component
@@ -31,6 +35,8 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
     private final OAuth2AuthorizedClientService authorizedClientService;
     private final Map<CalendarCategory, CalendarSyncService> calendarSyncService;
     private final Map<CalendarCategory, ScheduleSyncService> scheduleSyncService;
+
+    private static final Logger log = LoggerFactory.getLogger(OAuth2SuccessHandler.class);
 
     @Value("${home_url}")
     String homeUrl;
@@ -76,10 +82,6 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
                 response
         );
 
-        //sync
-        calendarSyncService.get(CalendarCategory.GOOGLE).syncCalendars(oauthAccessToken, request);
-        scheduleSyncService.get(CalendarCategory.GOOGLE).syncSchedules(oauthAccessToken, request);
-
         if (oauthRefreshToken != null) {
             CookieUtility.setCookie(JwtTokenType.GOOGLE_REFRESH,
                     oauthRefreshToken,
@@ -91,7 +93,6 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
         switch (type) {
             case LINK, LOCAL -> {
                 request.getSession().removeAttribute("oauth_login_type");
-                response.sendRedirect(homeUrl);
             }
             case OAUTH -> {
                 String accessToken = jwtTokenProvider.generateToken(email, JwtTokenType.ACCESS);
@@ -99,9 +100,26 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
 
                 CookieUtility.setCookie(JwtTokenType.ACCESS, accessToken, 60 * 60, response);
                 CookieUtility.setCookie(JwtTokenType.REFRESH, refreshToken, 14 * 24 * 60 * 60, response);
-
-                response.sendRedirect(homeUrl); // 로그인 후 이동할 페이지
             }
         }
+
+        // 구글 캘린더 연동
+        String jwtToken = jwtTokenProvider.resolveToken(request, JwtTokenType.ACCESS.getValue());
+        long userId = jwtTokenProvider.getUserIdFromToken(jwtToken);
+
+        //TODO: 비동기로 변경하기
+//        CompletableFuture.runAsync(() -> {
+//
+//        });
+
+        try {
+            calendarSyncService.get(CalendarCategory.GOOGLE).syncCalendars(oauthAccessToken, userId);
+            scheduleSyncService.get(CalendarCategory.GOOGLE).syncSchedules(oauthAccessToken, userId);
+        } catch (Exception e) {
+            // 동기화 실패가 로그인을 방해하지 않도록 로그만 기록
+            log.error("Failed to sync calendars/schedules for user: " + email, e);
+        }
+
+        response.sendRedirect(homeUrl);
     }
 }

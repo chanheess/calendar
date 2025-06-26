@@ -13,13 +13,13 @@ public class CalendarProviderEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    Long id;
+    private Long id;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "calendar_id", referencedColumnName = "id")
     private CalendarEntity calendar;
 
-    @Column(name = "provider_id")
+    @Column(name = "provider_id", nullable = false)
     private String providerId;
 
     @Column

@@ -91,6 +91,8 @@ public class ScheduleController {
         String token = jwtTokenProvider.resolveToken(request, JwtTokenType.ACCESS.getValue());
         long userId = jwtTokenProvider.getUserIdFromToken(token);
 
+
+
         ScheduleDto.Response result = scheduleService.createByForm(schedule, userId);
 
         return new ResponseEntity<>(result, HttpStatus.CREATED);
@@ -133,9 +135,9 @@ public class ScheduleController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    @DeleteMapping("/{schedule-id}/calendars/{calendarId-id}")
+    @DeleteMapping("/{schedule-id}/calendars/{calendar-id}")
     public ResponseEntity<String> deleteSchedule(@PathVariable("schedule-id") long scheduleId,
-                                                 @PathVariable("calendarId-id") long calendarId,
+                                                 @PathVariable("calendar-id") long calendarId,
                                                  HttpServletRequest request) {
         String token = jwtTokenProvider.resolveToken(request, JwtTokenType.ACCESS.getValue());
         long userId = jwtTokenProvider.getUserIdFromToken(token);
@@ -145,10 +147,10 @@ public class ScheduleController {
         return new ResponseEntity<>("Schedule deleted successfully.", HttpStatus.OK);
     }
 
-    @DeleteMapping("/{schedule-id}/{delete-scope}/calendars/{calendarId-id}")
+    @DeleteMapping("/{schedule-id}/{delete-scope}/calendars/{calendar-id}")
     public ResponseEntity<String> deleteRepeatSchedule(@PathVariable("schedule-id") long scheduleId,
                                                        @PathVariable("delete-scope") String repeatStringScope,
-                                                       @PathVariable("calendarId-id") long calendarId,
+                                                       @PathVariable("calendar-id") long calendarId,
                                                        HttpServletRequest request) {
         ScheduleRepeatScope scheduleRepeatScope = ScheduleRepeatScope.fromValue(repeatStringScope);
 

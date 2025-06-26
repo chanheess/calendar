@@ -35,8 +35,8 @@ public class NotificationController {
         return ResponseEntity.ok(notifications);
     }
 
-    @PostMapping("/notifications/groups/{group-id}/invite")
-    public ResponseEntity<String> sendGroupInviteNotification(@NotNull @PathVariable("group-id") Long calendarId,
+    @PostMapping("/notifications/calendars/{calendar-id}/invite")
+    public ResponseEntity<String> sendGroupInviteNotification(@NotNull @PathVariable("calendar-id") Long calendarId,
                                                               @RequestParam(value = "nickname", required = false) String nickname,
                                                               HttpServletRequest request) {
 

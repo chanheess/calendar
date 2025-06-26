@@ -88,7 +88,6 @@ public class ScheduleEntity {
         this.calendarId = targetEntity.getCalendarId();
         this.providerId = targetEntity.getProviderId();
         this.etag = targetEntity.getEtag();
-        this.createdAt = targetEntity.getCreatedAt();
         this.updatedAt = targetEntity.getUpdatedAt();
     }
 }

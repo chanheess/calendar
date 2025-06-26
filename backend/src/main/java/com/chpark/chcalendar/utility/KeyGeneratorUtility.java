@@ -8,6 +8,10 @@ public class KeyGeneratorUtility {
     private static final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     private static final SecureRandom RANDOM = new SecureRandom();
 
+    private KeyGeneratorUtility() {
+        // 유틸리티 클래스는 인스턴스화 방지
+    }
+
     public static String generateRandomString(int length) {
         if (length <= 0) throw new IllegalArgumentException("Length must be positive.");
 
@@ -19,12 +23,16 @@ public class KeyGeneratorUtility {
         return result.toString();
     }
 
-    public static String generateMailCode(int length) {
-        if (length <= 0 || length > 32) {
-            throw new IllegalArgumentException("Length must be between 1 and 32 (UUID without dashes has 32 characters).");
+    public static String generateNumericMailCode(int length) {
+        if (length <= 0) {
+            throw new IllegalArgumentException("Length must be positive.");
         }
 
-        String uuid = UUID.randomUUID().toString().replace("-", "").toUpperCase();
-        return uuid.substring(0, length);
+        StringBuilder result = new StringBuilder(length);
+
+        for (int i = 0; i < length; i++) {
+            result.append(RANDOM.nextInt(10));
+        }
+        return result.toString();
     }
 }

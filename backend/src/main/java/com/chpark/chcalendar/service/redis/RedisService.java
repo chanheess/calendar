@@ -42,7 +42,7 @@ public class RedisService {
 
         checkRequestCount(emailDto.getType(), emailDto.getEmail());
 
-        String code = KeyGeneratorUtility.generateMailCode(6);
+        String code = KeyGeneratorUtility.generateNumericMailCode(6);
 
         mailService.sendMail(emailDto, code);
 

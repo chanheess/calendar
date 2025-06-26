@@ -31,13 +31,10 @@ public class GoogleCalendarSyncService implements CalendarSyncService {
     private final CalendarRepository calendarRepository;
 
     @Override
-    public void syncCalendars(String accessToken, HttpServletRequest request) {
+    public void syncCalendars(String accessToken, long userId) {
         if (accessToken == null) {
             return;
         }
-
-        String token = jwtTokenProvider.resolveToken(request, JwtTokenType.ACCESS.getValue());
-        long userId = jwtTokenProvider.getUserIdFromToken(token);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(accessToken);

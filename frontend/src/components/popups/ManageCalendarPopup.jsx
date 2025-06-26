@@ -55,7 +55,7 @@ const ManageCalendarPopup = ({
     }
     try {
       await axios.post(
-        `/notifications/groups/${calendarInfo.id}/invite`,
+        `/notifications/calendars/${calendarInfo.id}/invite`,
         null,
         {
           params: { nickname: inviteUserName },

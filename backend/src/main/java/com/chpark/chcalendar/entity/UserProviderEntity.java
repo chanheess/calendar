@@ -6,10 +6,10 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "user_provider")
 @Getter
 @Setter
 @NoArgsConstructor
+@Table(name = "user_provider", uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "provider"}))
 public class UserProviderEntity {
 
     @Id
@@ -22,4 +22,16 @@ public class UserProviderEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private UserEntity user;
+
+    public UserProviderEntity(String provider, UserEntity user) {
+        this.provider = provider;
+        this.user = user;
+    }
 }
+
+
+
+
+
+
+

@@ -14,10 +14,8 @@ const PushNotification = () => {
   useEffect(() => {
     const requestToken = async () => {
       // 이미 토큰 요청 중이거나 완료된 경우 중복 실행 방지
-      if (tokenRequested.current || tokenRequestPromise.current) {
-        if (tokenRequestPromise.current) {
-          await tokenRequestPromise.current;
-        }
+      if (tokenRequestPromise.current) {
+        await tokenRequestPromise.current;
         return;
       }
       

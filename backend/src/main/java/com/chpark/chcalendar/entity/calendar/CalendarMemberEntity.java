@@ -11,7 +11,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @Entity
-@Table(name="calendar_member")
+@Table(name="calendar_member", uniqueConstraints = @UniqueConstraint(columnNames = {"calendar_id", "user_id"}))
 public class CalendarMemberEntity {
 
     @Id
