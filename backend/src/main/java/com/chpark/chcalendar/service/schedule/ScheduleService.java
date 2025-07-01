@@ -14,8 +14,6 @@ import com.chpark.chcalendar.repository.schedule.ScheduleQueryRepository;
 import com.chpark.chcalendar.repository.schedule.ScheduleRepeatRepository;
 import com.chpark.chcalendar.repository.schedule.ScheduleRepository;
 import com.chpark.chcalendar.service.calendar.CalendarService;
-import com.chpark.chcalendar.service.calendar.UserCalendarService;
-import com.chpark.chcalendar.service.calendar.CalendarMemberService;
 import com.chpark.chcalendar.utility.CalendarUtility;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -37,14 +35,14 @@ import java.util.stream.Collectors;
 @Service
 public class ScheduleService {
 
-    private final ScheduleRepository scheduleRepository;
+    protected final ScheduleRepository scheduleRepository;
     private final ScheduleNotificationRepository scheduleNotificationRepository;
     private final ScheduleRepeatRepository scheduleRepeatRepository;
     private final ScheduleQueryRepository scheduleQueryRepository;
 
-    private final ScheduleRepeatService scheduleRepeatService;
-    private final ScheduleNotificationService scheduleNotificationService;
-    private final ScheduleGroupService scheduleGroupService;
+    protected final ScheduleRepeatService scheduleRepeatService;
+    protected final ScheduleNotificationService scheduleNotificationService;
+    protected final ScheduleGroupService scheduleGroupService;
 
     private final Map<CalendarCategory, CalendarService> calendarServiceMap;
 

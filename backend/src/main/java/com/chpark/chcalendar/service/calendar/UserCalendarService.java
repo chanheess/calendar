@@ -30,7 +30,11 @@ public class UserCalendarService extends CalendarService {
             throw new IllegalArgumentException("You have reached the maximum limit for creating calendarId.");
         }
 
-        CalendarEntity result = new CalendarEntity(title, userId, CalendarCategory.USER);
+        CalendarEntity result = CalendarEntity.builder()
+                .title(title)
+                .userId(userId)
+                .category(CalendarCategory.USER)
+                .build();
         calendarRepository.save(result);
 
         return CalendarDto.Response.builder()

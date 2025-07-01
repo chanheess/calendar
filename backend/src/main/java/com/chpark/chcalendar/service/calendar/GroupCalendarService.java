@@ -32,7 +32,11 @@ public class GroupCalendarService extends CalendarService {
             throw new IllegalArgumentException("You have reached the maximum limit for creating groups.");
         }
 
-        CalendarEntity calendarEntity = new CalendarEntity(title, userId, CalendarCategory.GROUP);
+        CalendarEntity calendarEntity = CalendarEntity.builder()
+                .title(title)
+                .userId(userId)
+                .category(CalendarCategory.GROUP)
+                .build();
         calendarRepository.save(calendarEntity);
 
         calendarMemberService.create(calendarEntity, calendarEntity.getUserId(), CalendarMemberRole.ADMIN);

@@ -2,11 +2,17 @@ package com.chpark.chcalendar.controller.schedule;
 
 import com.chpark.chcalendar.dto.CursorPage;
 import com.chpark.chcalendar.dto.schedule.ScheduleDto;
+import com.chpark.chcalendar.entity.calendar.CalendarProviderEntity;
+import com.chpark.chcalendar.enumClass.CalendarCategory;
 import com.chpark.chcalendar.enumClass.JwtTokenType;
 import com.chpark.chcalendar.enumClass.ScheduleRepeatScope;
 import com.chpark.chcalendar.exception.ValidGroup;
+import com.chpark.chcalendar.repository.calendar.CalendarProviderRepository;
 import com.chpark.chcalendar.security.JwtTokenProvider;
+import com.chpark.chcalendar.service.schedule.GoogleScheduleService;
 import com.chpark.chcalendar.service.schedule.ScheduleService;
+import com.chpark.chcalendar.utility.CookieUtility;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,6 +25,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 
@@ -28,8 +35,9 @@ import java.util.Optional;
 @Slf4j
 public class ScheduleController {
 
-    private final ScheduleService scheduleService;
     private final JwtTokenProvider jwtTokenProvider;
+    private final Map<CalendarCategory, ScheduleService> scheduleServiceMap;
+    private final CalendarProviderRepository calendarProviderRepository;
 
     @GetMapping
     public ResponseEntity<List<ScheduleDto>> getSchedulesByTitle(@RequestParam(value = "title", required = false) String title,
@@ -40,9 +48,9 @@ public class ScheduleController {
         long userId = jwtTokenProvider.getUserIdFromToken(token);
 
         if (title == null) {
-            schedules = scheduleService.findByUserId(userId);
+            schedules = scheduleServiceMap.get(CalendarCategory.USER).findByUserId(userId);
         } else {
-            schedules = scheduleService.findSchedulesByTitle(title, userId);
+            schedules = scheduleServiceMap.get(CalendarCategory.USER).findSchedulesByTitle(title, userId);
         }
 
         return new ResponseEntity<>(schedules, HttpStatus.OK);
@@ -70,7 +78,7 @@ public class ScheduleController {
         String token = jwtTokenProvider.resolveToken(request, JwtTokenType.ACCESS.getValue());
         long userId = jwtTokenProvider.getUserIdFromToken(token);
 
-        CursorPage<ScheduleDto> result = scheduleService.getNextSchedules(userId, startTime, endTime, targetCursorTime, targetCursorId, size);
+        CursorPage<ScheduleDto> result = scheduleServiceMap.get(CalendarCategory.USER).getNextSchedules(userId, startTime, endTime, targetCursorTime, targetCursorId, size);
         return ResponseEntity.ok(result);
     }
 
@@ -80,7 +88,7 @@ public class ScheduleController {
         String token = jwtTokenProvider.resolveToken(request, JwtTokenType.ACCESS.getValue());
         long userId = jwtTokenProvider.getUserIdFromToken(token);
 
-        Optional<ScheduleDto> scheduleDto = scheduleService.findById(id, userId);
+        Optional<ScheduleDto> scheduleDto = scheduleServiceMap.get(CalendarCategory.USER).findById(id, userId);
 
         return scheduleDto.map(dto -> new ResponseEntity<>(dto, HttpStatus.OK)).orElseGet(() -> new ResponseEntity<>(null, HttpStatus.OK));
     }
@@ -91,9 +99,19 @@ public class ScheduleController {
         String token = jwtTokenProvider.resolveToken(request, JwtTokenType.ACCESS.getValue());
         long userId = jwtTokenProvider.getUserIdFromToken(token);
 
+        //여기서 provider검색해서 처리해주자.
+        Optional<CalendarProviderEntity> calendarProvider = calendarProviderRepository.findByCalendarId(schedule.getScheduleDto().getCalendarId());
+        ScheduleDto.Response result = null;
 
+        if (calendarProvider.isEmpty()) {
+            result = scheduleServiceMap.get(CalendarCategory.USER).createByForm(schedule, userId);
+        } else {
+            String googleAccessToken = CookieUtility.getToken(request, JwtTokenType.GOOGLE_ACCESS);
 
-        ScheduleDto.Response result = scheduleService.createByForm(schedule, userId);
+            GoogleScheduleService googleScheduleService = (GoogleScheduleService) scheduleServiceMap.get(CalendarCategory.GOOGLE);
+            result = googleScheduleService.createByForm(schedule, userId, googleAccessToken, calendarProvider.get().getProviderId());
+        }
+
 
         return new ResponseEntity<>(result, HttpStatus.CREATED);
     }
@@ -106,7 +124,7 @@ public class ScheduleController {
         String token = jwtTokenProvider.resolveToken(request, JwtTokenType.ACCESS.getValue());
         long userId = jwtTokenProvider.getUserIdFromToken(token);
 
-        ScheduleDto.Response response = scheduleService.updateSchedule(id, isRepeatChecked, scheduleDto, userId);
+        ScheduleDto.Response response = scheduleServiceMap.get(CalendarCategory.USER).updateSchedule(id, isRepeatChecked, scheduleDto, userId);
 
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
@@ -125,10 +143,10 @@ public class ScheduleController {
 
         switch (scheduleRepeatScope) {
             case CURRENT -> {
-                response = scheduleService.updateRepeatCurrentOnlySchedule(id, scheduleDto, userId);
+                response = scheduleServiceMap.get(CalendarCategory.USER).updateRepeatCurrentOnlySchedule(id, scheduleDto, userId);
             }
             case FUTURE -> {
-                response = scheduleService.updateRepeatSchedule(id, isRepeatChecked, scheduleDto, userId);
+                response = scheduleServiceMap.get(CalendarCategory.USER).updateRepeatSchedule(id, isRepeatChecked, scheduleDto, userId);
             }
         }
 
@@ -142,7 +160,7 @@ public class ScheduleController {
         String token = jwtTokenProvider.resolveToken(request, JwtTokenType.ACCESS.getValue());
         long userId = jwtTokenProvider.getUserIdFromToken(token);
 
-        scheduleService.deleteById(scheduleId, calendarId, userId);
+        scheduleServiceMap.get(CalendarCategory.USER).deleteById(scheduleId, calendarId, userId);
 
         return new ResponseEntity<>("Schedule deleted successfully.", HttpStatus.OK);
     }
@@ -160,16 +178,16 @@ public class ScheduleController {
         //삭제할 범위
         switch (scheduleRepeatScope){
             case CURRENT -> {
-                scheduleService.deleteCurrentOnlyRepeatSchedule(scheduleId);
+                scheduleServiceMap.get(CalendarCategory.USER).deleteCurrentOnlyRepeatSchedule(scheduleId);
                 //repeat를 지워주기 위한 update
-                scheduleService.update(scheduleId, new ScheduleDto(), true, userId);
-                scheduleService.deleteById(scheduleId, calendarId, userId);
+                scheduleServiceMap.get(CalendarCategory.USER).update(scheduleId, new ScheduleDto(), true, userId);
+                scheduleServiceMap.get(CalendarCategory.USER).deleteById(scheduleId, calendarId, userId);
             }
             case FUTURE -> {
-                scheduleService.deleteFutureRepeatSchedules(scheduleId, userId);
+                scheduleServiceMap.get(CalendarCategory.USER).deleteFutureRepeatSchedules(scheduleId, userId);
                 //repeat를 지워주기 위한 update
-                scheduleService.update(scheduleId, new ScheduleDto(), true, userId);
-                scheduleService.deleteById(scheduleId, calendarId, userId);
+                scheduleServiceMap.get(CalendarCategory.USER).update(scheduleId, new ScheduleDto(), true, userId);
+                scheduleServiceMap.get(CalendarCategory.USER).deleteById(scheduleId, calendarId, userId);
             }
         }
 

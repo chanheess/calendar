@@ -4,12 +4,13 @@ import com.chpark.chcalendar.dto.CursorPage;
 import com.chpark.chcalendar.entity.calendar.CalendarEntity;
 import com.chpark.chcalendar.entity.schedule.ScheduleEntity;
 import com.chpark.chcalendar.enumClass.CalendarCategory;
+import com.chpark.chcalendar.enumClass.GoogleScheduleStatus;
 import com.chpark.chcalendar.exception.authentication.TokenAuthenticationException;
 import com.chpark.chcalendar.repository.calendar.CalendarQueryRepository;
 import com.chpark.chcalendar.repository.calendar.CalendarRepository;
 import com.chpark.chcalendar.repository.schedule.ScheduleQueryRepository;
 import com.chpark.chcalendar.repository.schedule.ScheduleRepository;
-import com.chpark.chcalendar.security.OAuth2SuccessHandler;
+import com.chpark.chcalendar.utility.ScheduleUtility;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -18,10 +19,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.RestTemplate;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -30,10 +29,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.OffsetDateTime;
-import java.time.ZoneId;
 import java.util.*;
 
 @RequiredArgsConstructor
@@ -46,10 +42,12 @@ public class GoogleScheduleSyncService implements ScheduleSyncService{
     private final CalendarRepository calendarRepository;
     private final ScheduleRepository scheduleRepository;
 
-    private static final Logger log = LoggerFactory.getLogger(OAuth2SuccessHandler.class);
+    private static final Logger log = LoggerFactory.getLogger(GoogleScheduleSyncService.class);
 
     @Value("${GOOGLE_API_KEY}")
     private String googleAPIKey;
+
+    private final ObjectMapper objectMapper;
 
     @Transactional
     public void syncSchedules(String accessToken, long userId) {
@@ -65,39 +63,9 @@ public class GoogleScheduleSyncService implements ScheduleSyncService{
             if (!checked) return;
 
             try {
-                List<ScheduleEntity> googleSchedules = pageGoogleSchedule(calendarEntity, accessToken);
-
-                googleSchedules.forEach(googleSchedule -> {
-                    Optional<ScheduleEntity> localOpt = localSchedules.stream()
-                            .filter(local -> googleSchedule.getProviderId().equals(local.getProviderId()))
-                            .findFirst();
-
-                    //create
-                    if (localOpt.isEmpty()) {
-                        scheduleRepository.save(googleSchedule);
-                        return;
-                    }
-
-                    //no update
-                    ScheduleEntity localSchedule = localOpt.get();
-                    if (Objects.equals(localSchedule.getEtag(), googleSchedule.getEtag())) {
-                        return;
-                    }
-
-                    LocalDateTime googleUpdated = googleSchedule.getUpdatedAt();
-                    LocalDateTime localUpdated = localSchedule.getUpdatedAt();
-
-                    //overwrite
-                    if (googleUpdated != null && (localUpdated == null || googleUpdated.isAfter(localUpdated))) {
-                        // 구글이 최신 -> 덮어쓰기
-                        localSchedule.overwrite(googleSchedule);
-                        scheduleRepository.save(localSchedule);
-                    } else {
-                        // 로컬이 최신 -> 양방향 동기화
-                        pushLocalScheduleToGoogle(localSchedule, accessToken, calendarEntity.getCalendarProvider().getProviderId());
-                    }
-                });
-
+                Map<GoogleScheduleStatus, List<ScheduleEntity>> googleSchedules = pageGoogleSchedule(calendarEntity, accessToken);
+                saveSchedule(googleSchedules.get(GoogleScheduleStatus.CONFIRMED), localSchedules);
+                deleteSchedule(googleSchedules.get(GoogleScheduleStatus.CANCELLED), localSchedules);
             } catch (Exception e) {
                 log.error("Failed", e);
             }
@@ -105,8 +73,70 @@ public class GoogleScheduleSyncService implements ScheduleSyncService{
     }
 
     @Transactional
-    private List<ScheduleEntity> pageGoogleSchedule(CalendarEntity calendarEntity, String accessToken) throws IOException {
-        List<ScheduleEntity> googleSchedules = new ArrayList<>();
+    public void saveSchedule(List<ScheduleEntity> googleSchedules, List<ScheduleEntity> localSchedules) {
+        if (googleSchedules == null) {
+            return;
+        }
+
+        googleSchedules.forEach(googleSchedule -> {
+            Optional<ScheduleEntity> localOpt = localSchedules.stream()
+                    .filter(local -> googleSchedule.getProviderId().equals(local.getProviderId()))
+                    .findFirst();
+
+            //create
+            if (localOpt.isEmpty()) {
+                scheduleRepository.save(googleSchedule);
+                return;
+            }
+
+            //no update
+            ScheduleEntity localSchedule = localOpt.get();
+            if (Objects.equals(localSchedule.getEtag(), googleSchedule.getEtag())) {
+                return;
+            }
+
+            LocalDateTime googleUpdated = googleSchedule.getUpdatedAt();
+            LocalDateTime localUpdated = localSchedule.getUpdatedAt();
+
+            //overwrite
+            if (googleUpdated != null && (localUpdated == null || googleUpdated.isAfter(localUpdated))) {
+                // 구글이 최신 -> 덮어쓰기
+                localSchedule.overwrite(googleSchedule);
+                scheduleRepository.save(localSchedule);
+            }
+        });
+    }
+
+    @Transactional
+    public void deleteSchedule(List<ScheduleEntity> googleSchedules, List<ScheduleEntity> localSchedules) {
+        if (googleSchedules == null) {
+            return;
+        }
+
+        googleSchedules.forEach(googleSchedule -> {
+            Optional<ScheduleEntity> localOpt = localSchedules.stream()
+                    .filter(local -> googleSchedule.getProviderId().equals(local.getProviderId()))
+                    .findFirst();
+            //no delete
+            if (localOpt.isEmpty()) {
+                return;
+            }
+
+            ScheduleEntity localSchedule = localOpt.get();
+            LocalDateTime googleUpdated = googleSchedule.getUpdatedAt();
+            LocalDateTime localUpdated = localSchedule.getUpdatedAt();
+
+            //overwrite
+            if (googleUpdated != null && (localUpdated == null || googleUpdated.isAfter(localUpdated))) {
+                // 구글이 최신 -> 삭제
+                scheduleRepository.delete(localSchedule);
+            }
+        });
+    }
+
+    @Transactional
+    private Map<GoogleScheduleStatus, List<ScheduleEntity>> pageGoogleSchedule(CalendarEntity calendarEntity, String accessToken) throws IOException {
+        Map<GoogleScheduleStatus, List<ScheduleEntity>> googleSchedules = new HashMap<>();
         String pageToken = null;
         String newSyncToken = null;
 
@@ -123,10 +153,12 @@ public class GoogleScheduleSyncService implements ScheduleSyncService{
                 responseBody = getGoogleSchedule(accessToken, urlString);
             }
 
-            ObjectMapper objectMapper = new ObjectMapper();
             JsonNode rootNode = objectMapper.readTree(responseBody);
 
-            googleSchedules.addAll(parseGoogleScheduleList(rootNode, calendarEntity));
+            Map<GoogleScheduleStatus, List<ScheduleEntity>> toAdd = parseGoogleScheduleMap(rootNode, calendarEntity);
+            for (Map.Entry<GoogleScheduleStatus, List<ScheduleEntity>> entry : toAdd.entrySet()) {
+                googleSchedules.computeIfAbsent(entry.getKey(), k -> new ArrayList<>()).addAll(entry.getValue());
+            }
 
             pageToken = rootNode.has("nextPageToken") ? rootNode.get("nextPageToken").asText(null) : null;
 
@@ -231,77 +263,23 @@ public class GoogleScheduleSyncService implements ScheduleSyncService{
         return response.toString();
     }
 
-    private List<ScheduleEntity> parseGoogleScheduleList(JsonNode rootNode, CalendarEntity calendarEntity) {
-        List<ScheduleEntity> scheduleList = new ArrayList<>();
+
+
+    private Map<GoogleScheduleStatus, List<ScheduleEntity>> parseGoogleScheduleMap(JsonNode rootNode, CalendarEntity calendarEntity) {
+        Map<GoogleScheduleStatus, List<ScheduleEntity>> scheduleEntityMap = new HashMap<>();
         JsonNode itemsNode = rootNode.path("items");
 
         if (itemsNode != null && itemsNode.isArray()) {
             for (JsonNode itemNode : itemsNode) {
-                if ("cancelled".equals(itemNode.path("status").asText())) {
-                    continue;
-                }
-                String id = itemNode.path("id").asText("");
-                String title = itemNode.path("summary").asText("");
-                String description = itemNode.path("description").asText("");
-                LocalDateTime startAt = parseGoogleDateToKST(itemNode, "start");
-                LocalDateTime endAt = parseGoogleDateToKST(itemNode, "end");
-                String etag = itemNode.path("etag").asText("");
-                LocalDateTime createdAt = parseToLocalDateTime(itemNode.path("created").asText(""));
-                LocalDateTime updatedAt = parseToLocalDateTime(itemNode.path("updated").asText(""));
+                GoogleScheduleStatus status = GoogleScheduleStatus.from(itemNode.path("status").asText());
+                ScheduleEntity scheduleEntity = ScheduleUtility.parseScheduleEntity(itemNode, calendarEntity);
 
-                ScheduleEntity scheduleEntity = ScheduleEntity.builder()
-                        .title(title)
-                        .description(description)
-                        .startAt(startAt)
-                        .endAt(endAt)
-                        .userId(calendarEntity.getUserId())
-                        .calendarId(calendarEntity.getId())
-                        .providerId(id)
-                        .etag(etag)
-                        .createdAt(createdAt)
-                        .updatedAt(updatedAt)
-                        .build();
-
-                scheduleList.add(scheduleEntity);
+                scheduleEntityMap
+                        .computeIfAbsent(status, k -> new ArrayList<>())
+                        .add(scheduleEntity);
             }
         }
-        return scheduleList;
-    }
-
-    private LocalDateTime parseToLocalDateTime(String dateTimeStr) {
-        if (dateTimeStr == null || dateTimeStr.isEmpty()) {
-            return null;
-        }
-        return OffsetDateTime.parse(dateTimeStr).toLocalDateTime();
-    }
-
-    private LocalDateTime parseGoogleDateToKST(JsonNode itemNode, String nodeName) {
-        // dateTime 우선 시도
-        String dateTimeStr = itemNode.path(nodeName).path("dateTime").asText("");
-        if (dateTimeStr != null && !dateTimeStr.isEmpty()) {
-            try {
-                OffsetDateTime odt = OffsetDateTime.parse(dateTimeStr);
-                // 항상 KST로 변환
-                return odt.atZoneSameInstant(ZoneId.of("Asia/Seoul")).toLocalDateTime();
-            } catch (Exception e) {
-                // 무시하고 아래로
-            }
-        }
-
-        // 만약 dateTime 파싱이 실패하면 date(종일 일정) 시도
-        String dateStr = itemNode.path(nodeName).path("date").asText("");
-        if (dateStr != null && !dateStr.isEmpty()) {
-            try {
-                LocalDate date = LocalDate.parse(dateStr);
-                // KST로 00:00:00 변환
-                return date.atStartOfDay(ZoneId.of("Asia/Seoul")).toLocalDateTime();
-            } catch (Exception e) {
-                // 무시
-            }
-        }
-
-        // 아무것도 없으면 null
-        return null;
+        return scheduleEntityMap;
     }
 
     public String createUrl(CalendarEntity calendarEntity, String pageToken) {
@@ -331,38 +309,5 @@ public class GoogleScheduleSyncService implements ScheduleSyncService{
         }
 
         return urlBuilder.toString();
-    }
-
-    @Transactional
-    public void pushLocalScheduleToGoogle(ScheduleEntity localSchedule, String accessToken, String googleCalendarId) {
-        String eventId = localSchedule.getProviderId();
-
-        String url = "https://www.googleapis.com/calendar/v3/calendars/" + googleCalendarId + "/events/" + eventId;
-
-        //JSON으로 변환
-        ObjectMapper objectMapper = new ObjectMapper();
-        Map<String, Object> googleEvent = new HashMap<>();
-        googleEvent.put("summary", localSchedule.getTitle());
-        googleEvent.put("description", localSchedule.getDescription());
-        googleEvent.put("start", Map.of("dateTime", localSchedule.getStartAt().toString()));
-        googleEvent.put("end", Map.of("dateTime", localSchedule.getEndAt().toString()));
-
-        try {
-            String requestBody = objectMapper.writeValueAsString(googleEvent);
-
-            HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth(accessToken);
-            headers.setContentType(MediaType.APPLICATION_JSON);
-
-            HttpEntity<String> requestEntity = new HttpEntity<>(requestBody, headers);
-
-            RestTemplate restTemplate = new RestTemplate();
-            ResponseEntity<String> response = restTemplate.exchange(
-                    url, HttpMethod.PATCH, requestEntity, String.class
-            );
-
-        } catch (Exception e) {
-            log.error("Failed", e);
-        }
     }
 }

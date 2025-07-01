@@ -53,6 +53,11 @@ public class ScheduleEntity {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @PrePersist
+    public void prePersist() {
+        if (createdAt == null) createdAt = LocalDateTime.now();
+        if (updatedAt == null) updatedAt = LocalDateTime.now();
+    }
 
     public ScheduleEntity(ScheduleDto scheduleDto) {
         this.title = scheduleDto.getTitle();

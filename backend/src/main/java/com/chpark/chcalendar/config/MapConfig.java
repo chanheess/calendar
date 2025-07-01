@@ -5,6 +5,7 @@ import com.chpark.chcalendar.enumClass.NotificationCategory;
 import com.chpark.chcalendar.service.calendar.CalendarService;
 import com.chpark.chcalendar.service.calendar.sync.CalendarSyncService;
 import com.chpark.chcalendar.service.notification.NotificationService;
+import com.chpark.chcalendar.service.schedule.ScheduleService;
 import com.chpark.chcalendar.service.schedule.sync.ScheduleSyncService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -53,6 +54,17 @@ public class MapConfig {
     ) {
         Map<CalendarCategory, ScheduleSyncService> serviceMap = new HashMap<>();
         serviceMap.put(CalendarCategory.GOOGLE, googleScheduleSyncService);
+        return serviceMap;
+    }
+
+    @Bean
+    public Map<CalendarCategory, ScheduleService> scheduleServiceMap(
+            @Qualifier("googleScheduleService") ScheduleService googleScheduleService,
+            @Qualifier("scheduleService") ScheduleService scheduleService
+    ) {
+        Map<CalendarCategory, ScheduleService> serviceMap = new HashMap<>();
+        serviceMap.put(CalendarCategory.GOOGLE, googleScheduleService);
+        serviceMap.put(CalendarCategory.USER, scheduleService);
         return serviceMap;
     }
 }

@@ -43,7 +43,8 @@ public class CalendarEntity {
     }
 
     @Builder
-    public CalendarEntity(String title, long userId, CalendarCategory category) {
+    public CalendarEntity(Long id, String title, long userId, CalendarCategory category) {
+        this.id = id;
         this.title = title;
         this.userId = userId;
         this.category = category;

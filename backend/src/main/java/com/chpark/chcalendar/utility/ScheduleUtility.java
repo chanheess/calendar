@@ -1,9 +1,14 @@
 package com.chpark.chcalendar.utility;
 
+import com.chpark.chcalendar.entity.calendar.CalendarEntity;
+import com.chpark.chcalendar.entity.schedule.ScheduleEntity;
 import com.chpark.chcalendar.enumClass.ScheduleRepeatType;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.google.api.services.calendar.model.Event;
+import com.google.api.services.calendar.model.EventDateTime;
 import org.apache.commons.validator.routines.EmailValidator;
 
-import java.time.LocalDateTime;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.Locale;
@@ -82,6 +87,126 @@ public class ScheduleUtility {
         if (!validator.isValid(email)) {
             throw new IllegalArgumentException("잘못된 이메일 형식: " + email);
         }
+    }
+
+    public static ScheduleEntity parseScheduleEntity(JsonNode itemNode, CalendarEntity calendarEntity) {
+        String id = itemNode.path("id").asText("");
+        String title = itemNode.path("summary").asText("");
+        String description = itemNode.path("description").asText("");
+        LocalDateTime startAt = parseGoogleDateToKST(itemNode, "start");
+        LocalDateTime endAt = parseGoogleDateToKST(itemNode, "end");
+        String etag = itemNode.path("etag").asText("");
+        LocalDateTime createdAt = parseToLocalDateTime(itemNode.path("created").asText(""));
+        LocalDateTime updatedAt = parseToLocalDateTime(itemNode.path("updated").asText(""));
+
+        return ScheduleEntity.builder()
+                .title(title)
+                .description(description)
+                .startAt(startAt)
+                .endAt(endAt)
+                .userId(calendarEntity.getUserId())
+                .calendarId(calendarEntity.getId())
+                .providerId(id)
+                .etag(etag)
+                .createdAt(createdAt)
+                .updatedAt(updatedAt)
+                .build();
+    }
+
+    public static LocalDateTime parseGoogleDateToKST(JsonNode itemNode, String nodeName) {
+        // dateTime 우선 시도
+        String dateTimeStr = itemNode.path(nodeName).path("dateTime").asText("");
+        if (dateTimeStr != null && !dateTimeStr.isEmpty()) {
+            try {
+                OffsetDateTime odt = OffsetDateTime.parse(dateTimeStr);
+                // 항상 KST로 변환
+                return odt.atZoneSameInstant(ZoneId.of("Asia/Seoul")).toLocalDateTime();
+            } catch (Exception e) {
+                // 무시하고 아래로
+            }
+        }
+
+        // 만약 dateTime 파싱이 실패하면 date(종일 일정) 시도
+        String dateStr = itemNode.path(nodeName).path("date").asText("");
+        if (dateStr != null && !dateStr.isEmpty()) {
+            try {
+                LocalDate date = LocalDate.parse(dateStr);
+                // KST로 00:00:00 변환
+                return date.atStartOfDay(ZoneId.of("Asia/Seoul")).toLocalDateTime();
+            } catch (Exception e) {
+                // 무시
+            }
+        }
+
+        // 아무것도 없으면 null
+        return null;
+    }
+
+    public static LocalDateTime parseToLocalDateTime(String dateTimeStr) {
+        if (dateTimeStr == null || dateTimeStr.isEmpty()) {
+            return null;
+        }
+        return OffsetDateTime.parse(dateTimeStr).toLocalDateTime();
+    }
+
+    public static ScheduleEntity parseScheduleEntityFromGoogleEvent(Event event, CalendarEntity calendarEntity) {
+        // ID, 제목, 설명
+        String id = event.getId();
+        String title = event.getSummary();
+        String description = event.getDescription();
+
+        // 시작/종료 시간 (DateTime 또는 Date)
+        EventDateTime start = event.getStart();
+        EventDateTime end = event.getEnd();
+        LocalDateTime startAt = null;
+        LocalDateTime endAt = null;
+        if (start != null) {
+            if (start.getDateTime() != null) {
+                startAt = LocalDateTime.ofInstant(
+                        Instant.ofEpochMilli(start.getDateTime().getValue()), ZoneId.of("Asia/Seoul"));
+            } else if (start.getDate() != null) {
+                LocalDate localDate = Instant.ofEpochMilli(start.getDate().getValue())
+                        .atZone(ZoneId.of("Asia/Seoul"))
+                        .toLocalDate();
+                startAt = localDate.atStartOfDay();
+            }
+        }
+        if (end != null) {
+            if (end.getDateTime() != null) {
+                endAt = LocalDateTime.ofInstant(
+                        Instant.ofEpochMilli(end.getDateTime().getValue()), ZoneId.of("Asia/Seoul"));
+            } else if (end.getDate() != null) {
+                LocalDate localDate = Instant.ofEpochMilli(end.getDate().getValue())
+                        .atZone(ZoneId.of("Asia/Seoul"))
+                        .toLocalDate();
+                endAt = localDate.atStartOfDay();
+            }
+        }
+
+        // etag, 생성/수정 시간
+        String etag = event.getEtag();
+        LocalDateTime createdAt = null, updatedAt = null;
+        if (event.getCreated() != null) {
+            createdAt = LocalDateTime.ofInstant(
+                    Instant.ofEpochMilli(event.getCreated().getValue()), ZoneId.of("Asia/Seoul"));
+        }
+        if (event.getUpdated() != null) {
+            updatedAt = LocalDateTime.ofInstant(
+                    Instant.ofEpochMilli(event.getUpdated().getValue()), ZoneId.of("Asia/Seoul"));
+        }
+
+        return ScheduleEntity.builder()
+                .title(title)
+                .description(description)
+                .startAt(startAt)
+                .endAt(endAt)
+                .userId(calendarEntity.getUserId())
+                .calendarId(calendarEntity.getId())
+                .providerId(id)
+                .etag(etag)
+                .createdAt(createdAt)
+                .updatedAt(updatedAt)
+                .build();
     }
 
 }
