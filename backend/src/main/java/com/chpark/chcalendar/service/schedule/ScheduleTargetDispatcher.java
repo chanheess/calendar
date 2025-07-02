@@ -31,12 +31,16 @@ public class ScheduleTargetDispatcher {
 
     @Transactional
     public ScheduleTargetActionDto getTargetCreateAction(ScheduleDto.Request scheduleDto, HttpServletRequest request) {
+        if (scheduleDto == null || scheduleDto.getScheduleDto() == null) {
+            throw new IllegalArgumentException("일정 정보가 없습니다");
+        }
+
         CalendarEntity calendar = calendarRepository.findById(scheduleDto.getScheduleDto().getCalendarId()).orElseThrow(
                 () -> new EntityNotFoundException("존재하지 않는 캘린더입니다.")
         );
         CalendarCategory category = calendar.getCategory();
 
-        if (category.ordinal() >= 2) {
+        if (category.isExternalProvider()) {
             return new ScheduleTargetActionDto(
                     category,
                     ScheduleTargetAction.CREATE,
@@ -51,6 +55,10 @@ public class ScheduleTargetDispatcher {
 
     @Transactional
     public ScheduleTargetActionDto getTargetUpdateAction(ScheduleDto.Request scheduleDto, HttpServletRequest request) {
+        if (scheduleDto == null || scheduleDto.getScheduleDto() == null) {
+            throw new IllegalArgumentException("일정 정보가 없습니다");
+        }
+
         ScheduleEntity scheduleEntity = scheduleRepository.findById(scheduleDto.getScheduleDto().getId()).orElseThrow(
                 () -> new ScheduleException("Not found schedule")
         );
@@ -66,7 +74,7 @@ public class ScheduleTargetDispatcher {
 
         ScheduleTargetActionDto result = null;
 
-        if (CalendarCategory.USER == currentCategory && newCategory.ordinal() >= 2) {
+        if (CalendarCategory.USER == currentCategory && newCategory.isExternalProvider()) {
             result = new ScheduleTargetActionDto(
                     newCategory,
                     ScheduleTargetAction.CREATE,
@@ -74,7 +82,7 @@ public class ScheduleTargetDispatcher {
                     null,
                     getAccessToken(newCategory, request)
             );
-        } else if (currentCategory.ordinal() >= 2 && CalendarCategory.USER == newCategory) {
+        } else if (currentCategory.isExternalProvider() && CalendarCategory.USER == newCategory) {
             result = new ScheduleTargetActionDto(
                     currentCategory,
                     ScheduleTargetAction.DELETE,
@@ -82,7 +90,7 @@ public class ScheduleTargetDispatcher {
                     scheduleEntity.getProviderId(),
                     getAccessToken(currentCategory, request)
             );
-        } else if (newCategory == currentCategory && currentCategory.ordinal() >= 2) {
+        } else if (newCategory == currentCategory && currentCategory.isExternalProvider()) {
             result = new ScheduleTargetActionDto(
                     currentCategory,
                     ScheduleTargetAction.UPDATE,
@@ -90,7 +98,7 @@ public class ScheduleTargetDispatcher {
                     scheduleEntity.getProviderId(),
                     getAccessToken(currentCategory, request)
             );
-        } else if (newCategory != currentCategory && currentCategory.ordinal() >= 2 && newCategory.ordinal() >= 2) {
+        } else if (newCategory != currentCategory && currentCategory.isExternalProvider() && newCategory.isExternalProvider()) {
             //외부와 외부 비교 추후 추가: 이 때는 List<ScheduleTargetActionDto>로 변경해야될듯
         }
 
@@ -106,7 +114,7 @@ public class ScheduleTargetDispatcher {
         );
         CalendarCategory category = calendar.getCategory();
 
-        if (category.ordinal() >= 2) {
+        if (category.isExternalProvider()) {
             return new ScheduleTargetActionDto(
                     category,
                     ScheduleTargetAction.DELETE,

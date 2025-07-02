@@ -13,4 +13,8 @@ public enum CalendarCategory {
     CalendarCategory(String message) {
         this.message = message;
     }
+
+    public boolean isExternalProvider() {
+        return this.ordinal() >= 2;
+    }
 }

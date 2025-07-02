@@ -112,6 +112,10 @@ public class GoogleScheduleEventListener {
     }
 
     private Calendar createGoogleCalendarService(String accessToken) throws Exception {
+        if (accessToken == null || accessToken.isBlank()) {
+            throw new IllegalArgumentException("유효하지 않은 액세스 토큰입니다");
+        }
+
         GoogleCredentials credentials = GoogleCredentials.create(new AccessToken(accessToken, null));
         HttpRequestInitializer requestInitializer = request -> {
             new HttpCredentialsAdapter(credentials).initialize(request);
