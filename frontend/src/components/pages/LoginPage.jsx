@@ -15,14 +15,14 @@ const LoginPage = () => {
 
   useEffect(() => {
     const cookies = document.cookie.split(";").map(c => c.trim());
-    const errorCookie = cookies.find(c => c.startsWith("login_error="));
+    const errorCookie = cookies.find(c => c.startsWith("oauth_error="));
     if (errorCookie) {
       const rawValue = errorCookie.split("=")[1];
       const decodedValue = decodeURIComponent(rawValue.replace(/\+/g, " "));
       alert(decodedValue);
 
       // Clear the cookie
-      document.cookie = "login_error=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+      document.cookie = "oauth_error=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
     }
   }, []);
 

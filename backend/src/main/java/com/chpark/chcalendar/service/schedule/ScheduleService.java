@@ -1,10 +1,7 @@
 package com.chpark.chcalendar.service.schedule;
 
 import com.chpark.chcalendar.dto.CursorPage;
-import com.chpark.chcalendar.dto.schedule.ScheduleDto;
-import com.chpark.chcalendar.dto.schedule.ScheduleGroupDto;
-import com.chpark.chcalendar.dto.schedule.ScheduleNotificationDto;
-import com.chpark.chcalendar.dto.schedule.ScheduleRepeatDto;
+import com.chpark.chcalendar.dto.schedule.*;
 import com.chpark.chcalendar.entity.schedule.ScheduleEntity;
 import com.chpark.chcalendar.enumClass.CalendarCategory;
 import com.chpark.chcalendar.exception.CustomException;
@@ -124,7 +121,6 @@ public class ScheduleService {
 
     @Transactional
     public ScheduleDto.Response updateSchedule(long scheduleId, boolean isRepeatChecked, ScheduleDto.Request scheduleDto, long userId) {
-
         ScheduleEntity scheduleEntity = scheduleRepository.findById(scheduleId).orElseThrow(
                 () -> new ScheduleException("Not found schedule")
         );
@@ -349,7 +345,7 @@ public class ScheduleService {
 
     public void validateScheduleDto(ScheduleDto scheduleDto) {
         if(!scheduleDto.getStartAt().isBefore(scheduleDto.getEndAt())) {
-            throw new IllegalArgumentException("Start time must be before end time.");
+            throw new IllegalArgumentException("시작 시간은 종료 시간보다 이전이어야 합니다.");
         }
     }
 

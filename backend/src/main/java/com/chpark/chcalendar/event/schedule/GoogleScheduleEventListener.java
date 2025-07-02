@@ -33,34 +33,16 @@ public class GoogleScheduleEventListener {
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleGoogleScheduleCreate(GoogleScheduleCreateEvent googleSchedule) {
         try {
-            //구글 인증 객체 생성 (최신 방식)
-            GoogleCredentials credentials = GoogleCredentials.create(
-                    new AccessToken(googleSchedule.accessToken(), null)
-            );
-
-            //Calendar 서비스 생성 (재시도, BackOff 포함)
-            HttpRequestInitializer requestInitializer = request -> {
-                new HttpCredentialsAdapter(credentials).initialize(request);
-                request.setNumberOfRetries(3); // 3회 재시도
-                request.setUnsuccessfulResponseHandler(
-                        new HttpBackOffUnsuccessfulResponseHandler(new ExponentialBackOff())
-                );
-            };
-
-            Calendar service = new Calendar.Builder(
-                    GoogleNetHttpTransport.newTrustedTransport(),
-                    GsonFactory.getDefaultInstance(),
-                    requestInitializer
-            ).setApplicationName("chcalendar").build();
+            Calendar service = createGoogleCalendarService(googleSchedule.accessToken());
 
             //구글 이벤트 생성
             Event event = new Event()
                     .setSummary(googleSchedule.title())
                     .setDescription(googleSchedule.description())
                     .setStart(googleSchedule.startAt())
-                    .setEnd(googleSchedule.startAt());
+                    .setEnd(googleSchedule.endAt());
 
-            //이벤트 삽입 (자동 재시도)
+            //이벤트 삽입
             Event createdEvent = service.events().insert(googleSchedule.calendarId(), event).execute();
 
             Optional<ScheduleEntity> localSchedule = scheduleRepository.findById(googleSchedule.localScheduleId());
@@ -72,7 +54,76 @@ public class GoogleScheduleEventListener {
             }
 
         } catch (Exception e) {
-            log.error("Failed", e);
+            log.error("Failed to create Google Calendar event", e);
         }
+    }
+
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void handleGoogleScheduleUpdate(GoogleScheduleUpdateEvent googleSchedule) {
+        try {
+            Calendar service = createGoogleCalendarService(googleSchedule.accessToken());
+
+            Event event = new Event()
+                    .setSummary(googleSchedule.title())
+                    .setDescription(googleSchedule.description())
+                    .setStart(googleSchedule.startAt())
+                    .setEnd(googleSchedule.endAt());
+
+            Event updatedEvent = service.events()
+                    .update(googleSchedule.calendarId(), googleSchedule.scheduleId(), event)
+                    .execute();
+
+            //etag 반영
+            Optional<ScheduleEntity> localSchedule = scheduleRepository.findByProviderId(googleSchedule.scheduleId());
+            if (localSchedule.isPresent()) {
+                ScheduleEntity entity = localSchedule.get();
+                entity.setEtag(updatedEvent.getEtag());
+                scheduleRepository.save(entity);
+            }
+
+        } catch (Exception e) {
+            log.error("Failed to update Google Calendar event", e);
+        }
+    }
+
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void handleGoogleScheduleDelete(GoogleScheduleDeleteEvent googleSchedule) {
+        try {
+            Calendar service = createGoogleCalendarService(googleSchedule.accessToken());
+
+            service.events()
+                    .delete(googleSchedule.calendarId(), googleSchedule.scheduleId())
+                    .execute();
+
+            //로컬 일정이 있으면 구글의 값들 삭제
+            Optional<ScheduleEntity> localSchedule = scheduleRepository.findByProviderId(googleSchedule.scheduleId());
+            if (localSchedule.isPresent()) {
+                ScheduleEntity entity = localSchedule.get();
+                entity.setProviderId(null);
+                entity.setEtag(null);
+                scheduleRepository.save(entity);
+            }
+
+        } catch (Exception e) {
+            log.error("Failed to delete Google Calendar event", e);
+        }
+    }
+
+    private Calendar createGoogleCalendarService(String accessToken) throws Exception {
+        GoogleCredentials credentials = GoogleCredentials.create(new AccessToken(accessToken, null));
+        HttpRequestInitializer requestInitializer = request -> {
+            new HttpCredentialsAdapter(credentials).initialize(request);
+            request.setNumberOfRetries(3);
+            request.setUnsuccessfulResponseHandler(
+                    new HttpBackOffUnsuccessfulResponseHandler(new ExponentialBackOff())
+            );
+        };
+        return new Calendar.Builder(
+                GoogleNetHttpTransport.newTrustedTransport(),
+                GsonFactory.getDefaultInstance(),
+                requestInitializer
+        ).setApplicationName("chcalendar").build();
     }
 }

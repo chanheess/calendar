@@ -319,7 +319,7 @@ import {
       }
     } catch (error) {
       console.error("Error saving schedule:", error.response?.data || error.message);
-      alert("Failed to save schedule.");
+      alert(error.response?.data.message || "Failed to save schedule.");
     }
   };
 
@@ -358,7 +358,7 @@ import {
       }
     } catch (error) {
       console.error("Error saving schedule:", error.response?.data || error.message);
-      alert("Failed to save schedule.");
+      alert(error.response?.data.message || "Failed to save schedule.");
     }
   };
 

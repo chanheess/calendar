@@ -32,7 +32,7 @@ public interface ScheduleRepository extends JpaRepository<ScheduleEntity, Long> 
 
     Optional<ScheduleEntity> findByIdAndUserId(@Param("id") Long id, @Param("userId") Long userId);
 
-
+    Optional<ScheduleEntity> findByProviderId(@Param("providerId") String providerId);
 
 
 }

@@ -56,15 +56,4 @@ public class MapConfig {
         serviceMap.put(CalendarCategory.GOOGLE, googleScheduleSyncService);
         return serviceMap;
     }
-
-    @Bean
-    public Map<CalendarCategory, ScheduleService> scheduleServiceMap(
-            @Qualifier("googleScheduleService") ScheduleService googleScheduleService,
-            @Qualifier("scheduleService") ScheduleService scheduleService
-    ) {
-        Map<CalendarCategory, ScheduleService> serviceMap = new HashMap<>();
-        serviceMap.put(CalendarCategory.GOOGLE, googleScheduleService);
-        serviceMap.put(CalendarCategory.USER, scheduleService);
-        return serviceMap;
-    }
 }
