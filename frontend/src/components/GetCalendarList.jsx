@@ -12,7 +12,8 @@ const GetCalendarList = async (category) => {
         title: calendar.title, 
         color: calendar.color, 
         category: calendar.category,
-        isSelected: calendar.checked !== false
+        isSelected: calendar.checked !== false,
+        fileAuthority: calendar.fileAuthority
       };
       return acc;
     }, {});

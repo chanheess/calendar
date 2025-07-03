@@ -2,6 +2,7 @@ package com.chpark.chcalendar.service.calendar;
 
 import com.chpark.chcalendar.dto.calendar.CalendarDto;
 import com.chpark.chcalendar.entity.calendar.CalendarEntity;
+import com.chpark.chcalendar.enumClass.CRUDAction;
 import com.chpark.chcalendar.enumClass.CalendarCategory;
 import com.chpark.chcalendar.repository.calendar.CalendarQueryRepository;
 import com.chpark.chcalendar.repository.calendar.CalendarRepository;
@@ -55,7 +56,7 @@ public class UserCalendarService extends CalendarService {
     }
 
     @Override
-    public void checkAuthority(long userId, long calendarId) {
+    public void checkAuthority(CRUDAction action, long userId, long calendarId) {
         calendarRepository.findByIdAndUserId(calendarId, userId).orElseThrow(
                 () -> new EntityNotFoundException("You do not have permission.")
         );

@@ -101,7 +101,7 @@ public class CalendarQueryRepository {
                         tuple -> tuple.get(calendarEntity)
                 ));
     }
-    
+
     public List<CalendarDto.Response> findExternalCalendarsByUserId(Long userId, CalendarCategory category) {
         return queryFactory
                 .select(Projections.constructor(
@@ -110,7 +110,8 @@ public class CalendarQueryRepository {
                         calendarEntity.id,
                         calendarSettingEntity.color,
                         calendarEntity.category,
-                        calendarSettingEntity.checked
+                        calendarSettingEntity.checked,
+                        calendarProviderEntity.status
                 ))
                 .from(calendarEntity)
                 .leftJoin(calendarSettingEntity)
@@ -118,6 +119,8 @@ public class CalendarQueryRepository {
                         calendarSettingEntity.calendar.id.eq(calendarEntity.id)
                                 .and(calendarSettingEntity.userId.eq(userId))
                 )
+                .leftJoin(calendarProviderEntity)
+                .on(calendarProviderEntity.calendar.id.eq(calendarEntity.id))
                 .where(
                         calendarEntity.userId.eq(userId)
                                 .and(calendarEntity.category.eq(category))

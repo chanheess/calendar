@@ -2,9 +2,12 @@ package com.chpark.chcalendar.service.calendar;
 
 import com.chpark.chcalendar.dto.calendar.CalendarDto;
 import com.chpark.chcalendar.dto.calendar.CalendarSettingDto;
+import com.chpark.chcalendar.entity.calendar.CalendarEntity;
 import com.chpark.chcalendar.entity.calendar.CalendarProviderEntity;
+import com.chpark.chcalendar.enumClass.CRUDAction;
 import com.chpark.chcalendar.enumClass.CalendarCategory;
 import com.chpark.chcalendar.enumClass.JwtTokenType;
+import com.chpark.chcalendar.exception.authentication.CalendarAuthenticationException;
 import com.chpark.chcalendar.repository.calendar.CalendarProviderRepository;
 import com.chpark.chcalendar.repository.calendar.CalendarQueryRepository;
 import com.chpark.chcalendar.repository.calendar.CalendarRepository;
@@ -21,6 +24,7 @@ import org.springframework.web.client.RestClient;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 @Service
 public class GoogleCalendarService extends CalendarService {
@@ -52,10 +56,18 @@ public class GoogleCalendarService extends CalendarService {
     }
 
     @Override
-    public void checkAuthority(long userId, long calendarId) {
-        calendarRepository.findByIdAndUserId(calendarId, userId).orElseThrow(
-                () -> new EntityNotFoundException("You do not have permission.")
+    public void checkAuthority(CRUDAction action, long userId, long calendarId) {
+        CalendarEntity calendarEntity = calendarRepository.findByIdAndUserId(calendarId, userId).orElseThrow(
+                () -> new EntityNotFoundException("접근 권한이 없습니다.")
         );
+
+        if (calendarEntity.getCalendarProvider() == null) {
+            throw new EntityNotFoundException("접근 권한이 없습니다.");
+        }
+
+        if (Objects.equals(calendarEntity.getCalendarProvider().getStatus(), "reader") && !action.equals(CRUDAction.READ)) {
+            throw new CalendarAuthenticationException("읽기 권한만 있습니다. (수정/삭제/생성 불가)");
+        }
     }
 
     @Override

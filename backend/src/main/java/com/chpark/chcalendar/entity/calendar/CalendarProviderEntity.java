@@ -29,7 +29,7 @@ public class CalendarProviderEntity {
     private String syncToken;
 
     @Column
-    private String status = "read";
+    private String status;
 
     @Builder
     public CalendarProviderEntity(String syncToken, String provider, String providerId, String status, CalendarEntity calendar) {

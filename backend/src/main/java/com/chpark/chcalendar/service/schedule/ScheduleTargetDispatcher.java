@@ -6,7 +6,7 @@ import com.chpark.chcalendar.entity.calendar.CalendarEntity;
 import com.chpark.chcalendar.entity.schedule.ScheduleEntity;
 import com.chpark.chcalendar.enumClass.CalendarCategory;
 import com.chpark.chcalendar.enumClass.JwtTokenType;
-import com.chpark.chcalendar.enumClass.ScheduleTargetAction;
+import com.chpark.chcalendar.enumClass.CRUDAction;
 import com.chpark.chcalendar.event.schedule.GoogleScheduleCreateEvent;
 import com.chpark.chcalendar.event.schedule.GoogleScheduleDeleteEvent;
 import com.chpark.chcalendar.event.schedule.GoogleScheduleUpdateEvent;
@@ -43,7 +43,7 @@ public class ScheduleTargetDispatcher {
         if (category.isExternalProvider()) {
             return new ScheduleTargetActionDto(
                     category,
-                    ScheduleTargetAction.CREATE,
+                    CRUDAction.CREATE,
                     calendar.getCalendarProvider().getProviderId(),
                     null,
                     getAccessToken(category, request)
@@ -77,7 +77,7 @@ public class ScheduleTargetDispatcher {
         if (CalendarCategory.USER == currentCategory && newCategory.isExternalProvider()) {
             result = new ScheduleTargetActionDto(
                     newCategory,
-                    ScheduleTargetAction.CREATE,
+                    CRUDAction.CREATE,
                     newCalendar.getCalendarProvider().getProviderId(),
                     null,
                     getAccessToken(newCategory, request)
@@ -85,7 +85,7 @@ public class ScheduleTargetDispatcher {
         } else if (currentCategory.isExternalProvider() && CalendarCategory.USER == newCategory) {
             result = new ScheduleTargetActionDto(
                     currentCategory,
-                    ScheduleTargetAction.DELETE,
+                    CRUDAction.DELETE,
                     currentCalendar.getCalendarProvider().getProviderId(),
                     scheduleEntity.getProviderId(),
                     getAccessToken(currentCategory, request)
@@ -93,7 +93,7 @@ public class ScheduleTargetDispatcher {
         } else if (newCategory == currentCategory && currentCategory.isExternalProvider()) {
             result = new ScheduleTargetActionDto(
                     currentCategory,
-                    ScheduleTargetAction.UPDATE,
+                    CRUDAction.UPDATE,
                     newCalendar.getCalendarProvider().getProviderId(),
                     scheduleEntity.getProviderId(),
                     getAccessToken(currentCategory, request)
@@ -117,7 +117,7 @@ public class ScheduleTargetDispatcher {
         if (category.isExternalProvider()) {
             return new ScheduleTargetActionDto(
                     category,
-                    ScheduleTargetAction.DELETE,
+                    CRUDAction.DELETE,
                     calendar.getCalendarProvider().getProviderId(),
                     scheduleEntity.getProviderId(),
                     getAccessToken(category, request)

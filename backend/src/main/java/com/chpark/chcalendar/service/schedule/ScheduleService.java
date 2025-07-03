@@ -3,6 +3,7 @@ package com.chpark.chcalendar.service.schedule;
 import com.chpark.chcalendar.dto.CursorPage;
 import com.chpark.chcalendar.dto.schedule.*;
 import com.chpark.chcalendar.entity.schedule.ScheduleEntity;
+import com.chpark.chcalendar.enumClass.CRUDAction;
 import com.chpark.chcalendar.enumClass.CalendarCategory;
 import com.chpark.chcalendar.exception.CustomException;
 import com.chpark.chcalendar.exception.ScheduleException;
@@ -46,7 +47,7 @@ public class ScheduleService {
     @Transactional
     public ScheduleDto create(ScheduleDto scheduleDto, long userId) {
         this.validateScheduleDto(scheduleDto);
-        CalendarUtility.checkCalendarAuthority(userId, userId, scheduleDto.getCalendarId(), null, calendarServiceMap.values().stream().toList(), scheduleGroupService);
+        CalendarUtility.checkCalendarAuthority(CRUDAction.CREATE, userId, userId, scheduleDto.getCalendarId(), null, calendarServiceMap.values().stream().toList(), scheduleGroupService);
 
         //빈 제목일 경우 제목 없음으로 처리
         scheduleDto.setTitle(scheduleDto.getTitle().isEmpty() ? "Untitled" : scheduleDto.getTitle());
@@ -85,6 +86,7 @@ public class ScheduleService {
         );
 
         CalendarUtility.checkCalendarAuthority(
+                CRUDAction.UPDATE,
                 userId,
                 schedule.getUserId(),
                 schedule.getCalendarId(),
@@ -204,7 +206,9 @@ public class ScheduleService {
         }
 
         //그룹와 캘린더에 속했는지 확인
-        CalendarUtility.checkCalendarAuthority(userId,
+        CalendarUtility.checkCalendarAuthority(
+                CRUDAction.DELETE,
+                userId,
                 schedule.get().getUserId(),
                 calendarId,
                 schedule.get().getId(),

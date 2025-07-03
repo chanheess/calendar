@@ -88,7 +88,8 @@ const SidebarComponent = forwardRef(({
                 title: calendar.title, 
                 color: calendar.color, 
                 category: "GOOGLE",
-                isSelected: calendar.checked !== false
+                isSelected: calendar.checked !== false,
+                fileAuthority: calendar.fileAuthority
               };
               return acc;
             },
@@ -249,7 +250,7 @@ const SidebarComponent = forwardRef(({
       title: newCalendar.title,
       color: newCalendar.color,
       category: type,
-      isSelected: true,
+      isSelected: true
     };
     const allCalendars = { ...myCalendars, ...groupCalendars, [newCalendar.id]: calendarObj };
 

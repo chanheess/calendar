@@ -1,5 +1,6 @@
 package com.chpark.chcalendar.utility;
 
+import com.chpark.chcalendar.enumClass.CRUDAction;
 import com.chpark.chcalendar.exception.ScheduleException;
 import com.chpark.chcalendar.exception.authentication.CalendarAuthenticationException;
 import com.chpark.chcalendar.exception.authentication.GroupAuthenticationException;
@@ -32,12 +33,12 @@ public class CalendarUtility {
         return result;
     }
 
-    public static void checkCalendarAuthority(long userId, long createdUserId, long calendarId, Long scheduleId, List<CalendarService> calendarServiceList, ScheduleGroupService scheduleGroupService) {
+    public static void checkCalendarAuthority(CRUDAction action, long userId, long createdUserId, long calendarId, Long scheduleId, List<CalendarService> calendarServiceList, ScheduleGroupService scheduleGroupService) {
         int checkCount = 0;
 
         for (CalendarService calendarService : calendarServiceList) {
             try {
-                calendarService.checkAuthority(userId, calendarId);
+                calendarService.checkAuthority(action, userId, calendarId);
             } catch (GroupAuthenticationException | EntityNotFoundException ex) {
                 checkCount++;
             }

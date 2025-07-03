@@ -2,8 +2,8 @@ package com.chpark.chcalendar.service.calendar;
 
 import com.chpark.chcalendar.dto.calendar.CalendarDto;
 import com.chpark.chcalendar.dto.calendar.CalendarSettingDto;
-import com.chpark.chcalendar.entity.calendar.CalendarEntity;
 import com.chpark.chcalendar.entity.calendar.CalendarSettingEntity;
+import com.chpark.chcalendar.enumClass.CRUDAction;
 import com.chpark.chcalendar.enumClass.JwtTokenType;
 import com.chpark.chcalendar.repository.calendar.CalendarRepository;
 import com.chpark.chcalendar.repository.calendar.CalendarSettingRepository;
@@ -25,7 +25,7 @@ public abstract class CalendarService {
     public abstract CalendarDto.Response create(long userId, String title);
     public abstract List<CalendarDto.Response> findCalendarList(long userId);
     public abstract List<Long> findCalendarIdList(long userId);
-    public abstract void checkAuthority(long userId, long calendarId);
+    public abstract void checkAuthority(CRUDAction action, long userId, long calendarId);
 
     @Transactional
     public CalendarSettingDto updateSetting(HttpServletRequest request, CalendarSettingDto calendarSettingDto) {

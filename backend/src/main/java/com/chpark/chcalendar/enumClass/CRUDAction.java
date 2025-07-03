@@ -1,7 +1,8 @@
 package com.chpark.chcalendar.enumClass;
 
-public enum ScheduleTargetAction {
+public enum CRUDAction {
     CREATE,
+    READ,
     UPDATE,
     DELETE
 }
