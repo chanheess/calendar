@@ -164,6 +164,7 @@ public class ScheduleTargetDispatcher {
                     localSchedule.getEndAt(),
                     localSchedule.getId(),
                     providerId,
+                    scheduleDto.getNotificationDto().stream().toList(),
                     accessToken
             ));
         }
@@ -185,6 +186,7 @@ public class ScheduleTargetDispatcher {
                     localSchedule.getEndAt(),
                     calendarProviderId,
                     scheduleProviderId,
+                    scheduleDto.getNotificationDto().stream().toList(),
                     accessToken
             ));
         }

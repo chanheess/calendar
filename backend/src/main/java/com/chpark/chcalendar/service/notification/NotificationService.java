@@ -8,8 +8,9 @@ import com.chpark.chcalendar.enumClass.CalendarMemberRole;
 import com.chpark.chcalendar.enumClass.NotificationCategory;
 import com.chpark.chcalendar.enumClass.NotificationType;
 import com.chpark.chcalendar.repository.NotificationRepository;
+import com.chpark.chcalendar.repository.user.UserRepository;
 import com.chpark.chcalendar.service.calendar.CalendarMemberService;
-import com.chpark.chcalendar.service.user.UserService;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -26,7 +27,7 @@ public class NotificationService {
     protected final NotificationRepository notificationRepository;
 
     protected final CalendarMemberService calendarMemberService;
-    protected final UserService userService;
+    protected final UserRepository userRepository;
 
     protected final RedisTemplate<String, Object> redisTemplate;
 
@@ -55,7 +56,9 @@ public class NotificationService {
     }
 
     public void sendInviteNotification(long userId, long calendarId, NotificationCategory category, String nickname) {
-        long inviteUserId = userService.findUserId(nickname);
+        Long inviteUserId = userRepository.findIdByNickname(nickname).orElseThrow(
+                () -> new EntityNotFoundException("사용자를 찾을 수 없습니다.")
+        );
 
         CalendarMemberEntity calendarMember = calendarMemberService.checkCalendarMemberAuthority(userId, calendarId, CalendarMemberRole.USER);
         calendarMemberService.checkCalendarMemberExists(calendarId, inviteUserId);

@@ -318,9 +318,7 @@ public class ScheduleService {
         Pageable pageable = PageRequest.of(0, pageSize);
         List<ScheduleEntity> events = scheduleQueryRepository.findSchedulesByCalendarIdAndUser(userId, calendars, start, end, cursorTime, cursorId, pageable);
 
-        List<ScheduleDto> dtos = events.stream()
-                .map(ScheduleDto::fromScheduleEntity)
-                .collect(Collectors.toList());
+        List<ScheduleDto> dtos = ScheduleDto.fromScheduleEntityList(events);
 
         String nextCursor = dtos.isEmpty() ? null : dtos.get(dtos.size() - 1).getStartAt().toString();
 

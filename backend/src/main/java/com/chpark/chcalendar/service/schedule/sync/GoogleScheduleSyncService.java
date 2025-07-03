@@ -1,6 +1,7 @@
 package com.chpark.chcalendar.service.schedule.sync;
 
 import com.chpark.chcalendar.dto.CursorPage;
+import com.chpark.chcalendar.dto.schedule.ScheduleDto;
 import com.chpark.chcalendar.entity.calendar.CalendarEntity;
 import com.chpark.chcalendar.entity.schedule.ScheduleEntity;
 import com.chpark.chcalendar.enumClass.CalendarCategory;
@@ -10,6 +11,7 @@ import com.chpark.chcalendar.repository.calendar.CalendarQueryRepository;
 import com.chpark.chcalendar.repository.calendar.CalendarRepository;
 import com.chpark.chcalendar.repository.schedule.ScheduleQueryRepository;
 import com.chpark.chcalendar.repository.schedule.ScheduleRepository;
+import com.chpark.chcalendar.service.schedule.ScheduleService;
 import com.chpark.chcalendar.utility.ScheduleUtility;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -42,6 +44,9 @@ public class GoogleScheduleSyncService implements ScheduleSyncService{
     private final CalendarRepository calendarRepository;
     private final ScheduleRepository scheduleRepository;
 
+    private final ScheduleService scheduleService;
+
+
     private static final Logger log = LoggerFactory.getLogger(GoogleScheduleSyncService.class);
 
     @Value("${GOOGLE_API_KEY}")
@@ -63,7 +68,7 @@ public class GoogleScheduleSyncService implements ScheduleSyncService{
             if (!checked) return;
 
             try {
-                Map<GoogleScheduleStatus, List<ScheduleEntity>> googleSchedules = pageGoogleSchedule(calendarEntity, accessToken);
+                Map<GoogleScheduleStatus, List<ScheduleDto.Request>> googleSchedules = pageGoogleSchedule(calendarEntity, accessToken);
                 saveSchedule(googleSchedules.get(GoogleScheduleStatus.CONFIRMED), localSchedules);
                 deleteSchedule(googleSchedules.get(GoogleScheduleStatus.CANCELLED), localSchedules);
             } catch (Exception e) {
@@ -73,49 +78,53 @@ public class GoogleScheduleSyncService implements ScheduleSyncService{
     }
 
     @Transactional
-    public void saveSchedule(List<ScheduleEntity> googleSchedules, List<ScheduleEntity> localSchedules) {
+    public void saveSchedule(List<ScheduleDto.Request> googleSchedules, List<ScheduleEntity> localSchedules) {
         if (googleSchedules == null) {
             return;
         }
 
         googleSchedules.forEach(googleSchedule -> {
+            if (googleSchedule.getScheduleDto() == null) {
+                return;
+            }
+
+            ScheduleDto googleScheduleDto = googleSchedule.getScheduleDto();
             Optional<ScheduleEntity> localOpt = localSchedules.stream()
-                    .filter(local -> googleSchedule.getProviderId().equals(local.getProviderId()))
+                    .filter(local -> googleScheduleDto.getProviderId().equals(local.getProviderId()))
                     .findFirst();
 
             //create
             if (localOpt.isEmpty()) {
-                scheduleRepository.save(googleSchedule);
+                scheduleService.createByForm(googleSchedule, googleScheduleDto.getUserId());
                 return;
             }
 
             //no update
             ScheduleEntity localSchedule = localOpt.get();
-            if (Objects.equals(localSchedule.getEtag(), googleSchedule.getEtag())) {
+            if (Objects.equals(localSchedule.getEtag(), googleScheduleDto.getEtag())) {
                 return;
             }
 
-            LocalDateTime googleUpdated = googleSchedule.getUpdatedAt();
-            LocalDateTime localUpdated = localSchedule.getUpdatedAt();
-
             //overwrite
-            if (googleUpdated != null && (localUpdated == null || googleUpdated.isAfter(localUpdated))) {
-                // 구글이 최신 -> 덮어쓰기
-                localSchedule.overwrite(googleSchedule);
-                scheduleRepository.save(localSchedule);
-            }
+            scheduleService.updateSchedule(localSchedule.getId(), false, googleSchedule, googleScheduleDto.getUserId());
         });
     }
 
     @Transactional
-    public void deleteSchedule(List<ScheduleEntity> googleSchedules, List<ScheduleEntity> localSchedules) {
+    public void deleteSchedule(List<ScheduleDto.Request> googleSchedules, List<ScheduleEntity> localSchedules) {
         if (googleSchedules == null) {
             return;
         }
 
         googleSchedules.forEach(googleSchedule -> {
+            if (googleSchedule.getScheduleDto() == null) {
+                return;
+            }
+
+            ScheduleDto googleScheduleDto = googleSchedule.getScheduleDto();
+
             Optional<ScheduleEntity> localOpt = localSchedules.stream()
-                    .filter(local -> googleSchedule.getProviderId().equals(local.getProviderId()))
+                    .filter(local -> googleScheduleDto.getProviderId().equals(local.getProviderId()))
                     .findFirst();
             //no delete
             if (localOpt.isEmpty()) {
@@ -123,20 +132,18 @@ public class GoogleScheduleSyncService implements ScheduleSyncService{
             }
 
             ScheduleEntity localSchedule = localOpt.get();
-            LocalDateTime googleUpdated = googleSchedule.getUpdatedAt();
-            LocalDateTime localUpdated = localSchedule.getUpdatedAt();
-
-            //overwrite
-            if (googleUpdated != null && (localUpdated == null || googleUpdated.isAfter(localUpdated))) {
-                // 구글이 최신 -> 삭제
-                scheduleRepository.delete(localSchedule);
+            if (Objects.equals(localSchedule.getEtag(), googleScheduleDto.getEtag())) {
+                return;
             }
+
+            //delete
+            scheduleService.deleteById(localSchedule.getId(), localSchedule.getCalendarId(), localSchedule.getUserId());
         });
     }
 
     @Transactional
-    private Map<GoogleScheduleStatus, List<ScheduleEntity>> pageGoogleSchedule(CalendarEntity calendarEntity, String accessToken) throws IOException {
-        Map<GoogleScheduleStatus, List<ScheduleEntity>> googleSchedules = new HashMap<>();
+    private Map<GoogleScheduleStatus, List<ScheduleDto.Request>> pageGoogleSchedule(CalendarEntity calendarEntity, String accessToken) throws IOException {
+        Map<GoogleScheduleStatus, List<ScheduleDto.Request>> googleSchedules = new HashMap<>();
         String pageToken = null;
         String newSyncToken = null;
 
@@ -155,8 +162,8 @@ public class GoogleScheduleSyncService implements ScheduleSyncService{
 
             JsonNode rootNode = objectMapper.readTree(responseBody);
 
-            Map<GoogleScheduleStatus, List<ScheduleEntity>> toAdd = parseGoogleScheduleMap(rootNode, calendarEntity);
-            for (Map.Entry<GoogleScheduleStatus, List<ScheduleEntity>> entry : toAdd.entrySet()) {
+            Map<GoogleScheduleStatus, List<ScheduleDto.Request>> toAdd = parseGoogleScheduleMap(rootNode, calendarEntity);
+            for (Map.Entry<GoogleScheduleStatus, List<ScheduleDto.Request>> entry : toAdd.entrySet()) {
                 googleSchedules.computeIfAbsent(entry.getKey(), k -> new ArrayList<>()).addAll(entry.getValue());
             }
 
@@ -265,18 +272,20 @@ public class GoogleScheduleSyncService implements ScheduleSyncService{
 
 
 
-    private Map<GoogleScheduleStatus, List<ScheduleEntity>> parseGoogleScheduleMap(JsonNode rootNode, CalendarEntity calendarEntity) {
-        Map<GoogleScheduleStatus, List<ScheduleEntity>> scheduleEntityMap = new HashMap<>();
+    private Map<GoogleScheduleStatus, List<ScheduleDto.Request>> parseGoogleScheduleMap(JsonNode rootNode, CalendarEntity calendarEntity) {
+        Map<GoogleScheduleStatus, List<ScheduleDto.Request>> scheduleEntityMap = new HashMap<>();
         JsonNode itemsNode = rootNode.path("items");
 
         if (itemsNode != null && itemsNode.isArray()) {
             for (JsonNode itemNode : itemsNode) {
                 GoogleScheduleStatus status = GoogleScheduleStatus.from(itemNode.path("status").asText());
-                ScheduleEntity scheduleEntity = ScheduleUtility.parseScheduleEntity(itemNode, calendarEntity);
+                ScheduleDto.Request result = new ScheduleDto.Request();
+                result.setScheduleDto(ScheduleUtility.parseScheduleDto(itemNode, calendarEntity));
+                result.setNotificationDto(ScheduleUtility.parseGoogleNotificationDtoList(itemNode, result.getScheduleDto().getStartAt()));
 
                 scheduleEntityMap
                         .computeIfAbsent(status, k -> new ArrayList<>())
-                        .add(scheduleEntity);
+                        .add(result);
             }
         }
         return scheduleEntityMap;

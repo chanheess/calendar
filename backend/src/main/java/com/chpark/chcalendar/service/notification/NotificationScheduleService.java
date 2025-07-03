@@ -10,8 +10,8 @@ import com.chpark.chcalendar.enumClass.NotificationCategory;
 import com.chpark.chcalendar.enumClass.NotificationType;
 import com.chpark.chcalendar.repository.NotificationRepository;
 import com.chpark.chcalendar.repository.schedule.ScheduleGroupRepository;
+import com.chpark.chcalendar.repository.user.UserRepository;
 import com.chpark.chcalendar.service.calendar.CalendarMemberService;
-import com.chpark.chcalendar.service.user.UserService;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,13 +21,12 @@ import java.util.Set;
 @Service
 public class NotificationScheduleService extends NotificationService {
 
-    //순환 참조를 해결하기 위해 어쩔 수 없이 repository 사용
     private final ScheduleGroupRepository scheduleGroupRepository;
 
-    public NotificationScheduleService(NotificationRepository notificationRepository, CalendarMemberService calendarMemberService, UserService userService, RedisTemplate<String, Object> redisTemplate, ScheduleGroupRepository scheduleGroupRepository) {
-        super(notificationRepository, calendarMemberService, userService, redisTemplate);
-        messageFrom = "일정에서 ";
+    public NotificationScheduleService(NotificationRepository notificationRepository, CalendarMemberService calendarMemberService, UserRepository userRepository, RedisTemplate<String, Object> redisTemplate, ScheduleGroupRepository scheduleGroupRepository) {
+        super(notificationRepository, calendarMemberService, userRepository, redisTemplate);
         this.scheduleGroupRepository = scheduleGroupRepository;
+        messageFrom = "일정에서 ";
     }
 
     @Transactional

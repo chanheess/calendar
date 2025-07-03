@@ -1,17 +1,20 @@
 package com.chpark.chcalendar.utility;
 
+import com.chpark.chcalendar.dto.schedule.ScheduleDto;
+import com.chpark.chcalendar.dto.schedule.ScheduleNotificationDto;
 import com.chpark.chcalendar.entity.calendar.CalendarEntity;
 import com.chpark.chcalendar.entity.schedule.ScheduleEntity;
 import com.chpark.chcalendar.enumClass.ScheduleRepeatType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.google.api.services.calendar.model.Event;
 import com.google.api.services.calendar.model.EventDateTime;
+import com.google.api.services.calendar.model.EventReminder;
 import org.apache.commons.validator.routines.EmailValidator;
 
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.Locale;
+import java.util.*;
 
 public class ScheduleUtility {
 
@@ -89,7 +92,7 @@ public class ScheduleUtility {
         }
     }
 
-    public static ScheduleEntity parseScheduleEntity(JsonNode itemNode, CalendarEntity calendarEntity) {
+    public static ScheduleDto parseScheduleDto(JsonNode itemNode, CalendarEntity calendarEntity) {
         String id = itemNode.path("id").asText("");
         String title = itemNode.path("summary").asText("");
         String description = itemNode.path("description").asText("");
@@ -99,7 +102,7 @@ public class ScheduleUtility {
         LocalDateTime createdAt = parseToLocalDateTime(itemNode.path("created").asText(""));
         LocalDateTime updatedAt = parseToLocalDateTime(itemNode.path("updated").asText(""));
 
-        return ScheduleEntity.builder()
+        return ScheduleDto.builder()
                 .title(title)
                 .description(description)
                 .startAt(startAt)
@@ -111,6 +114,32 @@ public class ScheduleUtility {
                 .createdAt(createdAt)
                 .updatedAt(updatedAt)
                 .build();
+    }
+
+    public static Set<ScheduleNotificationDto> parseGoogleNotificationDtoList(JsonNode itemNode, LocalDateTime startAt) {
+        Set<ScheduleNotificationDto> notificationList = new HashSet<>();
+        JsonNode remindersNode = itemNode.path("reminders");
+        if (remindersNode.isMissingNode() || remindersNode.isNull()) {
+            return notificationList;
+        }
+        boolean useDefault = remindersNode.path("useDefault").asBoolean(false);
+        if (useDefault) {
+            if (startAt != null) {
+                notificationList.add(new ScheduleNotificationDto(startAt.minusMinutes(30)));
+            }
+            return notificationList;
+        }
+        JsonNode overridesNode = remindersNode.path("overrides");
+        if (overridesNode.isArray()) {
+            for (JsonNode override : overridesNode) {
+                String method = override.path("method").asText("");
+                int minutes = override.path("minutes").asInt(0);
+                if (("popup".equals(method) || "email".equals(method)) && startAt != null) {
+                    notificationList.add(new ScheduleNotificationDto(startAt.minusMinutes(minutes)));
+                }
+            }
+        }
+        return notificationList;
     }
 
     public static LocalDateTime parseGoogleDateToKST(JsonNode itemNode, String nodeName) {
@@ -146,67 +175,25 @@ public class ScheduleUtility {
         if (dateTimeStr == null || dateTimeStr.isEmpty()) {
             return null;
         }
-        return OffsetDateTime.parse(dateTimeStr).toLocalDateTime();
+        OffsetDateTime odt = OffsetDateTime.parse(dateTimeStr);
+        return odt.atZoneSameInstant(ZoneId.of("Asia/Seoul")).toLocalDateTime();
     }
 
-    public static ScheduleEntity parseScheduleEntityFromGoogleEvent(Event event, CalendarEntity calendarEntity) {
-        // ID, 제목, 설명
-        String id = event.getId();
-        String title = event.getSummary();
-        String description = event.getDescription();
+    public static Event.Reminders parseLocalNotificationToGoogleNotification(LocalDateTime notificationStartAt, List<ScheduleNotificationDto> scheduleNotificationDtos) {
+        List<EventReminder> overrides = new ArrayList<>();
 
-        // 시작/종료 시간 (DateTime 또는 Date)
-        EventDateTime start = event.getStart();
-        EventDateTime end = event.getEnd();
-        LocalDateTime startAt = null;
-        LocalDateTime endAt = null;
-        if (start != null) {
-            if (start.getDateTime() != null) {
-                startAt = LocalDateTime.ofInstant(
-                        Instant.ofEpochMilli(start.getDateTime().getValue()), ZoneId.of("Asia/Seoul"));
-            } else if (start.getDate() != null) {
-                LocalDate localDate = Instant.ofEpochMilli(start.getDate().getValue())
-                        .atZone(ZoneId.of("Asia/Seoul"))
-                        .toLocalDate();
-                startAt = localDate.atStartOfDay();
-            }
-        }
-        if (end != null) {
-            if (end.getDateTime() != null) {
-                endAt = LocalDateTime.ofInstant(
-                        Instant.ofEpochMilli(end.getDateTime().getValue()), ZoneId.of("Asia/Seoul"));
-            } else if (end.getDate() != null) {
-                LocalDate localDate = Instant.ofEpochMilli(end.getDate().getValue())
-                        .atZone(ZoneId.of("Asia/Seoul"))
-                        .toLocalDate();
-                endAt = localDate.atStartOfDay();
-            }
-        }
+        scheduleNotificationDtos.forEach(notification -> {
+            long minute = ChronoUnit.MINUTES.between(notification.getNotificationAt(), notificationStartAt);
+            int safeMinute = (int) Math.max(0, Math.min(minute, 40320));
 
-        // etag, 생성/수정 시간
-        String etag = event.getEtag();
-        LocalDateTime createdAt = null, updatedAt = null;
-        if (event.getCreated() != null) {
-            createdAt = LocalDateTime.ofInstant(
-                    Instant.ofEpochMilli(event.getCreated().getValue()), ZoneId.of("Asia/Seoul"));
-        }
-        if (event.getUpdated() != null) {
-            updatedAt = LocalDateTime.ofInstant(
-                    Instant.ofEpochMilli(event.getUpdated().getValue()), ZoneId.of("Asia/Seoul"));
-        }
+            overrides.add(new EventReminder()
+                    .setMethod("popup")
+                    .setMinutes(safeMinute));
+        });
 
-        return ScheduleEntity.builder()
-                .title(title)
-                .description(description)
-                .startAt(startAt)
-                .endAt(endAt)
-                .userId(calendarEntity.getUserId())
-                .calendarId(calendarEntity.getId())
-                .providerId(id)
-                .etag(etag)
-                .createdAt(createdAt)
-                .updatedAt(updatedAt)
-                .build();
+        return new Event.Reminders()
+                .setUseDefault(false)
+                .setOverrides(overrides);
     }
 
 }

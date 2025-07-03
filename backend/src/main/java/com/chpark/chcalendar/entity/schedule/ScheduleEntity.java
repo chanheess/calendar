@@ -66,6 +66,8 @@ public class ScheduleEntity {
         this.endAt = scheduleDto.getEndAt();
         this.userId = scheduleDto.getUserId();
         this.calendarId = scheduleDto.getCalendarId();
+        this.providerId = scheduleDto.getProviderId();
+        this.etag = scheduleDto.getEtag();
     }
 
     @Builder
@@ -81,18 +83,5 @@ public class ScheduleEntity {
         this.etag = etag;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
-    }
-
-    public void overwrite(ScheduleEntity targetEntity) {
-        this.title = targetEntity.getTitle();
-        this.description = targetEntity.getDescription();
-        this.startAt = targetEntity.getStartAt();
-        this.endAt = targetEntity.getEndAt();
-        this.repeatId = targetEntity.getRepeatId();
-        this.userId = targetEntity.getUserId();
-        this.calendarId = targetEntity.getCalendarId();
-        this.providerId = targetEntity.getProviderId();
-        this.etag = targetEntity.getEtag();
-        this.updatedAt = targetEntity.getUpdatedAt();
     }
 }

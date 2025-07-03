@@ -3,6 +3,7 @@ package com.chpark.chcalendar.event.schedule;
 import com.chpark.chcalendar.entity.schedule.ScheduleEntity;
 import com.chpark.chcalendar.repository.schedule.ScheduleRepository;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
+import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.client.http.HttpBackOffUnsuccessfulResponseHandler;
 import com.google.api.client.http.HttpRequestInitializer;
 import com.google.api.client.json.gson.GsonFactory;
@@ -15,6 +16,7 @@ import com.google.auth.oauth2.GoogleCredentials;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
@@ -28,6 +30,7 @@ public class GoogleScheduleEventListener {
 
     private final ScheduleRepository scheduleRepository;
     private static final Logger log = LoggerFactory.getLogger(GoogleScheduleEventListener.class);
+    private final ApplicationEventPublisher eventPublisher;
 
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
@@ -40,7 +43,8 @@ public class GoogleScheduleEventListener {
                     .setSummary(googleSchedule.title())
                     .setDescription(googleSchedule.description())
                     .setStart(googleSchedule.startAt())
-                    .setEnd(googleSchedule.endAt());
+                    .setEnd(googleSchedule.endAt())
+                    .setReminders(googleSchedule.reminders());
 
             //이벤트 삽입
             Event createdEvent = service.events().insert(googleSchedule.calendarId(), event).execute();
@@ -68,7 +72,8 @@ public class GoogleScheduleEventListener {
                     .setSummary(googleSchedule.title())
                     .setDescription(googleSchedule.description())
                     .setStart(googleSchedule.startAt())
-                    .setEnd(googleSchedule.endAt());
+                    .setEnd(googleSchedule.endAt())
+                    .setReminders(googleSchedule.reminders());
 
             Event updatedEvent = service.events()
                     .update(googleSchedule.calendarId(), googleSchedule.scheduleId(), event)
@@ -87,6 +92,19 @@ public class GoogleScheduleEventListener {
         }
     }
 
+    private static GoogleScheduleCreateEvent getGoogleScheduleCreateEvent(GoogleScheduleUpdateEvent googleSchedule, ScheduleEntity localSchedule) {
+        return new GoogleScheduleCreateEvent(
+                googleSchedule.title(),
+                googleSchedule.description(),
+                googleSchedule.startAt(),
+                googleSchedule.endAt(),
+                localSchedule.getId(),
+                googleSchedule.calendarId(),
+                googleSchedule.reminders(),
+                googleSchedule.accessToken()
+        );
+    }
+
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleGoogleScheduleDelete(GoogleScheduleDeleteEvent googleSchedule) {
@@ -97,17 +115,27 @@ public class GoogleScheduleEventListener {
                     .delete(googleSchedule.calendarId(), googleSchedule.scheduleId())
                     .execute();
 
-            //로컬 일정이 있으면 구글의 값들 삭제
-            Optional<ScheduleEntity> localSchedule = scheduleRepository.findByProviderId(googleSchedule.scheduleId());
-            if (localSchedule.isPresent()) {
-                ScheduleEntity entity = localSchedule.get();
-                entity.setProviderId(null);
-                entity.setEtag(null);
-                scheduleRepository.save(entity);
-            }
-
+            clearLocalSchedule(googleSchedule.scheduleId());
         } catch (Exception e) {
+            if (e instanceof GoogleJsonResponseException jsonEx) {
+                if (jsonEx.getStatusCode() == 410) {
+                    clearLocalSchedule(googleSchedule.scheduleId());
+                    log.info("Google Calendar event already deleted (410 Gone), local also cleared.");
+                    return;
+                }
+            }
+            // 그 외 에러는 로그만 남김 (필요 시 재시도/경고)
             log.error("Failed to delete Google Calendar event", e);
+        }
+    }
+
+    private void clearLocalSchedule(String scheduleId) {
+        Optional<ScheduleEntity> localSchedule = scheduleRepository.findByProviderId(scheduleId);
+        if (localSchedule.isPresent()) {
+            ScheduleEntity entity = localSchedule.get();
+            entity.setProviderId(null);
+            entity.setEtag(null);
+            scheduleRepository.save(entity);
         }
     }
 
