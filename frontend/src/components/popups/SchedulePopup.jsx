@@ -50,6 +50,7 @@ import {
 
   const [isNotificationEnabled, setIsNotificationEnabled] = useState(false);
   const [isRepeatEnabled, setIsRepeatEnabled] = useState(false);
+  const [prevRepeatEnabled, setPrevRepeatEnabled] = useState(false);
   const [groupUserList, setGroupUserList] = useState([]);
   const [showGroupUsers, setShowGroupUsers] = useState(false);
   const [repeatPopupVisible, setRepeatPopupVisible] = useState(false);
@@ -294,8 +295,13 @@ import {
     }
   };
 
+  const isGoogleCalendar = selectedCalendarList[scheduleData.calendarId]?.category === "GOOGLE";
+
   // Save
   const handleSave = async () => {
+    if (scheduleData.repeatId && isGoogleCalendar) {
+      return;
+    }
     try {
       const scheduleDTO = getScheduleData();
 
@@ -424,6 +430,19 @@ import {
 
   // 일반 입력 변경
   const handleInputChange = (field, value) => {
+    // 캘린더 변경 시 반복 토글 상태 관리
+    if (field === "calendarId") {
+      const prevIsGoogle = selectedCalendarList[scheduleData.calendarId]?.category === "GOOGLE";
+      const nextIsGoogle = selectedCalendarList[value]?.category === "GOOGLE";
+      if (!prevIsGoogle && nextIsGoogle) {
+        // 로컬/그룹 → 외부: 반복 토글 상태 저장 후 끄기
+        setPrevRepeatEnabled(isRepeatEnabled);
+        setIsRepeatEnabled(false);
+      } else if (prevIsGoogle && !nextIsGoogle) {
+        // 외부 → 로컬/그룹: 이전 반복 토글 상태 복원
+        setIsRepeatEnabled(prevRepeatEnabled);
+      }
+    }
     setScheduleData((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -494,324 +513,329 @@ import {
             </Button>
           </div>
 
-          <fieldset
-            disabled={isReadOnly && mode === "edit"}
-            style={{ border: "none", padding: 0, margin: 0, height: "" }}
-          >
-            <div className={styles.popupContent}>
-              <form>
-                {/* 기본 일정 정보 */}
-                <div className={styles.infoRow}>
-                  <label>제목:</label>
-                  <input
-                    type="text"
-                    value={scheduleData.title}
-                    onChange={(e) => handleInputChange("title", e.target.value)}
-                  />
-                </div>
-                <div className={styles.infoRow}>
-                  <label>설명:</label>
-                  <textarea
-                    value={scheduleData.description || ""}
-                    onChange={(e) => handleInputChange("description", e.target.value)}
-                  />
-                </div>
-                <div className={styles.infoRow}>
-                  <label>시작 시간:</label>
-                  <input
-                    type="datetime-local"
-                    value={scheduleData.startAt}
-                    onChange={(e) => handleInputChange("startAt", e.target.value)}
-                  />
-                </div>
-                <div className={styles.infoRow}>
-                  <label>종료 시간:</label>
-                  <input
-                    type="datetime-local"
-                    value={scheduleData.endAt}
-                    onChange={(e) => handleInputChange("endAt", e.target.value)}
-                  />
-                </div>
-                <div className={styles.infoRow}>
-                  <label>캘린더:</label>
-                  <select
-                    value={scheduleData.calendarId}
-                    onChange={(e) => handleInputChange("calendarId", e.target.value)}
-                  >
-                    {Object.entries(selectedCalendarList).map(([calendarId, calInfo]) => (
-                      <option key={calendarId} value={calendarId}>
-                        {calInfo.title}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+          <div className={styles.popupContent}>
+            <form>
+              {/* 기본 일정 정보 */}
+              <div className={styles.infoRow}>
+                <label>제목:</label>
+                <input
+                  type="text"
+                  value={scheduleData.title}
+                  onChange={(e) => handleInputChange("title", e.target.value)}
+                />
+              </div>
+              <div className={styles.infoRow}>
+                <label>설명:</label>
+                <textarea
+                  value={scheduleData.description || ""}
+                  onChange={(e) => handleInputChange("description", e.target.value)}
+                />
+              </div>
+              <div className={styles.infoRow}>
+                <label>시작 시간:</label>
+                <input
+                  type="datetime-local"
+                  value={scheduleData.startAt}
+                  onChange={(e) => handleInputChange("startAt", e.target.value)}
+                />
+              </div>
+              <div className={styles.infoRow}>
+                <label>종료 시간:</label>
+                <input
+                  type="datetime-local"
+                  value={scheduleData.endAt}
+                  onChange={(e) => handleInputChange("endAt", e.target.value)}
+                />
+              </div>
+              <div className={styles.infoRow}>
+                <label>캘린더:</label>
+                <select
+                  value={scheduleData.calendarId}
+                  onChange={(e) => handleInputChange("calendarId", e.target.value)}
+                >
+                  {Object.entries(selectedCalendarList).map(([calendarId, calInfo]) => (
+                    <option key={calendarId} value={calendarId}>
+                      {calInfo.title}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
-                {/* 알림 설정 */}
-                <div className={styles.infoRow}>
-                  <label>알림:</label>
-                  <Toggle
-                    checked={isNotificationEnabled}
-                    onChange={() => setIsNotificationEnabled(!isNotificationEnabled)}
-                  />
-                </div>
-                {isNotificationEnabled && (
-                  <div>
-                    {scheduleData.notifications.map((notification, index) => (
-                      <div key={index} className={styles.infoRow}>
-                        <label></label>
-                        <input
-                          style={{maxWidth: "211px"}}
-                          type="number"
-                          value={notification.time}
-                          onChange={(e) =>
-                            handleUpdateNotification(index, "time", e.target.value)
-                          }
-                          className={styles.notificationInput}
-                          min="1"
-                        />
-                        <select
-                          style={{maxWidth: "145px"}}
-                          value={notification.unit}
-                          onChange={(e) =>
-                            handleUpdateNotification(index, "unit", e.target.value)
-                          }
-                          className={styles.notificationSelect}
-                        >
-                          <option value="minutes">분</option>
-                          <option value="hours">시간</option>
-                          <option value="days">일</option>
-                        </select>
-                        <Button
-                          style={{ maxWidth: "30px", flex: "1", padding: "5px" }}
-                          variant="close"
-                          size=""
-                          onClick={() => handleRemoveNotification(index)}
-                        >
-                          ×
-                        </Button>
-                      </div>
-                    ))}
-                    <div className={styles.infoRow}>
-                      <Button
-                        variant="primary"
-                        size="medium"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          handleAddNotification();
-                        }}
-                      >
-                        알림 추가
-                      </Button>
-                    </div>
-                  </div>
-                )}
-
-                {/* 반복 설정 */}
-                <div className={styles.infoRow}>
-                  <label>반복 설정:</label>
-                  <Toggle
-                    checked={isRepeatEnabled}
-                    onChange={() => setIsRepeatEnabled(!isRepeatEnabled)}
-                  />
-                </div>
-                {isRepeatEnabled && (
-                  <div>
-                    <div className={styles.infoRow}>
-                      <label>반복 간격:</label>
+              {/* 알림 설정 */}
+              <div className={styles.infoRow}>
+                <label>알림:</label>
+                <Toggle
+                  checked={isNotificationEnabled}
+                  onChange={() => setIsNotificationEnabled(!isNotificationEnabled)}
+                />
+              </div>
+              {isNotificationEnabled && (
+                <div>
+                  {scheduleData.notifications.map((notification, index) => (
+                    <div key={index} className={styles.infoRow}>
+                      <label></label>
                       <input
                         style={{maxWidth: "211px"}}
                         type="number"
-                        value={scheduleData.repeatDetails.repeatInterval}
+                        value={notification.time}
                         onChange={(e) =>
-                          setScheduleData((prevData) => ({
-                            ...prevData,
-                            repeatDetails: {
-                              ...prevData.repeatDetails,
-                              repeatInterval: e.target.value,
-                            },
-                          }))
+                          handleUpdateNotification(index, "time", e.target.value)
                         }
+                        className={styles.notificationInput}
+                        min="1"
                       />
                       <select
-                        style={{maxWidth: "186px"}}
-                        value={scheduleData.repeatDetails.repeatType}
+                        style={{maxWidth: "145px"}}
+                        value={notification.unit}
                         onChange={(e) =>
-                          setScheduleData((prevData) => ({
-                            ...prevData,
-                            repeatDetails: {
-                              ...prevData.repeatDetails,
-                              repeatType: e.target.value,
-                            },
-                          }))
+                          handleUpdateNotification(index, "unit", e.target.value)
                         }
+                        className={styles.notificationSelect}
                       >
-                        <option value="DAY">일</option>
-                        <option value="WEEK">주</option>
-                        <option value="MONTH">월</option>
-                        <option value="YEAR">년</option>
+                        <option value="minutes">분</option>
+                        <option value="hours">시간</option>
+                        <option value="days">일</option>
                       </select>
+                      <Button
+                        style={{ maxWidth: "30px", flex: "1", padding: "5px" }}
+                        variant="close"
+                        size=""
+                        onClick={() => handleRemoveNotification(index)}
+                      >
+                        ×
+                      </Button>
                     </div>
-                    <div className={styles.infoRow}>
-                      <label>반복 종료 일자:</label>
-                      <input
-                        type="datetime-local"
-                        value={scheduleData.repeatDetails.endAt}
-                        onChange={(e) =>
-                          setScheduleData((prevData) => ({
-                            ...prevData,
-                            repeatDetails: {
-                              ...prevData.repeatDetails,
-                              endAt: e.target.value,
-                            },
-                          }))
-                        }
-                      />
-                    </div>
+                  ))}
+                  <div className={styles.infoRow}>
+                    <Button
+                      variant="primary"
+                      size="medium"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleAddNotification();
+                      }}
+                    >
+                      알림 추가
+                    </Button>
                   </div>
-                )}
+                </div>
+              )}
 
-                {/* 그룹 캘린더인 경우 */}
-                {selectedCalendarList[scheduleData.calendarId] &&
-                  selectedCalendarList[scheduleData.calendarId].category === "GROUP" && (
-                  <>
-                    <div className={styles.infoRow}>
-                      <label>일정 참석자 추가:</label>
-                      <Toggle
-                        checked={showGroupUsers}
-                        onChange={() => {
-                          const newShowValue = !showGroupUsers;
-                          setShowGroupUsers(newShowValue);
-                          if (!newShowValue) {
-                            setGroupUserList((prevList) =>
-                              prevList.map((user) => ({ ...user, selected: false }))
-                            );
+              {/* 반복 설정: 외부 캘린더면 토글 숨기고 안내 문구만 노출 (반복 일정일 때만 문구 노출) */}
+              {isGoogleCalendar ? (
+                scheduleData.repeatId ? (
+                  <div style={{ color: '#d32f2f', textAlign: 'center', fontWeight: 'bold', margin: '8px 0 12px 0', fontSize: '15px' }}>
+                    외부 캘린더에서는 반복 일정을 생성/수정할 수 없습니다.
+                  </div>
+                ) : null
+              ) : (
+                <>
+                  <div className={styles.infoRow}>
+                    <label>반복 설정:</label>
+                    <Toggle
+                      checked={isRepeatEnabled}
+                      onChange={() => setIsRepeatEnabled(!isRepeatEnabled)}
+                    />
+                  </div>
+                  {isRepeatEnabled && (
+                    <div>
+                      <div className={styles.infoRow}>
+                        <label>반복 간격:</label>
+                        <input
+                          style={{maxWidth: "211px"}}
+                          type="number"
+                          value={scheduleData.repeatDetails.repeatInterval}
+                          onChange={(e) =>
+                            setScheduleData((prevData) => ({
+                              ...prevData,
+                              repeatDetails: {
+                                ...prevData.repeatDetails,
+                                repeatInterval: e.target.value,
+                              },
+                            }))
                           }
-                        }}
-                        disabled={isReadOnly}
-                      />
+                        />
+                        <select
+                          style={{maxWidth: "186px"}}
+                          value={scheduleData.repeatDetails.repeatType}
+                          onChange={(e) =>
+                            setScheduleData((prevData) => ({
+                              ...prevData,
+                              repeatDetails: {
+                                ...prevData.repeatDetails,
+                                repeatType: e.target.value,
+                              },
+                            }))
+                          }
+                        >
+                          <option value="DAY">일</option>
+                          <option value="WEEK">주</option>
+                          <option value="MONTH">월</option>
+                          <option value="YEAR">년</option>
+                        </select>
+                      </div>
+                      <div className={styles.infoRow}>
+                        <label>반복 종료 일자:</label>
+                        <input
+                          type="datetime-local"
+                          value={scheduleData.repeatDetails.endAt}
+                          onChange={(e) =>
+                            setScheduleData((prevData) => ({
+                              ...prevData,
+                              repeatDetails: {
+                                ...prevData.repeatDetails,
+                                endAt: e.target.value,
+                              },
+                            }))
+                          }
+                        />
+                      </div>
                     </div>
-                    {showGroupUsers && (
-                      <div style={{ marginTop: "10px" }}>
-                        {(mode === "create" || canManageGroup) ? (
-                          <>
-                            <div style={{ marginBottom: "5px" }}>
-                              <div className={styles.infoRow}>
-                                <label>참석자 관리:</label>
-                                {selectedUsers.length > 0 && (
-                                  <span style={{ 
-                                    fontSize: "14px",
-                                    color: "#666",
-                                    marginLeft: "8px"
-                                  }}>
-                                    {getParticipationStats()}
-                                  </span>
-                                )}
-                              </div>
-                              <div className={styles.availableUsersContainer}>
-                                <table className={styles.userTable}>
-                                  <thead>
-                                    <tr>
-                                      <th>
-                                        <input
-                                          type="checkbox"
-                                          checked={groupUserList.every(user => user.selected)}
-                                          onChange={(e) => {
-                                            const isChecked = e.target.checked;
-                                            setGroupUserList(prevList =>
-                                              prevList.map(user => ({
-                                                ...user,
-                                                selected: isChecked,
-                                                status: isChecked ? "PENDING" : user.status
-                                              }))
-                                            );
-                                          }}
-                                          disabled={isReadOnly}
-                                        />
-                                      </th>
-                                      <th>닉네임</th>
-                                      <th>권한</th>
-                                      <th>상태</th>
-                                    </tr>
-                                  </thead>
-                                  <tbody>
-                                    {groupUserList.length > 0 ? (
-                                      groupUserList.map((user, index) => (
-                                        <tr key={user.id || index}>
-                                          <td>
-                                            <input
-                                              type="checkbox"
-                                              checked={user.selected || false}
+                  )}
+                </>
+              )}
+
+              {/* 그룹 캘린더인 경우 */}
+              {selectedCalendarList[scheduleData.calendarId] &&
+                selectedCalendarList[scheduleData.calendarId].category === "GROUP" && (
+                <>
+                  <div className={styles.infoRow}>
+                    <label>일정 참석자 추가:</label>
+                    <Toggle
+                      checked={showGroupUsers}
+                      onChange={() => {
+                        const newShowValue = !showGroupUsers;
+                        setShowGroupUsers(newShowValue);
+                        if (!newShowValue) {
+                          setGroupUserList((prevList) =>
+                            prevList.map((user) => ({ ...user, selected: false }))
+                          );
+                        }
+                      }}
+                      disabled={isReadOnly}
+                    />
+                  </div>
+                  {showGroupUsers && (
+                    <div style={{ marginTop: "10px" }}>
+                      {(mode === "create" || canManageGroup) ? (
+                        <>
+                          <div style={{ marginBottom: "5px" }}>
+                            <div className={styles.infoRow}>
+                              <label>참석자 관리:</label>
+                              {selectedUsers.length > 0 && (
+                                <span style={{ 
+                                  fontSize: "14px",
+                                  color: "#666",
+                                  marginLeft: "8px"
+                                }}>
+                                  {getParticipationStats()}
+                                </span>
+                              )}
+                            </div>
+                            <div className={styles.availableUsersContainer}>
+                              <table className={styles.userTable}>
+                                <thead>
+                                  <tr>
+                                    <th>
+                                      <input
+                                        type="checkbox"
+                                        checked={groupUserList.every(user => user.selected)}
+                                        onChange={(e) => {
+                                          const isChecked = e.target.checked;
+                                          setGroupUserList(prevList =>
+                                            prevList.map(user => ({
+                                              ...user,
+                                              selected: isChecked,
+                                              status: isChecked ? "PENDING" : user.status
+                                            }))
+                                          );
+                                        }}
+                                        disabled={isReadOnly}
+                                      />
+                                    </th>
+                                    <th>닉네임</th>
+                                    <th>권한</th>
+                                    <th>상태</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {groupUserList.length > 0 ? (
+                                    groupUserList.map((user, index) => (
+                                      <tr key={user.id || index}>
+                                        <td>
+                                          <input
+                                            type="checkbox"
+                                            checked={user.selected || false}
+                                            onChange={(e) =>
+                                              handleIndividualSelect(
+                                                groupUserList.findIndex(
+                                                  (u) => u.userId === user.userId
+                                                ),
+                                                e.target.checked
+                                              )
+                                            }
+                                            disabled={isReadOnly || (currentUserId === user.userId && mode === "edit")}
+                                          />
+                                        </td>
+                                        <td>{user.userNickname}</td>
+                                        <td>
+                                          {user.selected && (
+                                            <select
+                                              value={user.permission || "READ"}
                                               onChange={(e) =>
-                                                handleIndividualSelect(
-                                                  groupUserList.findIndex(
-                                                    (u) => u.userId === user.userId
-                                                  ),
-                                                  e.target.checked
+                                                handlePermissionChange(
+                                                  groupUserList.findIndex((u) => u.userId === user.userId),
+                                                  e.target.value
                                                 )
                                               }
-                                              disabled={isReadOnly || (currentUserId === user.userId && mode === "edit")}
-                                            />
-                                          </td>
-                                          <td>{user.userNickname}</td>
-                                          <td>
-                                            {user.selected && (
-                                              <select
-                                                value={user.permission || "READ"}
-                                                onChange={(e) =>
-                                                  handlePermissionChange(
-                                                    groupUserList.findIndex((u) => u.userId === user.userId),
-                                                    e.target.value
-                                                  )
-                                                }
-                                                disabled={isReadOnly || currentUserId === user.userId}
-                                              >
-                                                <option value="READ">읽기</option>
-                                                <option value="WRITE">일정 수정</option>
-                                                <option value="ADMIN">관리자</option>
-                                              </select>
-                                            )}
-                                          </td>
-                                          <td>
-                                            {user.selected ? getUserStatus(user.status) : "-"}
-                                          </td>
-                                        </tr>
-                                      ))
-                                    ) : (
-                                      <tr><td colSpan="4">사용자가 없습니다</td></tr>
-                                    )}
-                                  </tbody>
-                                </table>
-                              </div>
-                            </div>
-                          </>
-                        ) : (
-                          <>
-                            {/* READ/WRITE인 경우 Selected만 */}
-                            <div style={{ marginTop: "10px" }}>
-                              <div style={{ marginBottom: "5px" }}>일정 참석자:</div>
-                              <div className={styles.selectedUsersContainer}>
-                                <table className={styles.userTable}>
-                                  <thead><tr><th>닉네임</th><th>상태</th></tr></thead>
-                                  <tbody>
-                                    {groupUserList.filter((user) => user.selected).map((user, index) => (
-                                      <tr key={user.id || index}>
-                                        <td>{user.userNickname}</td>
-                                        <td>{getUserStatus(user.status)}</td>
+                                              disabled={isReadOnly || currentUserId === user.userId}
+                                            >
+                                              <option value="READ">읽기</option>
+                                              <option value="WRITE">일정 수정</option>
+                                              <option value="ADMIN">관리자</option>
+                                            </select>
+                                          )}
+                                        </td>
+                                        <td>
+                                          {user.selected ? getUserStatus(user.status) : "-"}
+                                        </td>
                                       </tr>
-                                    ))}
-                                  </tbody>
-                                </table>
-                              </div>
+                                    ))
+                                  ) : (
+                                    <tr><td colSpan="4">사용자가 없습니다</td></tr>
+                                  )}
+                                </tbody>
+                              </table>
                             </div>
-                          </>
-                        )}
-                      </div>
-                    )}
-                  </>
-                )}
-              </form>
-            </div>
-          </fieldset>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          {/* READ/WRITE인 경우 Selected만 */}
+                          <div style={{ marginTop: "10px" }}>
+                            <div style={{ marginBottom: "5px" }}>일정 참석자:</div>
+                            <div className={styles.selectedUsersContainer}>
+                              <table className={styles.userTable}>
+                                <thead><tr><th>닉네임</th><th>상태</th></tr></thead>
+                                <tbody>
+                                  {groupUserList.filter((user) => user.selected).map((user, index) => (
+                                    <tr key={user.id || index}>
+                                      <td>{user.userNickname}</td>
+                                      <td>{getUserStatus(user.status)}</td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  )}
+                </>
+              )}
+            </form>
+          </div>
 
           {/* 현재 사용자가 Selected Users에 포함되면 참여 여부 버튼 노출, 아니면 footer 숨김 */}
           <div
@@ -852,8 +876,8 @@ import {
             </button>
           </div>
 
-          {/* readOnly가 아니면 Save/Delete 버튼 노출 */}
-          {!isReadOnly && (
+          {/* 반복 일정이면서 외부 캘린더일 때만 Save/Delete 버튼 숨김 */}
+          {!(scheduleData.repeatId && isGoogleCalendar) && !isReadOnly && (
             <div className={styles.popupFooter}>
               <Button variant="green" size="medium" onClick={handleSave} type="button">
                 저장
