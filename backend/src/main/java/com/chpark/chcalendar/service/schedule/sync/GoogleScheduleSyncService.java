@@ -278,7 +278,14 @@ public class GoogleScheduleSyncService implements ScheduleSyncService{
 
         if (itemsNode != null && itemsNode.isArray()) {
             for (JsonNode itemNode : itemsNode) {
+                JsonNode recurrenceNode = itemNode.path("recurrence");
+                boolean isRepeat = recurrenceNode.isArray() && !recurrenceNode.isEmpty();
+                if (isRepeat) {
+                    continue;
+                }
+
                 GoogleScheduleStatus status = GoogleScheduleStatus.from(itemNode.path("status").asText());
+
                 ScheduleDto.Request result = new ScheduleDto.Request();
                 result.setScheduleDto(ScheduleUtility.parseScheduleDto(itemNode, calendarEntity));
                 result.setNotificationDto(ScheduleUtility.parseGoogleNotificationDtoList(itemNode, result.getScheduleDto().getStartAt()));
