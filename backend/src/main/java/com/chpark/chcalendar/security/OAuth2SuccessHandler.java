@@ -90,12 +90,15 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
             );
         }
 
+        String accessToken = "";
+
         switch (type) {
             case LINK, LOCAL -> {
                 request.getSession().removeAttribute("oauth_login_type");
+                accessToken = jwtTokenProvider.resolveToken(request, JwtTokenType.ACCESS.getValue());
             }
             case OAUTH -> {
-                String accessToken = jwtTokenProvider.generateToken(email, JwtTokenType.ACCESS);
+                accessToken = jwtTokenProvider.generateToken(email, JwtTokenType.ACCESS);
                 String refreshToken = jwtTokenProvider.generateToken(email, JwtTokenType.REFRESH);
 
                 CookieUtility.setCookie(JwtTokenType.ACCESS, accessToken, 60 * 60, response);
@@ -103,9 +106,7 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
             }
         }
 
-        // 구글 캘린더 연동
-        String jwtToken = jwtTokenProvider.resolveToken(request, JwtTokenType.ACCESS.getValue());
-        long userId = jwtTokenProvider.getUserIdFromToken(jwtToken);
+        long userId = jwtTokenProvider.getUserIdFromToken(accessToken);
 
         //TODO: 비동기로 변경하기
 //        CompletableFuture.runAsync(() -> {
