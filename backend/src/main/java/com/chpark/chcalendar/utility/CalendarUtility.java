@@ -2,11 +2,9 @@ package com.chpark.chcalendar.utility;
 
 import com.chpark.chcalendar.enumClass.CRUDAction;
 import com.chpark.chcalendar.exception.ScheduleException;
-import com.chpark.chcalendar.exception.authentication.CalendarAuthenticationException;
-import com.chpark.chcalendar.exception.authentication.GroupAuthenticationException;
-import com.chpark.chcalendar.service.calendar.CalendarMemberService;
+import com.chpark.chcalendar.exception.authorization.CalendarAuthorizationException;
+import com.chpark.chcalendar.exception.authorization.GroupAuthorizationException;
 import com.chpark.chcalendar.service.calendar.CalendarService;
-import com.chpark.chcalendar.service.calendar.UserCalendarService;
 import com.chpark.chcalendar.service.schedule.ScheduleGroupService;
 import jakarta.persistence.EntityNotFoundException;
 
@@ -39,7 +37,7 @@ public class CalendarUtility {
         for (CalendarService calendarService : calendarServiceList) {
             try {
                 calendarService.checkAuthority(action, userId, calendarId);
-            } catch (GroupAuthenticationException | EntityNotFoundException ex) {
+            } catch (GroupAuthorizationException | EntityNotFoundException ex) {
                 checkCount++;
             }
         }
@@ -51,7 +49,7 @@ public class CalendarUtility {
         }
 
         if (checkCount == calendarServiceList.size() + 1) {
-            throw new CalendarAuthenticationException("You do not have permission.");
+            throw new CalendarAuthorizationException("You do not have permission.");
         }
     }
 

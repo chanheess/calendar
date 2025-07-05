@@ -1,13 +1,17 @@
 package com.chpark.chcalendar.exception;
 
 import com.chpark.chcalendar.dto.MessageResponseDto;
-import com.chpark.chcalendar.exception.authentication.*;
+import com.chpark.chcalendar.exception.authorization.CalendarAuthorizationException;
+import com.chpark.chcalendar.exception.authorization.GroupAuthorizationException;
+import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.nio.file.AccessDeniedException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -48,32 +52,16 @@ public class GlobalExceptionHandler {
         );
     }
 
-    @ExceptionHandler(GroupAuthenticationException.class)
-    public ResponseEntity<MessageResponseDto> handleGroupAuthenticationException(GroupAuthenticationException ex) {
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<MessageResponseDto> handleAuthorizationException(AccessDeniedException ex) {
         return new ResponseEntity<>(
                 createCustomErrorResponse(ex, HttpStatus.FORBIDDEN.value()),
                 HttpStatus.FORBIDDEN
         );
     }
 
-    @ExceptionHandler(EmailAuthenticationException.class)
-    public ResponseEntity<MessageResponseDto> handleEmailAuthenticationException(EmailAuthenticationException ex) {
-        return new ResponseEntity<>(
-                createCustomErrorResponse(ex, HttpStatus.BAD_REQUEST.value()),
-                HttpStatus.BAD_REQUEST
-        );
-    }
-
-    @ExceptionHandler(PasswordAuthenticationException.class)
-    public ResponseEntity<MessageResponseDto> handlePasswordAuthenticationException(PasswordAuthenticationException ex) {
-        return new ResponseEntity<>(
-                createCustomErrorResponse(ex, HttpStatus.BAD_REQUEST.value()),
-                HttpStatus.BAD_REQUEST
-        );
-    }
-
-    @ExceptionHandler(CountAuthenticationException.class)
-    public ResponseEntity<MessageResponseDto> handleCountAuthenticationException(CountAuthenticationException ex) {
+    @ExceptionHandler(PasswordPolicyException.class)
+    public ResponseEntity<MessageResponseDto> handlePasswordPolicyException(PasswordPolicyException ex) {
         return new ResponseEntity<>(
                 createCustomErrorResponse(ex, HttpStatus.BAD_REQUEST.value()),
                 HttpStatus.BAD_REQUEST
@@ -88,11 +76,28 @@ public class GlobalExceptionHandler {
         );
     }
 
-    @ExceptionHandler(TokenAuthenticationException.class)
-    public ResponseEntity<MessageResponseDto> handleTokenAuthenticationException(TokenAuthenticationException ex) {
+    @ExceptionHandler(CalendarAuthorizationException.class)
+    public ResponseEntity<MessageResponseDto> handleCalendarAuthorizationException(CalendarAuthorizationException ex) {
+        return new ResponseEntity<>(
+                createCustomErrorResponse(ex, HttpStatus.FORBIDDEN.value()),
+                HttpStatus.FORBIDDEN
+        );
+    }
+
+    @ExceptionHandler(GroupAuthorizationException.class)
+    public ResponseEntity<MessageResponseDto> handleGroupAuthorizationException(GroupAuthorizationException ex) {
+        return new ResponseEntity<>(
+                createCustomErrorResponse(ex, HttpStatus.FORBIDDEN.value()),
+                HttpStatus.FORBIDDEN
+        );
+    }
+
+    @ExceptionHandler(ExpiredJwtException.class)
+    public ResponseEntity<MessageResponseDto> handleExpiredJwtException(ExpiredJwtException ex) {
         return new ResponseEntity<>(
                 createCustomErrorResponse(ex, HttpStatus.UNAUTHORIZED.value()),
                 HttpStatus.UNAUTHORIZED
         );
     }
+
 }

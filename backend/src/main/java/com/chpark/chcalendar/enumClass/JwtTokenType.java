@@ -4,7 +4,7 @@ import lombok.Getter;
 
 @Getter
 public enum JwtTokenType {
-    ACCESS("jwt_token"),
+    ACCESS("jwt_access_token"),
     REFRESH("jwt_refresh_token"),
     GOOGLE_ACCESS("google_access_token"),
     GOOGLE_REFRESH("google_refresh_token");

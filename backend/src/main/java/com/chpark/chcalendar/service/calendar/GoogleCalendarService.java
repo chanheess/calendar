@@ -7,7 +7,7 @@ import com.chpark.chcalendar.entity.calendar.CalendarProviderEntity;
 import com.chpark.chcalendar.enumClass.CRUDAction;
 import com.chpark.chcalendar.enumClass.CalendarCategory;
 import com.chpark.chcalendar.enumClass.JwtTokenType;
-import com.chpark.chcalendar.exception.authentication.CalendarAuthenticationException;
+import com.chpark.chcalendar.exception.authorization.CalendarAuthorizationException;
 import com.chpark.chcalendar.repository.calendar.CalendarProviderRepository;
 import com.chpark.chcalendar.repository.calendar.CalendarQueryRepository;
 import com.chpark.chcalendar.repository.calendar.CalendarRepository;
@@ -66,7 +66,7 @@ public class GoogleCalendarService extends CalendarService {
         }
 
         if (Objects.equals(calendarEntity.getCalendarProvider().getStatus(), "reader") && !action.equals(CRUDAction.READ)) {
-            throw new CalendarAuthenticationException("읽기 권한만 있습니다. (수정/삭제/생성 불가)");
+            throw new CalendarAuthorizationException("읽기 권한만 있습니다. (수정/삭제/생성 불가)");
         }
     }
 

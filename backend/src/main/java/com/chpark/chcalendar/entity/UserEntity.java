@@ -1,7 +1,7 @@
 package com.chpark.chcalendar.entity;
 
 import com.chpark.chcalendar.dto.user.UserDto;
-import com.chpark.chcalendar.exception.authentication.PasswordAuthenticationException;
+import com.chpark.chcalendar.exception.PasswordPolicyException;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -60,19 +60,19 @@ public class UserEntity {
         int passwordMax = 100;
 
         if (plainPassword.length() < passwordMin || plainPassword.length() > passwordMax) {
-            throw new PasswordAuthenticationException(String.format("비밀번호는 %d ~ %d자 사이여야 합니다.", passwordMin, passwordMax));
+            throw new PasswordPolicyException(String.format("비밀번호는 %d ~ %d자 사이여야 합니다.", passwordMin, passwordMax));
         }
 
         if (!plainPassword.matches(".*[0-9].*")) {
-            throw new PasswordAuthenticationException("비밀번호에 숫자가 하나 이상 포함되어야 합니다.");
+            throw new PasswordPolicyException("비밀번호에 숫자가 하나 이상 포함되어야 합니다.");
         }
 
         if (!(plainPassword.matches(".*[a-z].*") || plainPassword.matches(".*[A-Z].*"))) {
-            throw new PasswordAuthenticationException("비밀번호에 대문자 또는 소문자가 하나 이상 포함되어야 합니다.");
+            throw new PasswordPolicyException("비밀번호에 대문자 또는 소문자가 하나 이상 포함되어야 합니다.");
         }
 
         if (!plainPassword.matches(".*[!\"#$%&'()*+,-./:;<=>?@\\[\\]^_`{|}~].*")) {
-            throw new PasswordAuthenticationException("비밀번호에 특수문자가 하나 이상 포함되어야 합니다.");
+            throw new PasswordPolicyException("비밀번호에 특수문자가 하나 이상 포함되어야 합니다.");
         }
     }
 

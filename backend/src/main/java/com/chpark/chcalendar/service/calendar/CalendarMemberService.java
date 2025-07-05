@@ -7,7 +7,7 @@ import com.chpark.chcalendar.entity.calendar.CalendarMemberEntity;
 import com.chpark.chcalendar.entity.calendar.CalendarSettingEntity;
 import com.chpark.chcalendar.enumClass.CalendarCategory;
 import com.chpark.chcalendar.enumClass.CalendarMemberRole;
-import com.chpark.chcalendar.exception.authentication.GroupAuthenticationException;
+import com.chpark.chcalendar.exception.authorization.GroupAuthorizationException;
 import com.chpark.chcalendar.repository.calendar.CalendarMemberRepository;
 import com.chpark.chcalendar.repository.calendar.CalendarQueryRepository;
 import com.chpark.chcalendar.repository.calendar.CalendarRepository;
@@ -55,7 +55,7 @@ public class CalendarMemberService {
 
     public CalendarMemberEntity getCalendarMember(long userId, long calendarId) {
         return calendarMemberRepository.findByUserIdAndCalendarId(userId, calendarId).orElseThrow(
-            () -> new GroupAuthenticationException("그룹에 대한 권한이 없습니다.")
+            () -> new GroupAuthorizationException("그룹에 대한 권한이 없습니다.")
         );
     }
 
@@ -63,7 +63,7 @@ public class CalendarMemberService {
         CalendarMemberEntity result = this.getCalendarMember(userId, calendarId);
 
         if (result.getRole().compareTo(role) >= 0) {
-            throw new GroupAuthenticationException("그룹에 대한 권한이 없습니다.");
+            throw new GroupAuthorizationException("그룹에 대한 권한이 없습니다.");
         }
 
         return result;
