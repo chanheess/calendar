@@ -30,7 +30,7 @@ public class GroupCalendarService extends CalendarService {
         int maxAdminCount = 10;
 
         if (maxAdminCount <= calendarRepository.countAdminGroups(userId)) {
-            throw new IllegalArgumentException("You have reached the maximum limit for creating groups.");
+            throw new IllegalArgumentException("그룹 생성 최대 한도에 도달했습니다.");
         }
 
         CalendarEntity calendarEntity = CalendarEntity.builder()

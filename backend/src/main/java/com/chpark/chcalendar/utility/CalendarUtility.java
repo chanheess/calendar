@@ -9,7 +9,9 @@ import com.chpark.chcalendar.service.schedule.ScheduleGroupService;
 import jakarta.persistence.EntityNotFoundException;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class CalendarUtility {
 
@@ -54,13 +56,13 @@ public class CalendarUtility {
     }
 
     public static List<Long> getAuthorizedCalendars(long userId, List<Long> calendarIdList, List<CalendarService> calendarServiceList) {
-        List<Long> resultList = new ArrayList<>(calendarIdList);
+        Set<Long> resultList = new HashSet<>(calendarIdList);
 
         for (CalendarService calendarService : calendarServiceList) {
             List<Long> authorizedIds = calendarService.findCalendarIdList(userId);
             resultList.retainAll(authorizedIds); // AND 조건(교집합)만 남김
         }
 
-        return resultList;
+        return resultList.stream().toList();
     }
 }

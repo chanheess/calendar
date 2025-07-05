@@ -10,7 +10,6 @@ import com.chpark.chcalendar.exception.authentication.TokenAuthenticationExcepti
 import com.chpark.chcalendar.repository.calendar.CalendarQueryRepository;
 import com.chpark.chcalendar.repository.calendar.CalendarRepository;
 import com.chpark.chcalendar.repository.schedule.ScheduleQueryRepository;
-import com.chpark.chcalendar.repository.schedule.ScheduleRepository;
 import com.chpark.chcalendar.service.schedule.ScheduleService;
 import com.chpark.chcalendar.utility.ScheduleUtility;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -40,9 +39,7 @@ public class GoogleScheduleSyncService implements ScheduleSyncService{
 
     private final CalendarQueryRepository calendarQueryRepository;
     private final ScheduleQueryRepository scheduleQueryRepository;
-
     private final CalendarRepository calendarRepository;
-    private final ScheduleRepository scheduleRepository;
 
     private final ScheduleService scheduleService;
 
@@ -150,12 +147,18 @@ public class GoogleScheduleSyncService implements ScheduleSyncService{
         do {
             String urlString = "";
             String responseBody = "";
+            boolean isRetry = false;
             try {
                 urlString = createUrl(calendarEntity, pageToken);
                 responseBody = getGoogleSchedule(accessToken, urlString);
             } catch (TokenAuthenticationException ex) {
                 //토큰을 만료시켜서 전체 리프레시하도록
+                if (isRetry) {
+                   log.error("Failed to sync after token refresh for calendar: {}", calendarEntity.getId(), ex);
+                   throw ex;
+                }
                 calendarEntity.getCalendarProvider().setSyncToken(null);
+                isRetry = true;
                 urlString = createUrl(calendarEntity, pageToken);
                 responseBody = getGoogleSchedule(accessToken, urlString);
             }

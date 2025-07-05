@@ -55,7 +55,7 @@ public class CalendarMemberService {
 
     public CalendarMemberEntity getCalendarMember(long userId, long calendarId) {
         return calendarMemberRepository.findByUserIdAndCalendarId(userId, calendarId).orElseThrow(
-            () -> new GroupAuthorizationException("그룹에 대한 권한이 없습니다.")
+            () -> new GroupAuthorizationException("캘린더에 대한 권한이 없습니다.")
         );
     }
 
@@ -63,7 +63,7 @@ public class CalendarMemberService {
         CalendarMemberEntity result = this.getCalendarMember(userId, calendarId);
 
         if (result.getRole().compareTo(role) >= 0) {
-            throw new GroupAuthorizationException("그룹에 대한 권한이 없습니다.");
+            throw new GroupAuthorizationException("캘린더에 대한 권한이 없습니다.");
         }
 
         return result;

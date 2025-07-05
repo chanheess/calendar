@@ -52,7 +52,7 @@ public class CalendarDto {
             this.color = color;
             this.category = category;
             this.checked = checked;
-            this.fileAuthority = FileAuthority.parsefileAuthority(fileAuthority);
+            this.fileAuthority = FileAuthority.parseFileAuthority(fileAuthority);
         }
     }
 }

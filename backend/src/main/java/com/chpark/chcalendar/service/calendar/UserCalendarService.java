@@ -28,7 +28,7 @@ public class UserCalendarService extends CalendarService {
         int maxCalendarCount = 10;
 
         if (maxCalendarCount <= calendarRepository.findByUserIdAndCategory(userId, CalendarCategory.USER).size()) {
-            throw new IllegalArgumentException("You have reached the maximum limit for creating calendarId.");
+            throw new IllegalArgumentException("You have reached the maximum limit for creating calendars.");
         }
 
         CalendarEntity result = CalendarEntity.builder()

@@ -74,6 +74,10 @@ public class GoogleCalendarService extends CalendarService {
     public CalendarSettingDto updateSetting(HttpServletRequest request, CalendarSettingDto calendarSettingDto) {
         String googleAccessToken = CookieUtility.getToken(request, JwtTokenType.GOOGLE_ACCESS);
 
+        if (googleAccessToken == null || googleAccessToken.isEmpty()) {
+            throw new IllegalStateException("Google 액세스 토큰이 없습니다. 다시 로그인해주세요.");
+        }
+
         if (calendarSettingDto.getTitle() != null) {
             updateGoogleCalendarTitle(googleAccessToken, calendarSettingDto);
         }

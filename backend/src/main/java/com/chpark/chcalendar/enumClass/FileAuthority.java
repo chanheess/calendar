@@ -5,7 +5,7 @@ public enum FileAuthority {
     WRITE,
     READ;
 
-    public static FileAuthority parsefileAuthority(String auth) {
+    public static FileAuthority parseFileAuthority(String auth) {
         if (auth == null || auth.isEmpty()) return ADMIN;
 
         auth = auth.toLowerCase();
