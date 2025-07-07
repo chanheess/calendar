@@ -5,7 +5,6 @@ import com.chpark.chcalendar.dto.schedule.ScheduleDto;
 import com.chpark.chcalendar.dto.schedule.ScheduleGroupDto;
 import com.chpark.chcalendar.entity.schedule.ScheduleEntity;
 import com.chpark.chcalendar.entity.schedule.ScheduleGroupEntity;
-import com.chpark.chcalendar.entity.schedule.ScheduleRepeatEntity;
 import com.chpark.chcalendar.enumClass.FileAuthority;
 import com.chpark.chcalendar.enumClass.NotificationCategory;
 import com.chpark.chcalendar.exception.ScheduleException;
@@ -13,11 +12,15 @@ import com.chpark.chcalendar.repository.schedule.ScheduleGroupRepository;
 import com.chpark.chcalendar.repository.schedule.ScheduleRepeatRepository;
 import com.chpark.chcalendar.repository.schedule.ScheduleRepository;
 import com.chpark.chcalendar.service.notification.NotificationScheduleService;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -169,6 +172,60 @@ public class ScheduleGroupService {
     @Transactional
     public void deleteScheduleNotification(long scheduleId) {
         notificationScheduleService.deleteScheduleNotifications(scheduleId);
+    }
+
+    @Transactional
+    public long getScheduleGroupUserCount(long scheduleId) {
+        return scheduleGroupRepository.countByScheduleId(scheduleId);
+    }
+
+    @Transactional
+    public FileAuthority getScheduleFileAuthority(long scheduleId, long userId) {
+        ScheduleGroupEntity scheduleGroupEntity = scheduleGroupRepository.findByScheduleIdAndUserId(scheduleId, userId).orElseThrow(
+                () -> new EntityNotFoundException("존재하지 않는 유저입니다.")
+        );
+
+        return scheduleGroupEntity.getAuthority();
+    }
+
+    //소유권을 넘기는 행위만 담긴 함수를 만드는게 좋아보인다.
+    @Transactional
+    public boolean scheduleOwnershipTransfer(ScheduleGroupEntity currentOwner) {
+
+
+
+
+        if ()) {
+
+        }
+
+        List<ScheduleGroupEntity> scheduleGroupEntityList = scheduleGroupRepository.findByScheduleIdAndUserIdNotOrderByAuthorityAsc(currentOwner.getScheduleId(), currentOwner.getUserId());
+
+        if (scheduleGroupEntityList.isEmpty()) {
+            return false;
+        }
+
+        for (ScheduleGroupEntity scheduleMember : scheduleGroupEntityList) {
+            scheduleMember.setAuthority(FileAuthority.ADMIN);
+            currentOwner.setAuthority(FileAuthority.READ);
+            break;
+        }
+
+        return true;
+    }
+
+    public boolean isScheduleOwner(ScheduleGroupEntity currentOwner) {
+        if (currentOwner == null) {
+            return false;
+        }
+
+        Optional<ScheduleEntity> scheduleEntity = scheduleRepository.findByIdAndUserId(currentOwner.getId(), currentOwner.getUserId());
+
+        if (scheduleEntity.isEmpty()) {
+            return FileAuthority.ADMIN.equals(currentOwner.getAuthority());
+        }
+
+        return FileAuthority.ADMIN.equals(currentOwner.getAuthority()) || scheduleEntity.get().getId() == currentOwner.getUserId();
     }
 
 }
