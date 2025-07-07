@@ -193,12 +193,6 @@ public class ScheduleGroupService {
     public boolean scheduleOwnershipTransfer(ScheduleGroupEntity currentOwner) {
 
 
-
-
-        if ()) {
-
-        }
-
         List<ScheduleGroupEntity> scheduleGroupEntityList = scheduleGroupRepository.findByScheduleIdAndUserIdNotOrderByAuthorityAsc(currentOwner.getScheduleId(), currentOwner.getUserId());
 
         if (scheduleGroupEntityList.isEmpty()) {
