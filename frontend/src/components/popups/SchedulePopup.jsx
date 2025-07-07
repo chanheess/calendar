@@ -64,7 +64,8 @@ import {
     mode === "edit" && (currentUserPermission === "ADMIN" || scheduleData.userId === currentUserId);
   // 편집모드에서 READ/WRITE 권한이면 readOnly 처리
   const isReadOnly =
-    mode === "edit" && currentUserPermission !== "ADMIN" && scheduleData.userId !== currentUserId;
+    (selectedCalendarList[scheduleData.calendarId]?.fileAuthority === "READ") ||
+    (mode === "edit" && currentUserPermission !== "ADMIN" && scheduleData.userId !== currentUserId);
 
   // 일정 데이터 로드
   useEffect(() => {
