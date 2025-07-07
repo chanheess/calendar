@@ -1,17 +1,16 @@
 package com.chpark.chcalendar.service.schedule;
 
-import com.chpark.chcalendar.dto.group.GroupUserDto;
+import com.chpark.chcalendar.dto.calendar.CalendarMemberDto;
 import com.chpark.chcalendar.dto.schedule.ScheduleNotificationDto;
-import com.chpark.chcalendar.entity.CalendarInfoEntity;
+import com.chpark.chcalendar.entity.calendar.CalendarEntity;
 import com.chpark.chcalendar.entity.schedule.ScheduleEntity;
 import com.chpark.chcalendar.entity.schedule.ScheduleNotificationEntity;
 import com.chpark.chcalendar.enumClass.CalendarCategory;
-import com.chpark.chcalendar.repository.CalendarInfoRepository;
+import com.chpark.chcalendar.repository.calendar.CalendarRepository;
 import com.chpark.chcalendar.repository.schedule.ScheduleNotificationRepository;
 import com.chpark.chcalendar.repository.schedule.ScheduleRepository;
-import com.chpark.chcalendar.service.calendar.CalendarService;
 import com.chpark.chcalendar.service.notification.FirebaseService;
-import com.chpark.chcalendar.service.user.GroupUserService;
+import com.chpark.chcalendar.service.calendar.CalendarMemberService;
 import com.chpark.chcalendar.utility.ScheduleUtility;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
@@ -32,8 +31,8 @@ public class ScheduleNotificationService {
     private final ScheduleNotificationRepository scheduleNotificationRepository;
 
     private final FirebaseService firebaseService;
-    private final GroupUserService groupUserService;
-    private final CalendarInfoRepository calendarInfoRepository;
+    private final CalendarMemberService calendarMemberService;
+    private final CalendarRepository calendarRepository;
 
     @Value("${home_url}")
     String homeUrl;
@@ -165,13 +164,13 @@ public class ScheduleNotificationService {
     }
 
     public List<Long> getUserIdList(long userId, ScheduleEntity scheduleEntity) {
-        List<GroupUserDto> groupUserList = null;
-        CalendarInfoEntity calendarInfo = calendarInfoRepository.findById(scheduleEntity.getCalendarId()).orElseThrow(
+        List<CalendarMemberDto> groupUserList = null;
+        CalendarEntity calendarInfo = calendarRepository.findById(scheduleEntity.getCalendarId()).orElseThrow(
                 () -> new EntityNotFoundException("유효한 캘린더가 아닙니다.")
         );
 
         if (calendarInfo.getCategory().equals(CalendarCategory.GROUP)) {
-            groupUserList = groupUserService.findGroupUserList(userId, scheduleEntity.getCalendarId());
+            groupUserList = calendarMemberService.findCalendarMemberList(userId, scheduleEntity.getCalendarId());
         }
 
         // 대상 사용자 ID를 담을 리스트 생성

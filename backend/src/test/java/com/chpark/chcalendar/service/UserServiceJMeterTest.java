@@ -1,7 +1,7 @@
 package com.chpark.chcalendar.service;
 
 import com.chpark.chcalendar.DotenvInitializer;
-import com.chpark.chcalendar.dto.UserDto;
+import com.chpark.chcalendar.dto.user.UserDto;
 import com.chpark.chcalendar.entity.UserEntity;
 import com.chpark.chcalendar.repository.user.UserRepository;
 import com.chpark.chcalendar.service.user.UserService;
@@ -33,7 +33,7 @@ public class UserServiceJMeterTest {
     @Test
     void createUser() {
         int count = 10000;
-        UserDto.RegisterRequest userDto = new UserDto.RegisterRequest("","","","");
+        UserDto.RegisterRequest userDto = new UserDto.RegisterRequest("","","","", "");
         for (int i = 0; i < count; i++) {
             String randomId = getRandom(4) + i;
 

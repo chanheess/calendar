@@ -1,7 +1,7 @@
 package com.chpark.chcalendar.repository.user;
 
 import com.chpark.chcalendar.DotenvInitializer;
-import com.chpark.chcalendar.dto.UserDto;
+import com.chpark.chcalendar.dto.user.UserDto;
 import com.chpark.chcalendar.entity.UserEntity;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,7 +36,7 @@ class UserRepositoryTest {
     @Transactional
     void setupUser() {
         UserDto.RegisterRequest userDto = new UserDto.RegisterRequest("testing1@naver.com",
-                "testpassword123", "testingKing", "1234");
+                "testpassword123", "testingKing", "1234", "local");
 
         savedUser = UserEntity.createWithEncodedPassword(userDto, passwordEncoder);
         userRepository.save(savedUser);

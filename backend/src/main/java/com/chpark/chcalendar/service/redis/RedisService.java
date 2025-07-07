@@ -5,13 +5,13 @@ import com.chpark.chcalendar.enumClass.RequestType;
 import com.chpark.chcalendar.exception.authentication.CountAuthenticationException;
 import com.chpark.chcalendar.exception.authentication.EmailAuthenticationException;
 import com.chpark.chcalendar.repository.user.UserRepository;
+import com.chpark.chcalendar.utility.KeyGeneratorUtility;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -42,8 +42,7 @@ public class RedisService {
 
         checkRequestCount(emailDto.getType(), emailDto.getEmail());
 
-        // 6자리 알파벳+숫자 코드 생성
-        String code = UUID.randomUUID().toString().replace("-", "").substring(0, 6).toUpperCase();
+        String code = KeyGeneratorUtility.generateNumericMailCode(6);
 
         mailService.sendMail(emailDto, code);
 

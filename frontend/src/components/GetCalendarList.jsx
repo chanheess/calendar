@@ -8,7 +8,13 @@ const GetCalendarList = async (category) => {
 
     const calendars = response.data;
     const calendarMap = calendars.reduce((acc, calendar) => {
-      acc[calendar.id] = { title: calendar.title, color: calendar.color, category: calendar.category };
+      acc[calendar.id] = { 
+        title: calendar.title, 
+        color: calendar.color, 
+        category: calendar.category,
+        isSelected: calendar.checked !== false,
+        fileAuthority: calendar.fileAuthority
+      };
       return acc;
     }, {});
 

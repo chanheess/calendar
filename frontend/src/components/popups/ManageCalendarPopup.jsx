@@ -14,9 +14,11 @@ const ManageCalendarPopup = ({
   const [userList, setUserList] = useState([]);
 
   const [color, setColor] = useState(calendarInfo.color || "#3788d8");
+  const [title, setTitle] = useState(calendarInfo.title || "");
   useEffect(() => {
     setColor(calendarInfo.color || "#3788d8");
-  }, [calendarInfo.color]);
+    setTitle(calendarInfo.title || "");
+  }, [calendarInfo.color, calendarInfo.title]);
 
   // Esc 키 눌렀을 때 팝업 닫기
   useEffect(() => {
@@ -53,7 +55,7 @@ const ManageCalendarPopup = ({
     }
     try {
       await axios.post(
-        `/notifications/groups/${calendarInfo.id}/invite`,
+        `/notifications/calendars/${calendarInfo.id}/invite`,
         null,
         {
           params: { nickname: inviteUserName },
@@ -70,40 +72,43 @@ const ManageCalendarPopup = ({
     }
   };
 
-  const updateCalendarColor = async () => {
+  const updateCalendarInfo = async (type) => {
     if (!calendarInfo.id) return;
-
-    const payload = {
-      color,
-      category: calendarInfo.category || "USER",
-    };
-
+    let payload = { category: calendarInfo.category || "USER" };
+    if (type === 'color') {
+      payload.color = color;
+    } else if (type === 'title') {
+      payload.title = title;
+    }
     try {
       const response = await axios.patch(
-        `/calendars/${calendarInfo.id}/color`,
+        `/calendars/${calendarInfo.id}`,
         payload,
         {
           withCredentials: true,
           headers: { "Content-Type": "application/json" },
         }
       );
-
       if (selectedCalendarList && selectedCalendarList[response.data.calendarId]) {
         const updatedList = {
           ...selectedCalendarList,
           [response.data.calendarId]: {
             ...selectedCalendarList[response.data.calendarId],
             color: response.data.color,
+            title: response.data.title,
           },
         };
         onCalendarChange(updatedList); // 업데이트된 상태 전파
       }
-
-      alert("색상 변경 성공");
+      if (type === 'color') {
+        alert("색상 변경 성공");
+      } else if (type === 'title') {
+        alert("이름 변경 성공");
+      }
       onClose();
     } catch (error) {
-      console.error("Error updating color:", error);
-      alert("색상 변경 실패");
+      console.error("Error updating calendar info:", error);
+      alert(error.response?.data.message || "변경 실패");
     }
   };
 
@@ -125,6 +130,24 @@ const ManageCalendarPopup = ({
 
         <div className={styles.popupContent}>
           <div className={styles.formSection}>
+            <h4>캘린더 이름</h4>
+            <div className={styles.infoRow}>
+              <input
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+              />
+              <Button
+                variant="primary"
+                size="input"
+                onClick={() => updateCalendarInfo('title')}
+                disabled={title === (calendarInfo.title || "")}
+              >
+                이름 변경
+              </Button>
+            </div>
+          </div>
+          <div className={styles.formSection}>
             <h4>캘린더 색상</h4>
             <div className={styles.infoRow}>
               <input
@@ -133,7 +156,12 @@ const ManageCalendarPopup = ({
                 onChange={(e) => setColor(e.target.value)}
                 className={styles.colorPicker}
               />
-              <Button variant="primary" size="input" onClick={updateCalendarColor}>
+              <Button
+                variant="primary"
+                size="input"
+                onClick={() => updateCalendarInfo('color')}
+                disabled={color === (calendarInfo.color || "#3788d8")}
+              >
                 색상 변경
               </Button>
             </div>

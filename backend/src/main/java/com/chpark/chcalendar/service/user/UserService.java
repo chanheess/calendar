@@ -2,12 +2,14 @@ package com.chpark.chcalendar.service.user;
 
 
 import com.chpark.chcalendar.dto.EmailDto;
+import com.chpark.chcalendar.dto.user.UserDto;
 import com.chpark.chcalendar.dto.security.JwtAuthenticationResponseDto;
-import com.chpark.chcalendar.dto.UserDto;
 import com.chpark.chcalendar.entity.UserEntity;
+import com.chpark.chcalendar.enumClass.JwtTokenType;
 import com.chpark.chcalendar.enumClass.RequestType;
 import com.chpark.chcalendar.repository.user.UserRepository;
 import com.chpark.chcalendar.security.JwtTokenProvider;
+import com.chpark.chcalendar.service.calendar.CalendarMemberService;
 import com.chpark.chcalendar.service.calendar.UserCalendarService;
 import com.chpark.chcalendar.service.redis.RedisService;
 import com.chpark.chcalendar.utility.ScheduleUtility;
@@ -27,7 +29,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final UserCalendarService userCalendarService;
     private final PasswordEncoder passwordEncoder;
-    private final GroupUserService groupUserService;
+    private final CalendarMemberService calendarMemberService;
     private final RedisService redisService;
 
     private final AuthenticationManager authenticationManager;
@@ -79,10 +81,13 @@ public class UserService {
 
             redisService.deleteVerificationData(RequestType.LOGIN, ipAddress);
 
+            //추가해야 됨
+
+
             // JWT 토큰 생성 후 반환
             return new JwtAuthenticationResponseDto(
-                    jwtTokenProvider.generateAccessToken(authentication, userEntity.getId()),
-                    jwtTokenProvider.generateRefreshToken(authentication, userEntity.getId()),
+                    jwtTokenProvider.generateToken(authentication, userEntity.getId(), JwtTokenType.ACCESS),
+                    jwtTokenProvider.generateToken(authentication, userEntity.getId(), JwtTokenType.REFRESH),
                     "로그인 성공."
             );
         } catch (BadCredentialsException e) {
@@ -123,9 +128,6 @@ public class UserService {
                 .nickname(userInfo.getNickname())
                 .build();
         userRepository.updateUserInfo(userId, userEntity);
-
-        //닉네임 수정시 동기화
-        groupUserService.updateGroupUserNickname(userId, userEntity.getNickname());
     }
 
     @Transactional

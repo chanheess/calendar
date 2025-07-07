@@ -22,7 +22,7 @@ const CheckLoginStatus = ({ children }) => {
         throw new Error("Invalid login status");
       }
     } catch (error) {
-      alert("로그인 상태를 확인할 수 없습니다.");
+      console.error("로그인 상태를 확인할 수 없습니다.", error);
       navigate("/auth/login");
     }
   }, [navigate]);

@@ -1,14 +1,15 @@
 package com.chpark.chcalendar.service;
 
-import com.chpark.chcalendar.dto.UserDto;
-import com.chpark.chcalendar.dto.calendar.CalendarInfoDto;
+import com.chpark.chcalendar.dto.user.UserDto;
+import com.chpark.chcalendar.dto.calendar.CalendarDto;
 import com.chpark.chcalendar.dto.security.JwtAuthenticationResponseDto;
 import com.chpark.chcalendar.entity.UserEntity;
+import com.chpark.chcalendar.enumClass.JwtTokenType;
 import com.chpark.chcalendar.repository.user.UserRepository;
 import com.chpark.chcalendar.security.JwtTokenProvider;
 import com.chpark.chcalendar.service.calendar.UserCalendarService;
 import com.chpark.chcalendar.service.redis.RedisService;
-import com.chpark.chcalendar.service.user.GroupUserService;
+import com.chpark.chcalendar.service.calendar.CalendarMemberService;
 import com.chpark.chcalendar.service.user.UserService;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.Test;
@@ -38,7 +39,7 @@ class UserServiceUnitTest {
     private UserCalendarService userCalendarService;
 
     @Mock
-    private GroupUserService groupUserService;
+    private CalendarMemberService calendarMemberService;
 
     @InjectMocks
     private UserService userService;
@@ -58,7 +59,7 @@ class UserServiceUnitTest {
     @Test
     void create() {
         //given
-        UserDto.RegisterRequest userDto = new UserDto.RegisterRequest("testing1@naver.com", "testpassword123!!", "testingKing", "1234");
+        UserDto.RegisterRequest userDto = new UserDto.RegisterRequest("testing1@naver.com", "testpassword123!!", "testingKing", "1234", "local");
 
 
         when(passwordEncoder.encode(userDto.getPassword())).thenReturn("encoded_password");
@@ -70,7 +71,7 @@ class UserServiceUnitTest {
                 .build();
 
         when(userRepository.save(any(UserEntity.class))).thenReturn(savedUser);
-        when(userCalendarService.create(0L, "내 캘린더")).thenReturn(new CalendarInfoDto.Response());
+        when(userCalendarService.create(0L, "내 캘린더")).thenReturn(new CalendarDto.Response());
 
         //when
         userService.create(userDto);
@@ -93,7 +94,7 @@ class UserServiceUnitTest {
                 .thenReturn(authentication);
         when(userRepository.findByEmail(userDto.getEmail()))
                 .thenReturn(Optional.of(savedUser));
-        when(jwtTokenProvider.generateAccessToken(authentication, savedUser.getId()))
+        when(jwtTokenProvider.generateToken(authentication, savedUser.getId(), JwtTokenType.ACCESS))
                 .thenReturn("mocked_jwt_token");
 
         // when
@@ -199,7 +200,6 @@ class UserServiceUnitTest {
 
         when(userRepository.existsByEmail(userInfo.getEmail())).thenReturn(false);
         when(userRepository.existsByNickname(userInfo.getNickname())).thenReturn(false);
-        doNothing().when(groupUserService).updateGroupUserNickname(userId, userEntity.getNickname());
 
         //when
         userService.updateUserInfo(userId, userInfo);

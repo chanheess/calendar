@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, forwardRef, useImperativeHandle } from "react";
+import React, { useState, useEffect, useRef, forwardRef, useImperativeHandle, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate, useLocation } from "react-router-dom"; // useLocation 추가
 import Nickname from "./Nickname";
@@ -30,10 +30,19 @@ const HeaderComponent = forwardRef(({ mode, onSidebarToggle, onCloseSidebarPopup
     }
   }));
 
+  const fetchNotifications = useCallback(async () => {
+    try {
+      const response = await axios.get("/notifications", { withCredentials: true });
+      setNotifications(response.data || []);
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+    }
+  }, []);
+
   // 초기 알림 데이터 로딩
   useEffect(() => {
     fetchNotifications();
-  }, []);
+  }, [fetchNotifications]);
 
   // 리사이즈 이벤트 처리
   useEffect(() => {
@@ -49,7 +58,7 @@ const HeaderComponent = forwardRef(({ mode, onSidebarToggle, onCloseSidebarPopup
     if (showDropdown) {
       fetchNotifications();
     }
-  }, [showDropdown]);
+  }, [showDropdown, fetchNotifications]);
 
   // 외부 클릭 감지
   useEffect(() => {
@@ -95,15 +104,6 @@ const HeaderComponent = forwardRef(({ mode, onSidebarToggle, onCloseSidebarPopup
       }, 0);
     }
   };
-
-  async function fetchNotifications() {
-    try {
-      const response = await axios.get("/notifications", { withCredentials: true });
-      setNotifications(response.data || []);
-    } catch (error) {
-      console.error("Error fetching notifications:", error);
-    }
-  }
 
   const handleNotificationAction = async (notification, action) => {
 

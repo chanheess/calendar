@@ -1,7 +1,7 @@
 package com.chpark.chcalendar.controller;
 
 import com.chpark.chcalendar.DotenvInitializer;
-import com.chpark.chcalendar.dto.UserDto;
+import com.chpark.chcalendar.dto.user.UserDto;
 import com.chpark.chcalendar.enumClass.JwtTokenType;
 import com.chpark.chcalendar.security.JwtAuthenticationFilter;
 import com.chpark.chcalendar.security.JwtTokenProvider;
@@ -62,7 +62,7 @@ class UserControllerTest {
         when(jwtTokenProvider.resolveToken(any(HttpServletRequest.class), eq(JwtTokenType.ACCESS.getValue())))
                 .thenReturn("mockedToken");
         when(jwtTokenProvider.getUserIdFromToken("mockedToken"))
-                .thenReturn(1234);
+                .thenReturn(1234L);
 
         // MockMvc 설정
         mockMvc = MockMvcBuilders.webAppContextSetup(context).build();

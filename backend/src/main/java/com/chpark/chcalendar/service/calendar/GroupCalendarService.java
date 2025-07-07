@@ -1,69 +1,67 @@
 package com.chpark.chcalendar.service.calendar;
 
-import com.chpark.chcalendar.dto.calendar.CalendarColorDto;
-import com.chpark.chcalendar.dto.calendar.CalendarInfoDto;
-import com.chpark.chcalendar.dto.group.GroupUserDto;
-import com.chpark.chcalendar.entity.CalendarInfoEntity;
-import com.chpark.chcalendar.entity.GroupUserEntity;
+import com.chpark.chcalendar.dto.calendar.CalendarDto;
+import com.chpark.chcalendar.entity.calendar.CalendarEntity;
+import com.chpark.chcalendar.enumClass.CRUDAction;
 import com.chpark.chcalendar.enumClass.CalendarCategory;
-import com.chpark.chcalendar.enumClass.GroupAuthority;
-import com.chpark.chcalendar.repository.CalendarInfoRepository;
-import com.chpark.chcalendar.service.user.GroupUserService;
-import com.chpark.chcalendar.service.user.UserService;
-import jakarta.persistence.EntityNotFoundException;
-import lombok.RequiredArgsConstructor;
+import com.chpark.chcalendar.enumClass.CalendarMemberRole;
+import com.chpark.chcalendar.repository.calendar.CalendarQueryRepository;
+import com.chpark.chcalendar.repository.calendar.CalendarRepository;
+import com.chpark.chcalendar.repository.calendar.CalendarSettingRepository;
+import com.chpark.chcalendar.security.JwtTokenProvider;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-@RequiredArgsConstructor
 @Service
-public class GroupCalendarService implements CalendarService {
+public class GroupCalendarService extends CalendarService {
 
-    private final CalendarInfoRepository calendarInfoRepository;
-    private final GroupUserService groupUserService;
-    private final UserService userService;
+    private final CalendarMemberService calendarMemberService;
+    private final CalendarQueryRepository calendarQueryRepository;
+
+    public GroupCalendarService(CalendarRepository calendarRepository, CalendarSettingRepository calendarSettingRepository, JwtTokenProvider jwtTokenProvider, CalendarMemberService calendarMemberService, CalendarQueryRepository calendarQueryRepository) {
+        super(calendarRepository, calendarSettingRepository, jwtTokenProvider);
+        this.calendarMemberService = calendarMemberService;
+        this.calendarQueryRepository = calendarQueryRepository;
+    }
 
     @Override
-    public CalendarInfoDto.Response create(long userId, String title) {
+    public CalendarDto.Response create(long userId, String title) {
         int maxAdminCount = 10;
 
-        if (maxAdminCount <= calendarInfoRepository.countAdminGroups(userId)) {
-            throw new IllegalArgumentException("You have reached the maximum limit for creating groups.");
+        if (maxAdminCount <= calendarRepository.countAdminGroups(userId)) {
+            throw new IllegalArgumentException("그룹 생성 최대 한도에 도달했습니다.");
         }
 
-        CalendarInfoEntity groupEntity = new CalendarInfoEntity(title, userId, CalendarCategory.GROUP);
+        CalendarEntity calendarEntity = CalendarEntity.builder()
+                .title(title)
+                .userId(userId)
+                .category(CalendarCategory.GROUP)
+                .build();
+        calendarRepository.save(calendarEntity);
 
-        calendarInfoRepository.save(groupEntity);
+        calendarMemberService.create(calendarEntity, calendarEntity.getUserId(), CalendarMemberRole.ADMIN);
 
-        String nickname = userService.findNickname(userId);
-
-        groupUserService.create(new GroupUserDto(
-                groupEntity.getTitle(),
-                groupEntity.getId(),
-                nickname,
-                groupEntity.getAdminId(),
-                GroupAuthority.ADMIN,
-                groupEntity.getColor())
-        );
-
-        return new CalendarInfoDto.Response(groupEntity);
+        return CalendarDto.Response.builder()
+                .id(calendarEntity.getId())
+                .title(calendarEntity.getTitle())
+                .category(calendarEntity.getCategory())
+                .color(calendarEntity.getCalendarSettings().get(0).getColor())
+                .build();
     }
 
     @Override
-    public List<CalendarInfoDto.Response> findCalendarList(long userId) {
-        return groupUserService.findMyGroup(userId);
+    public List<CalendarDto.Response> findCalendarList(long userId) {
+        return calendarQueryRepository.findGroupCalendarsByUserId(userId);
     }
 
     @Override
-    public CalendarColorDto changeColor(long userId, CalendarColorDto calendarColorDto) {
-        GroupUserEntity groupUser = groupUserService.updateGroupColor(userId, calendarColorDto.getCalendarId(), calendarColorDto.getColor());
-        return new CalendarColorDto(groupUser.getGroupId(), groupUser.getColor(), CalendarCategory.GROUP);
+    public List<Long> findCalendarIdList(long userId) {
+        return calendarMemberService.findCalendarIdList(userId);
     }
 
-    public List<CalendarInfoDto.Response> findGroup(String title) {
-        List<CalendarInfoEntity> groupEntity = calendarInfoRepository.findByTitleAndCategory(title, CalendarCategory.GROUP);
-
-        return CalendarInfoDto.Response.fromCalendarEntityList(groupEntity);
+    @Override
+    public void checkAuthority(CRUDAction action, long userId, long calendarId) {
+        calendarMemberService.checkCalendarMemberAuthority(userId, calendarId, CalendarMemberRole.USER);
     }
 }

@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Getter
 @NoArgsConstructor
@@ -19,15 +20,12 @@ public class FirebaseTokenEntity {
     @Column(name = "user_id")
     private long userId;
 
+    @Setter
     @Column(name = "token")
     private String token;
 
     @Column(name = "platform")
     private String platform;
-
-    public void setToken(String token) {
-        this.token = token;
-    }
 
     public FirebaseTokenEntity(long userId, String token, String platform) {
         this.userId = userId;

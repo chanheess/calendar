@@ -1,7 +1,7 @@
 package com.chpark.chcalendar.service;
 
 import com.chpark.chcalendar.DotenvInitializer;
-import com.chpark.chcalendar.dto.UserDto;
+import com.chpark.chcalendar.dto.user.UserDto;
 import com.chpark.chcalendar.entity.UserEntity;
 import com.chpark.chcalendar.repository.user.UserRepository;
 import com.chpark.chcalendar.service.user.UserService;
@@ -41,7 +41,7 @@ public class UserServiceIntegrationTest {
     void setupUser() {
         //given
         UserDto.RegisterRequest userDto = new UserDto.RegisterRequest("testing1@naver.com",
-                "testpassword123!", "testingKing", "1234");
+                "testpassword123!", "testingKing", "1234", "local");
 
         savedUser = UserEntity.createWithEncodedPassword(userDto, passwordEncoder);
         userRepository.save(savedUser);
