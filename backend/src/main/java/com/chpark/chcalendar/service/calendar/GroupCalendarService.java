@@ -1,15 +1,22 @@
 package com.chpark.chcalendar.service.calendar;
 
 import com.chpark.chcalendar.dto.calendar.CalendarDto;
+import com.chpark.chcalendar.dto.calendar.CalendarSettingDto;
 import com.chpark.chcalendar.entity.calendar.CalendarEntity;
+import com.chpark.chcalendar.entity.calendar.CalendarSettingEntity;
 import com.chpark.chcalendar.enumClass.CRUDAction;
 import com.chpark.chcalendar.enumClass.CalendarCategory;
 import com.chpark.chcalendar.enumClass.CalendarMemberRole;
+import com.chpark.chcalendar.enumClass.JwtTokenType;
+import com.chpark.chcalendar.exception.authorization.GroupAuthorizationException;
 import com.chpark.chcalendar.repository.calendar.CalendarQueryRepository;
 import com.chpark.chcalendar.repository.calendar.CalendarRepository;
 import com.chpark.chcalendar.repository.calendar.CalendarSettingRepository;
 import com.chpark.chcalendar.security.JwtTokenProvider;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -61,7 +68,58 @@ public class GroupCalendarService extends CalendarService {
     }
 
     @Override
-    public void checkAuthority(CRUDAction action, long userId, long calendarId) {
-        calendarMemberService.checkCalendarMemberAuthority(userId, calendarId, CalendarMemberRole.USER);
+    public void checkAuthority(CRUDAction action, long userId, long createdUserId, long calendarId) {
+        CalendarMemberRole result = null;
+
+        switch (action) {
+            case CREATE, UPDATE -> {
+                result = CalendarMemberRole.USER;
+            }
+            case READ -> {
+                result = CalendarMemberRole.READ;
+            }
+            case DELETE -> {
+                if (userId != createdUserId) {
+                    result = CalendarMemberRole.SUB_ADMIN;
+                    break;
+                }
+
+                result = CalendarMemberRole.USER;
+            }
+        }
+
+        calendarMemberService.checkCalendarMemberAuthority(userId, calendarId, result);
+    }
+
+    @Transactional
+    @Override
+    public CalendarSettingDto updateSetting(HttpServletRequest request, CalendarSettingDto calendarSettingDto) {
+        String token = jwtTokenProvider.resolveToken(request, JwtTokenType.ACCESS.getValue());
+        long userId = jwtTokenProvider.getUserIdFromToken(token);
+
+        CalendarSettingEntity calendarSettingEntity = calendarSettingRepository.findByCalendarIdAndUserId(calendarSettingDto.getCalendarId(), userId).orElseThrow(
+                () -> new EntityNotFoundException("캘린더를 찾을 수 없습니다.")
+        );
+
+        if (calendarSettingDto.getTitle() != null) {
+            calendarMemberService.checkCalendarMemberAuthority(userId, calendarSettingDto.getCalendarId(), CalendarMemberRole.ADMIN);
+            calendarSettingEntity.getCalendar().setTitle(calendarSettingDto.getTitle());
+        }
+
+        if (calendarSettingDto.getColor() != null) {
+            calendarSettingEntity.setColor(calendarSettingDto.getColor());
+        }
+
+        if (calendarSettingDto.getChecked() != null) {
+            calendarSettingEntity.setChecked(calendarSettingDto.getChecked());
+        }
+
+        return CalendarSettingDto.builder()
+                .calendarId(calendarSettingEntity.getCalendar().getId())
+                .title(calendarSettingEntity.getCalendar().getTitle())
+                .color(calendarSettingEntity.getColor())
+                .category(calendarSettingEntity.getCalendar().getCategory())
+                .checked(calendarSettingEntity.getChecked())
+                .build();
     }
 }

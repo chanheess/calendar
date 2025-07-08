@@ -5,10 +5,10 @@ import com.chpark.chcalendar.dto.calendar.CalendarSettingDto;
 import com.chpark.chcalendar.entity.calendar.CalendarSettingEntity;
 import com.chpark.chcalendar.enumClass.CRUDAction;
 import com.chpark.chcalendar.enumClass.JwtTokenType;
+import com.chpark.chcalendar.exception.authorization.CalendarAuthorizationException;
 import com.chpark.chcalendar.repository.calendar.CalendarRepository;
 import com.chpark.chcalendar.repository.calendar.CalendarSettingRepository;
 import com.chpark.chcalendar.security.JwtTokenProvider;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,12 +20,12 @@ public abstract class CalendarService {
 
     protected final CalendarRepository calendarRepository;
     protected final CalendarSettingRepository calendarSettingRepository;
-    private final JwtTokenProvider jwtTokenProvider;
+    protected final JwtTokenProvider jwtTokenProvider;
 
     public abstract CalendarDto.Response create(long userId, String title);
     public abstract List<CalendarDto.Response> findCalendarList(long userId);
     public abstract List<Long> findCalendarIdList(long userId);
-    public abstract void checkAuthority(CRUDAction action, long userId, long calendarId);
+    public abstract void checkAuthority(CRUDAction action, long userId, long createdUserId, long calendarId);
 
     @Transactional
     public CalendarSettingDto updateSetting(HttpServletRequest request, CalendarSettingDto calendarSettingDto) {
@@ -33,7 +33,7 @@ public abstract class CalendarService {
         long userId = jwtTokenProvider.getUserIdFromToken(token);
 
         CalendarSettingEntity calendarSettingEntity = calendarSettingRepository.findByCalendarIdAndUserId(calendarSettingDto.getCalendarId(), userId).orElseThrow(
-                () -> new EntityNotFoundException("캘린더를 찾을 수 없습니다.")
+                () -> new CalendarAuthorizationException("캘린더를 찾을 수 없습니다.")
         );
 
         if (calendarSettingDto.getTitle() != null) {

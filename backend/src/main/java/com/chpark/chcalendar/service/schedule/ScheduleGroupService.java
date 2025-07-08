@@ -5,9 +5,11 @@ import com.chpark.chcalendar.dto.schedule.ScheduleDto;
 import com.chpark.chcalendar.dto.schedule.ScheduleGroupDto;
 import com.chpark.chcalendar.entity.schedule.ScheduleEntity;
 import com.chpark.chcalendar.entity.schedule.ScheduleGroupEntity;
+import com.chpark.chcalendar.enumClass.CRUDAction;
 import com.chpark.chcalendar.enumClass.FileAuthority;
 import com.chpark.chcalendar.enumClass.NotificationCategory;
 import com.chpark.chcalendar.exception.ScheduleException;
+import com.chpark.chcalendar.exception.authorization.CalendarAuthorizationException;
 import com.chpark.chcalendar.repository.schedule.ScheduleGroupRepository;
 import com.chpark.chcalendar.repository.schedule.ScheduleRepeatRepository;
 import com.chpark.chcalendar.repository.schedule.ScheduleRepository;
@@ -34,10 +36,12 @@ public class ScheduleGroupService {
     private final NotificationScheduleService notificationScheduleService;
 
     @Transactional
-    public List<ScheduleGroupDto> createScheduleGroup(ScheduleDto scheduleDto, List<ScheduleGroupDto> scheduleGroupList) {
+    public List<ScheduleGroupDto> createScheduleGroup(long userId, ScheduleDto scheduleDto, List<ScheduleGroupDto> scheduleGroupList) {
         if (scheduleGroupList.isEmpty()) {
             return new ArrayList<>();
         }
+
+        checkScheduleGroupAuth(CRUDAction.CREATE, userId, scheduleDto.getUserId(), null);
 
         List<ScheduleGroupEntity> scheduleGroupEntityList = ScheduleGroupEntity
                 .fromScheduleGroupDtoList(scheduleDto.getId(), scheduleGroupList);
@@ -83,7 +87,13 @@ public class ScheduleGroupService {
         Optional<ScheduleGroupEntity> targetUserInfo = scheduleGroupRepository.findByScheduleIdAndUserId(scheduleDto.getId(), userId);
 
         if (userId != scheduleDto.getUserId() && targetUserInfo.isEmpty()) {
-            return createScheduleGroup(scheduleDto, requestNewGroupList);
+            return createScheduleGroup(userId, scheduleDto, requestNewGroupList);
+        }
+
+        try {
+            checkScheduleGroupAuth(CRUDAction.UPDATE, userId, scheduleDto.getUserId(), scheduleDto.getId());
+        } catch (EntityNotFoundException ex) {
+            return new ArrayList<>();
         }
 
         if (userId == scheduleDto.getUserId() ||
@@ -137,34 +147,43 @@ public class ScheduleGroupService {
         return new ScheduleGroupDto(scheduleGroupEntity);
     }
 
-    @Transactional
-    public void updateScheduleId(long scheduleId, long newScheduleId) {
-        List<ScheduleGroupEntity> scheduleGroupList = scheduleGroupRepository.findByScheduleId(scheduleId);
-
-        scheduleGroupList.forEach(group -> {
-            group.setScheduleId(newScheduleId);
-            scheduleGroupRepository.save(group);
-        });
-    }
-
     //그룹 일정인지 판별이 우선, 그룹 일정이라면 권한 확인
     @Transactional
-    public void checkScheduleGroupAuth(long userId, long createdUserId, Long scheduleId) {
-        if (scheduleId == null ||
-            scheduleGroupRepository.findByScheduleId(scheduleId).isEmpty() ||
-            createdUserId == userId) {
+    public void checkScheduleGroupAuth(CRUDAction action, long userId, long createdUserId, Long scheduleId) throws EntityNotFoundException {
+        if (scheduleId == null || action.equals(CRUDAction.CREATE)) {
+            if (userId != createdUserId) {
+                throw new CalendarAuthorizationException("그룹 일정 생성 권한이 없습니다.");
+            }
+
             return;
         }
 
-        Optional<ScheduleGroupEntity> scheduleGroupEntity = scheduleGroupRepository.findByScheduleIdAndUserId(scheduleId, userId);
+        ScheduleGroupEntity scheduleGroupEntity = scheduleGroupRepository.findByScheduleIdAndUserId(scheduleId, userId).orElseThrow(
+            () -> new EntityNotFoundException("그룹 일정이 존재하지 않습니다.")
+        );
 
-        if (scheduleGroupEntity.isEmpty() || scheduleGroupEntity.get().getAuthority() == FileAuthority.READ) {
-            throw new ScheduleException("You do not have permission to access the schedule.");
+        switch (action) {
+            case UPDATE -> {
+                if (scheduleGroupEntity.getAuthority().ordinal() > FileAuthority.WRITE.ordinal()) {
+                    throw new CalendarAuthorizationException("그룹 일정 수정 권한이 없습니다.");
+                }
+            }
+            case DELETE -> {
+                if (scheduleGroupEntity.getAuthority().ordinal() > FileAuthority.ADMIN.ordinal()) {
+                    throw new CalendarAuthorizationException("그룹 일정 삭제 권한이 없습니다.");
+                }
+            }
         }
     }
 
     @Transactional
-    public void deleteScheduleGroup(long scheduleId) {
+    public void deleteScheduleGroup(long userId, long createdUserId, long scheduleId) {
+        try {
+            checkScheduleGroupAuth(CRUDAction.DELETE, userId, createdUserId, scheduleId);
+        } catch (EntityNotFoundException e) {
+            return;
+        }
+
         scheduleGroupRepository.deleteByScheduleId(scheduleId);
         deleteScheduleNotification(scheduleId);
     }
@@ -177,15 +196,6 @@ public class ScheduleGroupService {
     @Transactional
     public long getScheduleGroupUserCount(long scheduleId) {
         return scheduleGroupRepository.countByScheduleId(scheduleId);
-    }
-
-    @Transactional
-    public FileAuthority getScheduleFileAuthority(long scheduleId, long userId) {
-        ScheduleGroupEntity scheduleGroupEntity = scheduleGroupRepository.findByScheduleIdAndUserId(scheduleId, userId).orElseThrow(
-                () -> new EntityNotFoundException("존재하지 않는 유저입니다.")
-        );
-
-        return scheduleGroupEntity.getAuthority();
     }
 
     //소유권을 넘기는 행위만 담긴 함수를 만드는게 좋아보인다.

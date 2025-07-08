@@ -62,7 +62,7 @@ public class CalendarMemberService {
     public CalendarMemberEntity checkCalendarMemberAuthority(long userId, long calendarId, CalendarMemberRole role) {
         CalendarMemberEntity result = this.getCalendarMember(userId, calendarId);
 
-        if (result.getRole().compareTo(role) >= 0) {
+        if (result.getRole().ordinal() > role.ordinal()) {
             throw new GroupAuthorizationException("캘린더에 대한 권한이 없습니다.");
         }
 
@@ -91,5 +91,4 @@ public class CalendarMemberService {
     public List<Long> getUserList(long calendarId) {
         return calendarMemberRepository.findUserIdByCalendarId(calendarId);
     }
-
 }

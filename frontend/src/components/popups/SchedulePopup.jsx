@@ -64,7 +64,7 @@ import {
     mode === "edit" && (currentUserPermission === "ADMIN" || scheduleData.userId === currentUserId);
   // 편집모드에서 READ/WRITE 권한이면 readOnly 처리
   const isReadOnly =
-    (selectedCalendarList[scheduleData.calendarId]?.fileAuthority === "READ") ||
+    (selectedCalendarList[scheduleData.calendarId]?.calendarMemberRole === "READ") ||
     (mode === "edit" && currentUserPermission !== "ADMIN" && scheduleData.userId !== currentUserId);
 
   // 일정 데이터 로드
@@ -278,6 +278,7 @@ import {
           : [],
         repeatDto: isRepeatEnabled ? formatRepeatDetails(scheduleData.repeatDetails) : null,
         groupDto: groupDto,
+        calendarCategory: selectedCalendarList[scheduleData.calendarId]?.category || null,
       };
     };
 
@@ -361,7 +362,7 @@ import {
         }
       }
     } catch (error) {
-      alert("Failed to delete schedule.");
+      alert(error.response.data.message || "Failed to delete schedule.");
     }
   };
 

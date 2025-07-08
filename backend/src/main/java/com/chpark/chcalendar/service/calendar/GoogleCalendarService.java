@@ -7,6 +7,8 @@ import com.chpark.chcalendar.entity.calendar.CalendarProviderEntity;
 import com.chpark.chcalendar.enumClass.CRUDAction;
 import com.chpark.chcalendar.enumClass.CalendarCategory;
 import com.chpark.chcalendar.enumClass.JwtTokenType;
+import com.chpark.chcalendar.exception.CustomException;
+import com.chpark.chcalendar.exception.authentication.TokenAuthenticationException;
 import com.chpark.chcalendar.exception.authorization.CalendarAuthorizationException;
 import com.chpark.chcalendar.repository.calendar.CalendarProviderRepository;
 import com.chpark.chcalendar.repository.calendar.CalendarQueryRepository;
@@ -21,10 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClient;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 @Service
 public class GoogleCalendarService extends CalendarService {
@@ -56,17 +55,17 @@ public class GoogleCalendarService extends CalendarService {
     }
 
     @Override
-    public void checkAuthority(CRUDAction action, long userId, long calendarId) {
+    public void checkAuthority(CRUDAction action, long userId, long createdUserId, long calendarId) {
         CalendarEntity calendarEntity = calendarRepository.findByIdAndUserId(calendarId, userId).orElseThrow(
-                () -> new EntityNotFoundException("접근 권한이 없습니다.")
+                () -> new CalendarAuthorizationException("캘린더에 대한 권한이 없습니다.")
         );
 
         if (calendarEntity.getCalendarProvider() == null) {
-            throw new EntityNotFoundException("접근 권한이 없습니다.");
+            throw new CalendarAuthorizationException("캘린더에 대한 권한이 없습니다.");
         }
 
-        if (Objects.equals(calendarEntity.getCalendarProvider().getStatus(), "reader") && !action.equals(CRUDAction.READ)) {
-            throw new CalendarAuthorizationException("읽기 권한만 있습니다. (수정/삭제/생성 불가)");
+        if (!Objects.equals(calendarEntity.getCalendarProvider().getStatus(), "reader") || action.equals(CRUDAction.READ)) {
+            throw new CalendarAuthorizationException("읽기만 가능한 캘린더입니다.");
         }
     }
 
@@ -88,7 +87,7 @@ public class GoogleCalendarService extends CalendarService {
     @Transactional
     public void updateGoogleCalendarTitle(String googleAccessToken, CalendarSettingDto calendarSettingDto) {
         if (googleAccessToken == null || googleAccessToken.trim().isEmpty()) {
-            throw new IllegalArgumentException("Google Access Token이 필요합니다.");
+            throw new TokenAuthenticationException("Google Access Token이 필요합니다.");
         }
 
         CalendarProviderEntity calendarProviderEntity = calendarProviderRepository.findByCalendarId(calendarSettingDto.getCalendarId())
