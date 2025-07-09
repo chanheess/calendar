@@ -187,13 +187,13 @@ public class ScheduleController {
             case CURRENT -> {
                 scheduleService.deleteCurrentOnlyRepeatSchedule(scheduleId);
                 //repeat를 지워주기 위한 update
-                scheduleService.update(scheduleId, new ScheduleDto(), true, userId, calendar.getCategory());
+                scheduleService.update(scheduleId, new ScheduleDto(), true);
                 scheduleService.deleteById(scheduleId, calendarId, userId);
             }
             case FUTURE -> {
                 scheduleService.deleteFutureRepeatSchedules(scheduleId, userId);
                 //repeat를 지워주기 위한 update
-                scheduleService.update(scheduleId, new ScheduleDto(), true, userId, calendar.getCategory());
+                scheduleService.update(scheduleId, new ScheduleDto(), true);
                 scheduleService.deleteById(scheduleId, calendarId, userId);
             }
         }

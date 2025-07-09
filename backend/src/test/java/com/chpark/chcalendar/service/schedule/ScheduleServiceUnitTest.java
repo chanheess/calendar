@@ -6,11 +6,13 @@ import com.chpark.chcalendar.dto.schedule.ScheduleNotificationDto;
 import com.chpark.chcalendar.dto.schedule.ScheduleRepeatDto;
 import com.chpark.chcalendar.entity.UserEntity;
 import com.chpark.chcalendar.entity.schedule.ScheduleEntity;
+import com.chpark.chcalendar.enumClass.CalendarCategory;
 import com.chpark.chcalendar.enumClass.ScheduleRepeatType;
 import com.chpark.chcalendar.repository.schedule.ScheduleNotificationRepository;
 import com.chpark.chcalendar.repository.schedule.ScheduleRepeatRepository;
 import com.chpark.chcalendar.repository.schedule.ScheduleRepository;
 import com.chpark.chcalendar.service.calendar.CalendarMemberService;
+import com.chpark.chcalendar.service.calendar.CalendarService;
 import com.chpark.chcalendar.service.calendar.UserCalendarService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -20,12 +22,10 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
@@ -61,6 +61,7 @@ class ScheduleServiceUnitTest {
 
     @InjectMocks
     private ScheduleService scheduleService;
+
 
     private UserEntity mockUser;
     private ScheduleEntity mockSchedule;
@@ -104,6 +105,10 @@ class ScheduleServiceUnitTest {
         mockRequestDto.setNotificationDto(Set.of(notificationDto));
         mockRequestDto.setRepeatDto(repeatDto);
         mockRequestDto.setGroupDto(scheduleGroupDto);
+
+        Map<CalendarCategory, CalendarService> map = new HashMap<>();
+        map.put(CalendarCategory.USER, userCalendarService);
+        ReflectionTestUtils.setField(scheduleService, "calendarServiceMap", map);
     }
 
     @Test
@@ -142,7 +147,7 @@ class ScheduleServiceUnitTest {
         when(scheduleRepository.save(any(ScheduleEntity.class)))
                 .thenAnswer(invocation -> invocation.<ScheduleEntity>getArgument(0));
 
-        ScheduleDto updatedSchedule = scheduleService.update(mockSchedule.getId(), scheduleDto, mockUser.getId());
+        ScheduleDto updatedSchedule = scheduleService.update(mockSchedule.getId(), scheduleDto);
 
         assertEquals("Updated Schedule", updatedSchedule.getTitle());
     }
