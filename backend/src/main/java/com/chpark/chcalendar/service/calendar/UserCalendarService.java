@@ -4,11 +4,11 @@ import com.chpark.chcalendar.dto.calendar.CalendarDto;
 import com.chpark.chcalendar.entity.calendar.CalendarEntity;
 import com.chpark.chcalendar.enumClass.CRUDAction;
 import com.chpark.chcalendar.enumClass.CalendarCategory;
+import com.chpark.chcalendar.exception.authorization.CalendarAuthorizationException;
 import com.chpark.chcalendar.repository.calendar.CalendarQueryRepository;
 import com.chpark.chcalendar.repository.calendar.CalendarRepository;
 import com.chpark.chcalendar.repository.calendar.CalendarSettingRepository;
 import com.chpark.chcalendar.security.JwtTokenProvider;
-import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -56,9 +56,9 @@ public class UserCalendarService extends CalendarService {
     }
 
     @Override
-    public void checkAuthority(CRUDAction action, long userId, long calendarId) {
+    public void checkAuthority(CRUDAction action, long userId, long createdUserId, long calendarId) {
         calendarRepository.findByIdAndUserId(calendarId, userId).orElseThrow(
-                () -> new EntityNotFoundException("You do not have permission.")
+                () -> new CalendarAuthorizationException("캘린더에 대한 권한이 없습니다.")
         );
     }
 }

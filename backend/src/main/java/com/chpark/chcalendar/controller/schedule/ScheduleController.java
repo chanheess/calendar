@@ -3,12 +3,15 @@ package com.chpark.chcalendar.controller.schedule;
 import com.chpark.chcalendar.dto.CursorPage;
 import com.chpark.chcalendar.dto.schedule.ScheduleDto;
 import com.chpark.chcalendar.dto.schedule.ScheduleTargetActionDto;
+import com.chpark.chcalendar.entity.calendar.CalendarEntity;
 import com.chpark.chcalendar.enumClass.JwtTokenType;
 import com.chpark.chcalendar.enumClass.ScheduleRepeatScope;
 import com.chpark.chcalendar.exception.ValidGroup;
+import com.chpark.chcalendar.repository.calendar.CalendarRepository;
 import com.chpark.chcalendar.security.JwtTokenProvider;
 import com.chpark.chcalendar.service.schedule.ScheduleService;
 import com.chpark.chcalendar.service.schedule.ScheduleTargetDispatcher;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,6 +35,7 @@ public class ScheduleController {
 
     private final JwtTokenProvider jwtTokenProvider;
     private final ScheduleService scheduleService;
+    private final CalendarRepository calendarRepository;
     private final ScheduleTargetDispatcher scheduleTargetDispatcher;
 
     @GetMapping
@@ -111,7 +115,6 @@ public class ScheduleController {
                                                                HttpServletRequest request) {
         String token = jwtTokenProvider.resolveToken(request, JwtTokenType.ACCESS.getValue());
         long userId = jwtTokenProvider.getUserIdFromToken(token);
-
         ScheduleTargetActionDto scheduleTargetActionDto = scheduleTargetDispatcher.getTargetUpdateAction(scheduleDto, request);
         ScheduleDto.Response response = scheduleService.updateSchedule(id, isRepeatChecked, scheduleDto, userId);
 
@@ -174,18 +177,22 @@ public class ScheduleController {
         String token = jwtTokenProvider.resolveToken(request, JwtTokenType.ACCESS.getValue());
         long userId = jwtTokenProvider.getUserIdFromToken(token);
 
+        CalendarEntity calendar = calendarRepository.findById(calendarId).orElseThrow(
+                () -> new EntityNotFoundException("캘린더가 존재하지 않습니다.")
+        );
+
         //삭제할 범위
         switch (scheduleRepeatScope){
             case CURRENT -> {
                 scheduleService.deleteCurrentOnlyRepeatSchedule(scheduleId);
                 //repeat를 지워주기 위한 update
-                scheduleService.update(scheduleId, new ScheduleDto(), true, userId);
+                scheduleService.update(scheduleId, new ScheduleDto(), true);
                 scheduleService.deleteById(scheduleId, calendarId, userId);
             }
             case FUTURE -> {
                 scheduleService.deleteFutureRepeatSchedules(scheduleId, userId);
                 //repeat를 지워주기 위한 update
-                scheduleService.update(scheduleId, new ScheduleDto(), true, userId);
+                scheduleService.update(scheduleId, new ScheduleDto(), true);
                 scheduleService.deleteById(scheduleId, calendarId, userId);
             }
         }

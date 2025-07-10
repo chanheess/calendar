@@ -1,12 +1,6 @@
 package com.chpark.chcalendar.utility;
 
-import com.chpark.chcalendar.enumClass.CRUDAction;
-import com.chpark.chcalendar.exception.ScheduleException;
-import com.chpark.chcalendar.exception.authorization.CalendarAuthorizationException;
-import com.chpark.chcalendar.exception.authorization.GroupAuthorizationException;
 import com.chpark.chcalendar.service.calendar.CalendarService;
-import com.chpark.chcalendar.service.schedule.ScheduleGroupService;
-import jakarta.persistence.EntityNotFoundException;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -31,28 +25,6 @@ public class CalendarUtility {
         );
 
         return result;
-    }
-
-    public static void checkCalendarAuthority(CRUDAction action, long userId, long createdUserId, long calendarId, Long scheduleId, List<CalendarService> calendarServiceList, ScheduleGroupService scheduleGroupService) {
-        int checkCount = 0;
-
-        for (CalendarService calendarService : calendarServiceList) {
-            try {
-                calendarService.checkAuthority(action, userId, calendarId);
-            } catch (GroupAuthorizationException | EntityNotFoundException ex) {
-                checkCount++;
-            }
-        }
-
-        try {
-            scheduleGroupService.checkScheduleGroupAuth(userId, createdUserId, scheduleId);
-        } catch (ScheduleException ex) {
-            checkCount++;
-        }
-
-        if (checkCount == calendarServiceList.size() + 1) {
-            throw new CalendarAuthorizationException("You do not have permission.");
-        }
     }
 
     public static List<Long> getAuthorizedCalendars(long userId, List<Long> calendarIdList, List<CalendarService> calendarServiceList) {
