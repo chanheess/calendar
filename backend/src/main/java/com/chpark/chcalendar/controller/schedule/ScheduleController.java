@@ -115,7 +115,6 @@ public class ScheduleController {
                                                                HttpServletRequest request) {
         String token = jwtTokenProvider.resolveToken(request, JwtTokenType.ACCESS.getValue());
         long userId = jwtTokenProvider.getUserIdFromToken(token);
-
         ScheduleTargetActionDto scheduleTargetActionDto = scheduleTargetDispatcher.getTargetUpdateAction(scheduleDto, request);
         ScheduleDto.Response response = scheduleService.updateSchedule(id, isRepeatChecked, scheduleDto, userId);
 

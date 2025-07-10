@@ -369,7 +369,14 @@ public class ScheduleService {
                     }
                 } else {
                     if (hasGroup) {
-                        scheduleGroupService.checkScheduleGroupAuth(CRUDAction.UPDATE, userId, createdUserId, scheduleId);
+                        ScheduleEntity scheduleEntity = scheduleRepository.findById(scheduleId).orElseThrow(
+                                () -> new EntityNotFoundException("존재하지 않는 일정입니다.")
+                        );
+
+                        if (scheduleDto.getCalendarId() != scheduleEntity.getCalendarId()) {
+                            throw new ScheduleException("그룹 일정에서는 캘린더를 변경할 수 없습니다.");
+                        }
+                        scheduleGroupService.checkScheduleGroupAuth(CRUDAction.UPDATE, userId, createdUserId, scheduleId, scheduleGroupDto);
                     } else {
                         scheduleGroupService.checkScheduleGroupAuth(CRUDAction.CREATE, userId, createdUserId, scheduleId);
                     }

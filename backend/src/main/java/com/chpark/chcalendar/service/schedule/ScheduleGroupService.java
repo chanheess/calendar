@@ -18,10 +18,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -68,11 +65,7 @@ public class ScheduleGroupService {
         List<ScheduleGroupEntity> scheduleGroupEntityList = scheduleGroupRepository.findByScheduleId(scheduleId);
         List<ScheduleGroupDto> result;
 
-        if (scheduleEntity.getUserId() == userId || scheduleGroupEntity.get().getAuthority() == FileAuthority.ADMIN) {
-            result = ScheduleGroupDto.fromScheduleGroupEntityList(scheduleGroupEntityList);
-        } else {
-            result = ScheduleGroupDto.fromUnauthorizedUserEntityList(scheduleGroupEntityList);
-        }
+        result = ScheduleGroupDto.fromScheduleGroupEntityList(scheduleGroupEntityList);
 
         return result;
     }
@@ -129,9 +122,14 @@ public class ScheduleGroupService {
         return new ScheduleGroupDto(scheduleGroupEntity);
     }
 
-    //그룹 일정인지 판별이 우선, 그룹 일정이라면 권한 확인
     @Transactional
     public void checkScheduleGroupAuth(CRUDAction action, long userId, long createdUserId, Long scheduleId) {
+        checkScheduleGroupAuth(action, userId, createdUserId, scheduleId, null);
+    }
+
+    //그룹 일정인지 판별이 우선, 그룹 일정이라면 권한 확인
+    @Transactional
+    public void checkScheduleGroupAuth(CRUDAction action, long userId, long createdUserId, Long scheduleId, Set<ScheduleGroupDto> scheduleGroupDto) {
         switch (action) {
             case CREATE -> {
                 if (userId != createdUserId) {
@@ -148,7 +146,11 @@ public class ScheduleGroupService {
                         () -> new EntityNotFoundException("그룹 일정이 존재하지 않습니다.")
                 );
 
-                if (scheduleGroupEntity.getAuthority().ordinal() > FileAuthority.ADMIN.ordinal()) {
+                FileAuthority fileAuthority = isScheduleGroupChanged(scheduleId, scheduleGroupDto)
+                        ? FileAuthority.ADMIN
+                        : FileAuthority.WRITE;
+
+                if (scheduleGroupEntity.getAuthority().ordinal() > fileAuthority.ordinal()) {
                     throw new CalendarAuthorizationException("그룹 일정 수정 권한이 없습니다.");
                 }
             }
@@ -178,6 +180,35 @@ public class ScheduleGroupService {
     @Transactional
     public long getScheduleGroupUserCount(long scheduleId) {
         return scheduleGroupRepository.countByScheduleId(scheduleId);
+    }
+
+    public boolean isScheduleGroupChanged(long scheduleId, Set<ScheduleGroupDto> dtoSet) {
+        List<ScheduleGroupEntity> scheduleGroupList = scheduleGroupRepository.findByScheduleId(scheduleId);
+
+        //size check
+        if (scheduleGroupList.size() != dtoSet.size()) {
+            return true;
+        }
+
+        //check id
+        Map<Long, ScheduleGroupDto> dtoMap = dtoSet.stream()
+                .filter(dto -> dto.getId() != null)
+                .collect(Collectors.toMap(ScheduleGroupDto::getId, Function.identity()));
+
+        //dto changed check
+        for (ScheduleGroupEntity entity : scheduleGroupList) {
+            ScheduleGroupDto dto = dtoMap.get(entity.getId());
+            if (dto == null) {
+                return true;
+            }
+            // 권한, 상태 등 주요 필드 비교
+            if (!Objects.equals(entity.getAuthority(), dto.getAuthority()) ||
+                    !Objects.equals(entity.getStatus(), dto.getStatus())) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     //소유권을 넘기는 행위만 담긴 함수를 만드는게 좋아보인다.

@@ -64,7 +64,7 @@ public class GoogleCalendarService extends CalendarService {
             throw new CalendarAuthorizationException("캘린더에 대한 권한이 없습니다.");
         }
 
-        if (!Objects.equals(calendarEntity.getCalendarProvider().getStatus(), "reader") || action.equals(CRUDAction.READ)) {
+        if (Objects.equals(calendarEntity.getCalendarProvider().getStatus(), "reader")) {
             throw new CalendarAuthorizationException("읽기만 가능한 캘린더입니다.");
         }
     }
