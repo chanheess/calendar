@@ -28,4 +28,6 @@ public interface CalendarMemberRepository extends JpaRepository<CalendarMemberEn
             "WHERE c.calendar.id = :calendarId AND c.user.id <> :excludeUserId " +
             "ORDER BY c.role ASC")
     List<CalendarMemberEntity> findByNextOwner(@Param("calendarId") Long calendarId, @Param("excludeUserId") Long excludeUserId);
+
+    List<CalendarMemberEntity> findByUserId(Long userId);
 }

@@ -3,7 +3,13 @@ package com.chpark.chcalendar.service;
 import com.chpark.chcalendar.DotenvInitializer;
 import com.chpark.chcalendar.dto.user.UserDto;
 import com.chpark.chcalendar.entity.UserEntity;
+import com.chpark.chcalendar.entity.calendar.CalendarEntity;
+import com.chpark.chcalendar.enumClass.CalendarCategory;
+import com.chpark.chcalendar.enumClass.CalendarMemberRole;
+import com.chpark.chcalendar.repository.calendar.CalendarRepository;
 import com.chpark.chcalendar.repository.user.UserRepository;
+import com.chpark.chcalendar.service.calendar.CalendarMemberService;
+import com.chpark.chcalendar.service.calendar.GroupCalendarService;
 import com.chpark.chcalendar.service.user.UserService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
@@ -22,17 +28,27 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @ContextConfiguration(initializers = DotenvInitializer.class)
 public class UserServiceIntegrationTest {
 
+
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private CalendarRepository calendarRepository;
 
     @Autowired
     private UserService userService;
 
     @Autowired
-    PasswordEncoder passwordEncoder;
+    private GroupCalendarService groupCalendarService;
 
     @Autowired
-    EntityManager entityManager;
+    private CalendarMemberService calendarMemberService;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private EntityManager entityManager;
 
     UserEntity savedUser;
 
@@ -40,13 +56,26 @@ public class UserServiceIntegrationTest {
     @Transactional
     void setupUser() {
         //given
-        UserDto.RegisterRequest userDto = new UserDto.RegisterRequest("testing1@naver.com",
-                "testpassword123!", "testingKing", "1234", "local");
+        String email = "testing1@naver.com";
+        String password = "testpassword123!";
+        String nickname = "testingKing";
+        String emailCode = "1234";
+        String provider = "local";
 
-        savedUser = UserEntity.createWithEncodedPassword(userDto, passwordEncoder);
-        userRepository.save(savedUser);
+        savedUser = createUser(email, password, nickname, emailCode, provider);
+    }
 
-        assertThat(savedUser.getEmail()).isEqualTo("testing1@naver.com");
+    @Transactional
+    UserEntity createUser(String email, String password, String nickname, String emailCode, String provider) {
+        UserDto.RegisterRequest userDto = new UserDto.RegisterRequest(email,
+                password, nickname, emailCode, provider);
+
+        UserEntity result = UserEntity.createWithEncodedPassword(userDto, passwordEncoder);
+        userRepository.save(result);
+
+        assertThat(result.getEmail()).isEqualTo(email);
+
+        return result;
     }
 
     @Test
@@ -98,6 +127,38 @@ public class UserServiceIntegrationTest {
 
         //when & then
         assertThatThrownBy(() -> userService.updatePassword(nonExistentUserId, password))
+                .isInstanceOf(EntityNotFoundException.class)
+                .hasMessageContaining("사용자를 찾을 수 없습니다.");
+    }
+
+    @Test
+    @Transactional
+    void deleteAccount() {
+        // 유저 추가
+        String email = "testing2@naver.com";
+        String password = "testpassword123!";
+        String nickname = "testingKing2";
+        String emailCode = "1234";
+        String provider = "local";
+
+        UserEntity userEntity = createUser(email, password, nickname, emailCode, provider);
+
+        // 그룹 캘린더 추가
+        CalendarEntity calendarEntity2 = CalendarEntity.builder()
+                .title("testGroup")
+                .userId(userEntity.getId())
+                .category(CalendarCategory.GROUP)
+                .build();
+
+        calendarRepository.save(calendarEntity2);
+        calendarMemberService.create(calendarEntity2, calendarEntity2.getUserId(), CalendarMemberRole.ADMIN);
+        calendarMemberService.addUser(savedUser.getId(), calendarEntity2.getId());
+
+        // 회원 탈퇴
+        userService.deleteAccount(savedUser.getId());
+
+        // 검증
+        assertThatThrownBy(() -> userService.findUserInfo(savedUser.getId()))
                 .isInstanceOf(EntityNotFoundException.class)
                 .hasMessageContaining("사용자를 찾을 수 없습니다.");
     }

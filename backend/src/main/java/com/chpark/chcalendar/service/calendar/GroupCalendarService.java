@@ -71,19 +71,11 @@ public class GroupCalendarService extends CalendarService {
     public void deleteCalendar(long userId, long calendarId) {
         super.deleteCalendar(userId, calendarId);
 
-        Optional<CalendarEntity> calendarEntity = calendarRepository.findByIdAndUserId(calendarId, userId);
-
-        if (calendarEntity.isEmpty()) {
-            return;
-        }
-
-        long memberCount = calendarMemberService.getMemberCount(calendarId);
-
         calendarMemberService.removeGroupMembership(userId, calendarId);
         calendarSettingRepository.deleteByUserIdAndCalendarId(userId, calendarId);
 
-        if (memberCount == 0) {
-            calendarRepository.delete(calendarEntity.get());
+        if (calendarMemberService.getMemberCount(calendarId) == 0) {
+            calendarRepository.deleteById(calendarId);
         }
     }
 

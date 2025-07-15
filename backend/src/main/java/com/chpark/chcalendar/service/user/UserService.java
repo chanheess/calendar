@@ -2,13 +2,18 @@ package com.chpark.chcalendar.service.user;
 
 
 import com.chpark.chcalendar.dto.EmailDto;
+import com.chpark.chcalendar.dto.calendar.CalendarDto;
 import com.chpark.chcalendar.dto.security.JwtAuthenticationResponseDto;
 import com.chpark.chcalendar.dto.user.UserDto;
 import com.chpark.chcalendar.entity.UserEntity;
+import com.chpark.chcalendar.entity.calendar.CalendarSettingEntity;
 import com.chpark.chcalendar.enumClass.CalendarCategory;
 import com.chpark.chcalendar.enumClass.JwtTokenType;
 import com.chpark.chcalendar.enumClass.RequestType;
 import com.chpark.chcalendar.repository.FirebaseTokenRepository;
+import com.chpark.chcalendar.repository.calendar.CalendarMemberRepository;
+import com.chpark.chcalendar.repository.calendar.CalendarRepository;
+import com.chpark.chcalendar.repository.calendar.CalendarSettingRepository;
 import com.chpark.chcalendar.repository.user.UserProviderRepository;
 import com.chpark.chcalendar.repository.user.UserRepository;
 import com.chpark.chcalendar.security.JwtTokenProvider;
@@ -28,6 +33,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Map;
 
 @RequiredArgsConstructor
@@ -36,6 +42,10 @@ public class UserService {
     private final UserRepository userRepository;
     private final UserProviderRepository userProviderRepository;
     private final FirebaseTokenRepository firebaseTokenRepository;
+
+    private final CalendarSettingRepository calendarSettingRepository;
+    private final CalendarMemberRepository calendarMemberRepository;
+    private final CalendarRepository calendarRepository;
 
     private final Map<CalendarCategory, CalendarService> calendarServiceMap;
     private final PasswordEncoder passwordEncoder;
@@ -91,9 +101,6 @@ public class UserService {
             );
 
             redisService.deleteVerificationData(RequestType.LOGIN, ipAddress);
-
-            //추가해야 됨
-
 
             // JWT 토큰 생성 후 반환
             return new JwtAuthenticationResponseDto(

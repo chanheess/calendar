@@ -6,7 +6,6 @@ import com.chpark.chcalendar.entity.calendar.CalendarSettingEntity;
 import com.chpark.chcalendar.enumClass.CRUDAction;
 import com.chpark.chcalendar.enumClass.JwtTokenType;
 import com.chpark.chcalendar.event.schedule.ScheduleDeleteEvent;
-import com.chpark.chcalendar.event.schedule.google.GoogleScheduleDeleteEvent;
 import com.chpark.chcalendar.repository.calendar.CalendarRepository;
 import com.chpark.chcalendar.repository.calendar.CalendarSettingRepository;
 import com.chpark.chcalendar.security.JwtTokenProvider;

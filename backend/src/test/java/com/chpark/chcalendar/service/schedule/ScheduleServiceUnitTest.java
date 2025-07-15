@@ -6,11 +6,13 @@ import com.chpark.chcalendar.dto.schedule.ScheduleNotificationDto;
 import com.chpark.chcalendar.dto.schedule.ScheduleRepeatDto;
 import com.chpark.chcalendar.entity.UserEntity;
 import com.chpark.chcalendar.entity.schedule.ScheduleEntity;
+import com.chpark.chcalendar.enumClass.CalendarCategory;
 import com.chpark.chcalendar.enumClass.ScheduleRepeatType;
 import com.chpark.chcalendar.repository.schedule.ScheduleNotificationRepository;
 import com.chpark.chcalendar.repository.schedule.ScheduleRepeatRepository;
 import com.chpark.chcalendar.repository.schedule.ScheduleRepository;
 import com.chpark.chcalendar.service.calendar.CalendarMemberService;
+import com.chpark.chcalendar.service.calendar.CalendarService;
 import com.chpark.chcalendar.service.calendar.UserCalendarService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,10 +24,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
@@ -59,6 +58,9 @@ class ScheduleServiceUnitTest {
     @Mock
     private ScheduleGroupService scheduleGroupService;
 
+    @Mock
+    private Map<CalendarCategory, CalendarService> calendarServiceMap;
+
     @InjectMocks
     private ScheduleService scheduleService;
 
@@ -70,7 +72,7 @@ class ScheduleServiceUnitTest {
     void setup() {
         // 유저 및 일정 기본값 설정
         mockUser = UserEntity.builder()
-                .id(1)
+                .id(1L)
                 .email("test@example.com")
                 .build();
 

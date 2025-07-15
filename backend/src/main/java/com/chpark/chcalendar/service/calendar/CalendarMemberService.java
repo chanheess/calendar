@@ -115,7 +115,6 @@ public class CalendarMemberService {
                 break;
             }
         }
-
     }
 
     public boolean isCalendarOwner(CalendarMemberEntity calendarMemberEntity) {
