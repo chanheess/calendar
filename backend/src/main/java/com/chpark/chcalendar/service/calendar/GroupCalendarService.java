@@ -9,9 +9,11 @@ import com.chpark.chcalendar.repository.calendar.CalendarQueryRepository;
 import com.chpark.chcalendar.repository.calendar.CalendarRepository;
 import com.chpark.chcalendar.repository.calendar.CalendarSettingRepository;
 import com.chpark.chcalendar.security.JwtTokenProvider;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class GroupCalendarService extends CalendarService {
@@ -19,8 +21,8 @@ public class GroupCalendarService extends CalendarService {
     private final CalendarMemberService calendarMemberService;
     private final CalendarQueryRepository calendarQueryRepository;
 
-    public GroupCalendarService(CalendarRepository calendarRepository, CalendarSettingRepository calendarSettingRepository, JwtTokenProvider jwtTokenProvider, CalendarMemberService calendarMemberService, CalendarQueryRepository calendarQueryRepository) {
-        super(calendarRepository, calendarSettingRepository, jwtTokenProvider);
+    public GroupCalendarService(CalendarRepository calendarRepository, CalendarSettingRepository calendarSettingRepository, JwtTokenProvider jwtTokenProvider, ApplicationEventPublisher eventPublisher, CalendarMemberService calendarMemberService, CalendarQueryRepository calendarQueryRepository) {
+        super(calendarRepository, calendarSettingRepository, jwtTokenProvider, eventPublisher);
         this.calendarMemberService = calendarMemberService;
         this.calendarQueryRepository = calendarQueryRepository;
     }
@@ -64,4 +66,26 @@ public class GroupCalendarService extends CalendarService {
     public void checkAuthority(CRUDAction action, long userId, long calendarId) {
         calendarMemberService.checkCalendarMemberAuthority(userId, calendarId, CalendarMemberRole.USER);
     }
+
+    @Override
+    public void deleteCalendar(long userId, long calendarId) {
+        super.deleteCalendar(userId, calendarId);
+
+        Optional<CalendarEntity> calendarEntity = calendarRepository.findByIdAndUserId(calendarId, userId);
+
+        if (calendarEntity.isEmpty()) {
+            return;
+        }
+
+        long memberCount = calendarMemberService.getMemberCount(calendarId);
+
+        calendarMemberService.removeGroupMembership(userId, calendarId);
+        calendarSettingRepository.deleteByUserIdAndCalendarId(userId, calendarId);
+
+        if (memberCount == 0) {
+            calendarRepository.delete(calendarEntity.get());
+        }
+    }
+
+
 }

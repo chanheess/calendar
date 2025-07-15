@@ -14,12 +14,14 @@ public interface ScheduleGroupRepository extends JpaRepository<ScheduleGroupEnti
 
     List<ScheduleGroupEntity> findByScheduleId(long scheduleId);
 
+    List<ScheduleGroupEntity> findByUserId(long userId);
+
     void deleteByScheduleId(long scheduleId);
 
     long countByScheduleId(long scheduleId);
 
     @Query("SELECT s FROM ScheduleGroupEntity s " +
             "WHERE s.scheduleId = :scheduleId AND s.userId <> :excludeUserId " +
-            "ORDER BY s.authority ASC") // ASC: ordinal이 낮을수록 높은 권한
-    List<ScheduleGroupEntity> findByScheduleIdAndUserIdNotOrderByAuthorityAsc(long scheduleId, long excludeUserId);
+            "ORDER BY s.authority ASC")
+    List<ScheduleGroupEntity> findByNextOwner(long scheduleId, long excludeUserId);
 }

@@ -311,6 +311,52 @@
     min-width: 65px;
 }
 
+.confirmOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3000;
+}
+
+.confirmPopup {
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  max-width: 400px;
+  width: 100%;
+  padding: 24px 20px 18px 20px;
+  display: flex;
+  flex-direction: column;
+  z-index: 3001;
+}
+
+.confirmTitle {
+  margin-bottom: 16px;
+  font-weight: bold;
+  font-size: 16px;
+  color: #222;
+}
+
+.confirmGuide {
+  color: #868e96;
+  font-size: 13px;
+  margin-bottom: 8px;
+  line-height: 1.6;
+}
+
+.confirmFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 18px;
+}
+
 @media (max-width: 600px) {
   .popup {
     position: fixed;

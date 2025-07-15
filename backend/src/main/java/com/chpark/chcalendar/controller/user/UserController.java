@@ -151,6 +151,17 @@ public class UserController {
         return ResponseEntity.ok("비밀번호 변경이 완료되었습니다.");
     }
 
+    @DeleteMapping("/user")
+    public ResponseEntity<String> deleteAccount(HttpServletRequest request, HttpServletResponse response) {
+        String token = jwtTokenProvider.resolveToken(request, JwtTokenType.ACCESS.getValue());
+        long userId = jwtTokenProvider.getUserIdFromToken(token);
+
+        userService.deleteAccount(userId);
+        revokeTokens(request, response);
+
+        return ResponseEntity.ok("회원 탈퇴가 완료되었습니다.");
+    }
+
     private String getIpAddress(HttpServletRequest request) {
         String ipAddress = request.getHeader("X-Forwarded-For");
         if (ipAddress == null) {

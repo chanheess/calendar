@@ -10,4 +10,6 @@ import java.util.Optional;
 public interface CalendarProviderRepository extends JpaRepository<CalendarProviderEntity, Long> {
 
     Optional<CalendarProviderEntity> findByCalendarId(Long calendarId);
+
+    void deleteByCalendarId(long calendarId);
 }

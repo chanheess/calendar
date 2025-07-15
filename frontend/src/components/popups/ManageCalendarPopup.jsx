@@ -12,6 +12,8 @@ const ManageCalendarPopup = ({
 }) => {
   const [inviteUserName, setInviteUserName] = useState("");
   const [userList, setUserList] = useState([]);
+  const [confirmVisible, setConfirmVisible] = useState(false);
+  const [pendingDelete, setPendingDelete] = useState(false);
 
   const [color, setColor] = useState(calendarInfo.color || "#3788d8");
   const [title, setTitle] = useState(calendarInfo.title || "");
@@ -39,12 +41,54 @@ const ManageCalendarPopup = ({
 
   const loadUserList = async (groupId) => {
     try {
-      const response = await axios.get(`/groups/${groupId}/users`, {
+      const response = await axios.get(`/calendars/${groupId}/members`, {
         headers: { "Content-Type": "application/json" },
       });
       setUserList(response.data);
     } catch (error) {
       console.error("Error fetching user list:", error);
+    }
+  };
+
+  // 안내문구 렌더 함수
+  const renderDeleteGuide = () => {
+    if (calendarInfo.category === 'GOOGLE') {
+      return (
+        <div style={{ color: '#868e96', fontSize: '12px', marginBottom: '4px' }}>
+          1. 구글 캘린더에서 탈퇴해도 구글 계정 내 실제 캘린더와 일정은 삭제되지 않습니다.<br/>
+          2. 탈퇴 시 더 이상 이 캘린더 및 일정에 접근할 수 없습니다.
+        </div>
+      );
+    }
+    if (calendarInfo.category === 'GROUP' && userList.length >= 2) {
+      return (
+        <div style={{ color: '#868e96', fontSize: '12px', marginBottom: '4px' }}>
+          1. 그룹 캘린더에서 탈퇴하면 더 이상 이 캘린더 및 일정에 액세스할 수 없게 됩니다.<br/>
+          2. 캘린더에 액세스할 수 있는 다른 사용자는 계속 사용할 수 있습니다.<br/>
+          3. 관리자인 경우 권한이 다른 최고 권한자에게 이관됩니다.<br/>
+          4. 그룹 내 인원이 1명일 경우 캘린더는 삭제됩니다.
+        </div>
+      );
+    }
+    return (
+      <div style={{ color: '#868e96', fontSize: '12px', marginBottom: '4px' }}>
+        탈퇴 시 더 이상 이 캘린더 및 일정에 접근할 수 없습니다.
+      </div>
+    );
+  };
+
+  const deleteCalendar = async () => {
+    if (!calendarInfo.id) return;
+    setPendingDelete(true);
+    try {
+      await axios.delete(`/calendars/${calendarInfo.id}`, { withCredentials: true });
+      alert('캘린더에서 탈퇴되었습니다.');
+      window.location.reload();
+    } catch (error) {
+      alert(error.response?.data?.message || '탈퇴에 실패했습니다.');
+    } finally {
+      setPendingDelete(false);
+      setConfirmVisible(false);
     }
   };
 
@@ -200,6 +244,28 @@ const ManageCalendarPopup = ({
             </>
           )}
         </div>
+        <div style={{ textAlign: 'left', marginTop: '8px' }}>
+          <button
+            type="button"
+            onClick={() => setConfirmVisible(true)}
+            style={{ color: '#868e96', textDecoration: 'underline', fontSize: '13px', cursor: 'pointer', background: 'none', border: 'none', paddingLeft: 10 }}
+          >
+            캘린더 탈퇴
+          </button>
+        </div>
+        {/* 커스텀 confirm 모달 */}
+        {confirmVisible && (
+          <div className={styles.confirmOverlay}>
+            <div className={styles.confirmPopup}>
+              <div className={styles.confirmTitle}>정말로 이 캘린더에서 탈퇴하시겠습니까?</div>
+              <div className={styles.confirmGuide}>{renderDeleteGuide()}</div>
+              <div className={styles.confirmFooter}>
+                <Button variant="secondary" size="small" onClick={() => setConfirmVisible(false)} disabled={pendingDelete}>취소</Button>
+                <Button variant="logout" size="small" onClick={deleteCalendar} disabled={pendingDelete}>탈퇴</Button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

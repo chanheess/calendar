@@ -1,6 +1,8 @@
 package com.chpark.chcalendar.utility;
 
+import com.chpark.chcalendar.dto.calendar.CalendarDto;
 import com.chpark.chcalendar.enumClass.CRUDAction;
+import com.chpark.chcalendar.enumClass.CalendarCategory;
 import com.chpark.chcalendar.exception.ScheduleException;
 import com.chpark.chcalendar.exception.authorization.CalendarAuthorizationException;
 import com.chpark.chcalendar.exception.authorization.GroupAuthorizationException;
@@ -8,10 +10,7 @@ import com.chpark.chcalendar.service.calendar.CalendarService;
 import com.chpark.chcalendar.service.schedule.ScheduleGroupService;
 import jakarta.persistence.EntityNotFoundException;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class CalendarUtility {
 
@@ -21,6 +20,16 @@ public class CalendarUtility {
 
     public static List<Long> getUserCalendar(long userId, CalendarService calendarService) {
         return calendarService.findCalendarIdList(userId);
+    }
+
+    public static void deleteCalendarAccount(long userId, Map<CalendarCategory, CalendarService> calendarServiceMap) {
+        calendarServiceMap.forEach((category, calendar) -> {
+            List<CalendarDto.Response> calendarList = calendar.findCalendarList(userId);
+
+            calendarList.forEach(targetCalendar -> {
+                calendarServiceMap.get(targetCalendar.getCategory()).deleteCalendar(userId, targetCalendar.getId());
+            });
+        });
     }
 
     public static List<Long> getUserAllCalendar(long userId, List<CalendarService> calendarServiceList) {

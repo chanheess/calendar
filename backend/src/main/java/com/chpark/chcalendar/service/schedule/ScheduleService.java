@@ -22,11 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import java.util.*;
 
 
 @RequiredArgsConstructor
@@ -217,8 +213,8 @@ public class ScheduleService {
         );
 
         try {
-            scheduleNotificationRepository.deleteByScheduleId(scheduleId);
-            scheduleGroupService.deleteScheduleGroup(scheduleId);
+            scheduleNotificationService.deleteByScheduleId(scheduleId);
+            scheduleGroupService.deleteScheduleGroupAll(scheduleId);
             scheduleRepository.deleteById(scheduleId);
         } catch (EmptyResultDataAccessException e) {
             throw new EntityNotFoundException("Schedule not found with schedule-id: " + scheduleId);
@@ -268,7 +264,7 @@ public class ScheduleService {
         //반복 일정의 알림, 그룹 일정 삭제
         scheduleList.forEach( scheduleEntity -> {
             scheduleNotificationRepository.deleteByScheduleId(scheduleEntity.getId());
-            scheduleGroupService.deleteScheduleGroup(scheduleEntity.getId());
+            scheduleGroupService.deleteScheduleGroupAll(scheduleEntity.getId());
         });
 
         scheduleRepository.deleteAll(scheduleList);
@@ -349,6 +345,35 @@ public class ScheduleService {
         if(!scheduleDto.getStartAt().isBefore(scheduleDto.getEndAt())) {
             throw new IllegalArgumentException("시작 시간은 종료 시간보다 이전이어야 합니다.");
         }
+    }
+
+    @Transactional
+    public void deleteAccount(long userId, long calendarId) {
+        List<ScheduleEntity> scheduleList = scheduleRepository.findByUserIdAndCalendarId(userId, calendarId);
+
+        if (scheduleList.isEmpty()){
+            return;
+        }
+
+        Set<Long> repeatIdList = new HashSet<>();
+        List<ScheduleEntity> deleteTargetList = new ArrayList<>();
+
+        for (ScheduleEntity scheduleEntity : scheduleList) {
+            boolean isMemberShipChanged = scheduleGroupService.removeScheduleGroupMembership(scheduleEntity);
+
+            if (isMemberShipChanged) {
+                continue;
+            }
+
+            if (scheduleEntity.getRepeatId() != null) {
+                repeatIdList.add(scheduleEntity.getRepeatId());
+            }
+            deleteTargetList.add(scheduleEntity);
+            scheduleNotificationService.deleteScheduleList(scheduleEntity);
+        }
+
+        scheduleRepository.deleteAll(deleteTargetList);
+        repeatIdList.forEach(scheduleRepeatService::deleteRepeat);
     }
 
 }

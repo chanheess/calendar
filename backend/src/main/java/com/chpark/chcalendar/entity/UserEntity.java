@@ -21,7 +21,7 @@ import java.util.Set;
 public class UserEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long id;
 
     @Column(name = "email")
     private String email;
@@ -32,8 +32,7 @@ public class UserEntity {
     @Column(name = "nickname")
     private String nickname;
 
-    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    @JoinColumn(name = "user_id")
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private Set<UserProviderEntity> providers = new HashSet<>();
 

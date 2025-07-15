@@ -9,7 +9,6 @@ import com.chpark.chcalendar.enumClass.FileAuthority;
 import com.chpark.chcalendar.enumClass.NotificationCategory;
 import com.chpark.chcalendar.exception.ScheduleException;
 import com.chpark.chcalendar.repository.schedule.ScheduleGroupRepository;
-import com.chpark.chcalendar.repository.schedule.ScheduleRepeatRepository;
 import com.chpark.chcalendar.repository.schedule.ScheduleRepository;
 import com.chpark.chcalendar.service.notification.NotificationScheduleService;
 import jakarta.persistence.EntityNotFoundException;
@@ -30,7 +29,6 @@ public class ScheduleGroupService {
 
     private final ScheduleGroupRepository scheduleGroupRepository;
     private final ScheduleRepository scheduleRepository;
-    private final ScheduleRepeatRepository scheduleRepeatRepository;
     private final NotificationScheduleService notificationScheduleService;
 
     @Transactional
@@ -103,8 +101,7 @@ public class ScheduleGroupService {
                     entity.setStatus(dto.getStatus());
                     scheduleGroupRepository.save(entity);
                 } else {
-                    notificationScheduleService.deleteScheduleNotification(userId, scheduleDto.getId());
-                    scheduleGroupRepository.delete(entity);
+                    deleteScheduleGroupMember(entity);
                 }
             }
 
@@ -164,19 +161,20 @@ public class ScheduleGroupService {
     }
 
     @Transactional
-    public void deleteScheduleGroup(long scheduleId) {
+    public void deleteScheduleGroupAll(long scheduleId) {
         scheduleGroupRepository.deleteByScheduleId(scheduleId);
-        deleteScheduleNotification(scheduleId);
+        deleteScheduleNotifications(scheduleId);
     }
 
     @Transactional
-    public void deleteScheduleNotification(long scheduleId) {
+    public void deleteScheduleNotifications(long scheduleId) {
         notificationScheduleService.deleteScheduleNotifications(scheduleId);
     }
 
     @Transactional
-    public long getScheduleGroupUserCount(long scheduleId) {
-        return scheduleGroupRepository.countByScheduleId(scheduleId);
+    public void deleteScheduleGroupMember(ScheduleGroupEntity scheduleGroupEntity) {
+        notificationScheduleService.deleteScheduleNotification(scheduleGroupEntity.getUserId(), scheduleGroupEntity.getScheduleId());
+        scheduleGroupRepository.delete(scheduleGroupEntity);
     }
 
     @Transactional
@@ -188,24 +186,18 @@ public class ScheduleGroupService {
         return scheduleGroupEntity.getAuthority();
     }
 
-    //소유권을 넘기는 행위만 담긴 함수를 만드는게 좋아보인다.
     @Transactional
-    public boolean scheduleOwnershipTransfer(ScheduleGroupEntity currentOwner) {
+    public void scheduleOwnershipTransfer(ScheduleGroupEntity currentOwner) {
+        List<ScheduleGroupEntity> scheduleGroupEntityList = scheduleGroupRepository.findByNextOwner(currentOwner.getScheduleId(), currentOwner.getUserId());
 
-
-        List<ScheduleGroupEntity> scheduleGroupEntityList = scheduleGroupRepository.findByScheduleIdAndUserIdNotOrderByAuthorityAsc(currentOwner.getScheduleId(), currentOwner.getUserId());
-
-        if (scheduleGroupEntityList.isEmpty()) {
-            return false;
+        if (scheduleGroupEntityList.isEmpty() || !isScheduleOwner(currentOwner)) {
+            return;
         }
 
         for (ScheduleGroupEntity scheduleMember : scheduleGroupEntityList) {
-            scheduleMember.setAuthority(FileAuthority.ADMIN);
-            currentOwner.setAuthority(FileAuthority.READ);
+            scheduleMember.setAuthority(currentOwner.getAuthority());
             break;
         }
-
-        return true;
     }
 
     public boolean isScheduleOwner(ScheduleGroupEntity currentOwner) {
@@ -213,13 +205,37 @@ public class ScheduleGroupService {
             return false;
         }
 
-        Optional<ScheduleEntity> scheduleEntity = scheduleRepository.findByIdAndUserId(currentOwner.getId(), currentOwner.getUserId());
+        return FileAuthority.ADMIN.equals(currentOwner.getAuthority());
+    }
 
-        if (scheduleEntity.isEmpty()) {
-            return FileAuthority.ADMIN.equals(currentOwner.getAuthority());
+    @Transactional
+    public long getScheduleGroupUserCount(long scheduleId) {
+        return scheduleGroupRepository.countByScheduleId(scheduleId);
+    }
+
+    @Transactional
+    public boolean removeScheduleGroupMembership(ScheduleEntity scheduleEntity) {
+        Optional<ScheduleGroupEntity> groupUser = scheduleGroupRepository.findByScheduleIdAndUserId(scheduleEntity.getId(), scheduleEntity.getUserId());
+
+        if (groupUser.isEmpty()) {
+            return false;
         }
 
-        return FileAuthority.ADMIN.equals(currentOwner.getAuthority()) || scheduleEntity.get().getId() == currentOwner.getUserId();
+        ScheduleGroupEntity user = groupUser.get();
+
+        if (isScheduleOwner(user)) {
+            if (getScheduleGroupUserCount(user.getScheduleId()) > 1) {
+                scheduleOwnershipTransfer(user);
+                deleteScheduleGroupMember(user);
+                return true;
+            } else {
+                deleteScheduleGroupAll(user.getScheduleId());
+            }
+        } else {
+            deleteScheduleGroupMember(user);
+        }
+
+        return false;
     }
 
 }

@@ -9,5 +9,6 @@ import java.util.Optional;
 @Repository
 public interface CalendarSettingRepository extends JpaRepository<CalendarSettingEntity, Long> {
 
-    Optional<CalendarSettingEntity> findByCalendarIdAndUserId(Long calendarId, Long UserId);
+    Optional<CalendarSettingEntity> findByUserIdAndCalendarId(Long userId, Long calendarId);
+    void deleteByUserIdAndCalendarId(Long userId, Long calendarId);
 }

@@ -1,4 +1,4 @@
-package com.chpark.chcalendar.event.schedule;
+package com.chpark.chcalendar.event.schedule.google;
 
 import com.chpark.chcalendar.entity.schedule.ScheduleEntity;
 import com.chpark.chcalendar.repository.schedule.ScheduleRepository;
@@ -30,7 +30,6 @@ public class GoogleScheduleEventListener {
 
     private final ScheduleRepository scheduleRepository;
     private static final Logger log = LoggerFactory.getLogger(GoogleScheduleEventListener.class);
-    private final ApplicationEventPublisher eventPublisher;
 
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)

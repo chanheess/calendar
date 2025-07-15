@@ -23,9 +23,9 @@ public class CalendarMemberController {
     private final CalendarMemberService calendarMemberService;
     private final JwtTokenProvider jwtTokenProvider;
 
-    @GetMapping("/groups/{calendar-id}/users")
-    public ResponseEntity<List<CalendarMemberDto>> getUsers(@NotNull @PathVariable("calendar-id") Long calendarId,
-                                                            HttpServletRequest request) {
+    @GetMapping("/calendars/{calendar-id}/members")
+    public ResponseEntity<List<CalendarMemberDto>> getMembers(@NotNull @PathVariable("calendar-id") Long calendarId,
+                                                              HttpServletRequest request) {
 
         String token = jwtTokenProvider.resolveToken(request, JwtTokenType.ACCESS.getValue());
         long userId = jwtTokenProvider.getUserIdFromToken(token);

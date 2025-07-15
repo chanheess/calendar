@@ -3,6 +3,7 @@ import axios from 'utils/axiosInstance';
 import styles from "styles/Profile.module.css";
 import Button from "../Button";
 import HeaderComponent from "../HeaderComponent";
+import popupStyles from "styles/Popup.module.css";
 
 const ProfilePage = () => {
   const [email, setEmail] = useState("");
@@ -12,6 +13,7 @@ const ProfilePage = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isNicknameChanged, setIsNicknameChanged] = useState(false);
   const [providers, setProviders] = useState([]);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   useEffect(() => {
     fetchUserInfo();
@@ -119,6 +121,19 @@ const ProfilePage = () => {
 
   const isGoogleLinked = providers.some(provider => provider.provider.toLowerCase() === "google");
 
+  // 회원탈퇴 핸들러 추가
+  const handleDeleteAccount = async () => {
+    setShowDeleteModal(false);
+    try {
+      await axios.delete("/user", { withCredentials: true });
+      alert("회원 탈퇴가 완료되었습니다.");
+      // 로그아웃 처리 및 메인 페이지로 이동
+      window.location.href = "/";
+    } catch (error) {
+      alert(error?.response?.data?.message || "회원 탈퇴에 실패했습니다.");
+    }
+  };
+
   return (
     <div>
       <HeaderComponent mode="profile" />
@@ -213,6 +228,52 @@ const ProfilePage = () => {
             {isGoogleLinked ? "Google 계정 연동됨" : "Google 계정 연동"}
           </span>
         </button>
+        {/* 회원탈퇴 텍스트 링크 */}
+        <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "1.5rem" }}>
+          <span
+            onClick={() => setShowDeleteModal(true)}
+            style={{
+              color: "#ff4d4f",
+              fontSize: "0.85rem",
+              cursor: "pointer",
+              opacity: 0.7,
+              textDecoration: "underline",
+              fontWeight: 500,
+              userSelect: "none"
+            }}
+            tabIndex={0}
+            role="button"
+            aria-label="회원탈퇴"
+          >
+            회원탈퇴
+          </span>
+        </div>
+        {/* 회원탈퇴 모달 */}
+        {showDeleteModal && (
+          <div className={popupStyles.confirmOverlay}>
+            <div className={popupStyles.confirmPopup}>
+              <div className={popupStyles.confirmTitle}>
+                정말로 회원을 탈퇴하시겠습니까?<br/>이 작업은 되돌릴 수 없습니다.
+              </div>
+              <div className={popupStyles.confirmFooter}>
+                <Button
+                  variant="secondary"
+                  size="small"
+                  onClick={() => setShowDeleteModal(false)}
+                >
+                  취소
+                </Button>
+                <Button
+                  variant="logout"
+                  size="small"
+                  onClick={handleDeleteAccount}
+                >
+                  확인
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

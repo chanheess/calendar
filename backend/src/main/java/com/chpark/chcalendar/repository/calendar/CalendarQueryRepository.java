@@ -48,7 +48,7 @@ public class CalendarQueryRepository {
                 .fetch();
     }
 
-    public List<CalendarDto.Response> findCalendarsByUserId(Long userId) {
+    public List<CalendarDto.Response> findUserCalendarList(Long userId) {
         return queryFactory
                 .select(Projections.constructor(
                         CalendarDto.Response.class,
@@ -64,7 +64,8 @@ public class CalendarQueryRepository {
                         calendarSettingEntity.calendar.id.eq(calendarEntity.id)
                                 .and(calendarSettingEntity.userId.eq(userId))
                 )
-                .where(calendarEntity.userId.eq(userId))
+                .where(calendarEntity.userId.eq(userId)
+                        .and(calendarEntity.category.eq(CalendarCategory.USER)))
                 .fetch();
     }
     

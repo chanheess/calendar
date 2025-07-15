@@ -1,4 +1,4 @@
-package com.chpark.chcalendar.event.schedule;
+package com.chpark.chcalendar.event.schedule.google;
 
 import com.chpark.chcalendar.dto.schedule.ScheduleNotificationDto;
 import com.google.api.client.util.DateTime;
@@ -11,23 +11,23 @@ import java.util.List;
 
 import static com.chpark.chcalendar.utility.ScheduleUtility.parseLocalNotificationToGoogleNotification;
 
-public record GoogleScheduleCreateEvent(
+public record GoogleScheduleUpdateEvent (
         String title,
         String description,
         EventDateTime startAt,
         EventDateTime endAt,
-        Long localScheduleId,
         String calendarId,
+        String scheduleId,
         Event.Reminders reminders,
         String accessToken
 ) {
-    public GoogleScheduleCreateEvent(
+    public GoogleScheduleUpdateEvent(
             String title,
             String description,
             LocalDateTime startAt,
             LocalDateTime endAt,
-            Long localScheduleId,
             String calendarId,
+            String scheduleId,
             List<ScheduleNotificationDto> notificationList,
             String accessToken
     ) {
@@ -46,21 +46,10 @@ public record GoogleScheduleCreateEvent(
                                         .toInstant()
                                         .toEpochMilli()))
                         .setTimeZone("Asia/Seoul"),
-                localScheduleId,
                 calendarId,
+                scheduleId,
                 parseLocalNotificationToGoogleNotification(startAt, notificationList),
                 accessToken
         );
-    }
-
-    public GoogleScheduleCreateEvent(String title, String description, EventDateTime startAt, EventDateTime endAt, Long localScheduleId, String calendarId, Event.Reminders reminders, String accessToken) {
-        this.title = title;
-        this.description = description;
-        this.startAt = startAt;
-        this.endAt = endAt;
-        this.localScheduleId = localScheduleId;
-        this.calendarId = calendarId;
-        this.reminders = reminders;
-        this.accessToken = accessToken;
     }
 }

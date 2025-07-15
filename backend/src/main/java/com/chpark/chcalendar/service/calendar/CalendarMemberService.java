@@ -12,8 +12,11 @@ import com.chpark.chcalendar.repository.calendar.CalendarMemberRepository;
 import com.chpark.chcalendar.repository.calendar.CalendarQueryRepository;
 import com.chpark.chcalendar.repository.calendar.CalendarRepository;
 import com.chpark.chcalendar.repository.user.UserRepository;
+import com.chpark.chcalendar.service.notification.QuartzSchedulerService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,6 +30,8 @@ public class CalendarMemberService {
     private final CalendarMemberRepository calendarMemberRepository;
     private final CalendarQueryRepository calendarQueryRepository;
     private final UserRepository userRepository;
+
+    private static final Logger log = LoggerFactory.getLogger(CalendarMemberService.class);
 
     public CalendarMemberDto create(CalendarEntity calendarEntity, long userId, CalendarMemberRole calendarMemberRole) {
         UserEntity userEntity = userRepository.findById(userId).orElseThrow(
@@ -90,6 +95,58 @@ public class CalendarMemberService {
 
     public List<Long> getUserList(long calendarId) {
         return calendarMemberRepository.findUserIdByCalendarId(calendarId);
+    }
+
+    @Transactional
+    public void OwnershipTransfer(long userId, long calendarId, CalendarMemberEntity calendarMemberEntity) {
+        List<CalendarMemberEntity> memberList = calendarMemberRepository.findByNextOwner(calendarId, userId);
+
+        if (memberList.isEmpty() || !isCalendarOwner(calendarMemberEntity)) {
+            return;
+        }
+
+        for (CalendarMemberEntity member : memberList) {
+            UserEntity user = member.getUser();
+            CalendarEntity calendar = member.getCalendar();
+
+            if (user != null) {
+                member.setRole(calendarMemberEntity.getRole());
+                calendar.setUserId(user.getId());
+                break;
+            }
+        }
+
+    }
+
+    public boolean isCalendarOwner(CalendarMemberEntity calendarMemberEntity) {
+        if (calendarMemberEntity == null) {
+            return false;
+        }
+
+        return CalendarMemberRole.ADMIN.equals(calendarMemberEntity.getRole());
+    }
+
+    @Transactional
+    public long getMemberCount(long calendarId) {
+        return calendarMemberRepository.countByCalendarId(calendarId);
+    }
+
+    @Transactional
+    public void deleteMember(CalendarMemberEntity calendarMemberEntity) {
+        calendarMemberRepository.delete(calendarMemberEntity);
+    }
+
+    @Transactional
+    public void removeGroupMembership(long userId, long calendarId) {
+        CalendarMemberEntity calendarMemberEntity = getCalendarMember(userId, calendarId);
+
+        if (isCalendarOwner(calendarMemberEntity)) {
+            if (getMemberCount(calendarId) > 1) {
+                OwnershipTransfer(userId, calendarId, calendarMemberEntity);
+            }
+        }
+
+        deleteMember(calendarMemberEntity);
     }
 
 }
