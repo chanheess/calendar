@@ -85,7 +85,7 @@ public class UserService {
         try {
             // 인증 성공 시 사용자 정보를 가져옴
             UserEntity userEntity = userRepository.findByEmail(requestUser.getEmail()).orElseThrow(
-                    () -> new EntityNotFoundException("사용자를 찾을 수 없습니다: " + requestUser.getEmail())
+                    () -> new EntityNotFoundException("사용자를 찾을 수 없습니다")
             );
 
             List<UserProviderEntity> userProviderEntity = userProviderRepository.findByUserId(userEntity.getId());
