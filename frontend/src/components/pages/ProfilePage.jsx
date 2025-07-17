@@ -120,6 +120,8 @@ const ProfilePage = () => {
   };
 
   const isGoogleLinked = providers.some(provider => provider.provider.toLowerCase() === "google");
+  // local provider 여부 확인
+  const hasLocalProvider = providers.some(provider => provider.provider.toLowerCase() === "local");
 
   // 회원탈퇴 핸들러 추가
   const handleDeleteAccount = async () => {
@@ -166,54 +168,59 @@ const ProfilePage = () => {
             </Button>
           </div>
 
-          <div className={styles.infoRow}>
-            <label htmlFor="currentPassword">현재 비밀번호:</label>
-            <input
-              type="password"
-              id="currentPassword"
-              value={currentPassword}
-              onChange={(e) => setCurrentPassword(e.target.value)}
-              placeholder="현재 비밀번호를 입력하세요."
-              autoComplete="off"
-            />
-          </div>
+          {/* local provider가 있을 때만 비밀번호 변경 UI 노출 */}
+          {hasLocalProvider && (
+            <>
+              <div className={styles.infoRow}>
+                <label htmlFor="currentPassword">현재 비밀번호:</label>
+                <input
+                  type="password"
+                  id="currentPassword"
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  placeholder="현재 비밀번호를 입력하세요."
+                  autoComplete="off"
+                />
+              </div>
 
-          <div className={styles.infoRow}>
-            <label htmlFor="newPassword">새 비밀번호:</label>
-            <input
-              type="password"
-              id="newPassword"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              placeholder="새 비밀번호를 입력하세요."
-              autoComplete="off"
-            />
-          </div>
+              <div className={styles.infoRow}>
+                <label htmlFor="newPassword">새 비밀번호:</label>
+                <input
+                  type="password"
+                  id="newPassword"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="새 비밀번호를 입력하세요."
+                  autoComplete="off"
+                />
+              </div>
 
-          <div className={styles.infoRow}>
-            <label htmlFor="confirmPassword">비밀번호 확인:</label>
-            <input
-              type="password"
-              id="confirmPassword"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder="비밀번호를 확인하세요."
-              autoComplete="off"
-            />
-          </div>
-          <div className={styles.passwordText}>
-            <small>
-              영문, 숫자, 특수문자를 포함하여 8자 이상의 비밀번호를 사용하세요.<br/>
-            </small>
-          </div>
-          <Button
-            type="button"
-            variant="green"
-            size="medium"
-            onClick={handlePasswordChange}
-          >
-            비밀번호 변경
-          </Button>
+              <div className={styles.infoRow}>
+                <label htmlFor="confirmPassword">비밀번호 확인:</label>
+                <input
+                  type="password"
+                  id="confirmPassword"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="비밀번호를 확인하세요."
+                  autoComplete="off"
+                />
+              </div>
+              <div className={styles.passwordText}>
+                <small>
+                  영문, 숫자, 특수문자를 포함하여 8자 이상의 비밀번호를 사용하세요.<br/>
+                </small>
+              </div>
+              <Button
+                type="button"
+                variant="green"
+                size="medium"
+                onClick={handlePasswordChange}
+              >
+                비밀번호 변경
+              </Button>
+            </>
+          )}
         </form>
 
         <hr className={styles.divider} />
