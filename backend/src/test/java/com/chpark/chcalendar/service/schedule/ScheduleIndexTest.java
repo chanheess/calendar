@@ -1,4 +1,4 @@
-package com.chpark.chcalendar.service;
+package com.chpark.chcalendar.service.schedule;
 
 import com.chpark.chcalendar.DotenvInitializer;
 import com.chpark.chcalendar.entity.schedule.ScheduleEntity;

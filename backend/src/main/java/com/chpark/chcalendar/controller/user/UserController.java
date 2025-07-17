@@ -157,6 +157,12 @@ public class UserController {
         long userId = jwtTokenProvider.getUserIdFromToken(token);
 
         userService.deleteAccount(userId);
+
+        String googleAccessToken = CookieUtility.getToken(request, JwtTokenType.GOOGLE_ACCESS);
+        if (googleAccessToken == null || googleAccessToken.isEmpty()) {
+            oAuthTokenService.revokeGoogleToken(googleAccessToken);
+        }
+
         revokeTokens(request, response);
 
         return ResponseEntity.ok("회원 탈퇴가 완료되었습니다.");

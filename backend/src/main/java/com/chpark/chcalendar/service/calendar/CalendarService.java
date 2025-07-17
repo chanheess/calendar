@@ -5,7 +5,6 @@ import com.chpark.chcalendar.dto.calendar.CalendarSettingDto;
 import com.chpark.chcalendar.entity.calendar.CalendarSettingEntity;
 import com.chpark.chcalendar.enumClass.CRUDAction;
 import com.chpark.chcalendar.enumClass.JwtTokenType;
-import com.chpark.chcalendar.event.schedule.ScheduleDeleteEvent;
 import com.chpark.chcalendar.repository.calendar.CalendarRepository;
 import com.chpark.chcalendar.repository.calendar.CalendarSettingRepository;
 import com.chpark.chcalendar.security.JwtTokenProvider;
@@ -35,13 +34,7 @@ public abstract class CalendarService {
     public abstract void checkAuthority(CRUDAction action, long userId, long calendarId);
 
     @Transactional
-    public void deleteCalendar(long userId, long calendarId) {
-        //일정 삭제 이벤트 발행
-        eventPublisher.publishEvent(new ScheduleDeleteEvent(
-                userId,
-                calendarId
-        ));
-    }
+    public abstract void deleteCalendar(long userId, long calendarId);
 
     @Transactional
     public CalendarSettingDto updateSetting(HttpServletRequest request, CalendarSettingDto calendarSettingDto) {

@@ -66,8 +66,6 @@ public class UserCalendarService extends CalendarService {
 
     @Override
     public void deleteCalendar(long userId, long calendarId) {
-        super.deleteCalendar(userId, calendarId);
-
         Optional<CalendarEntity> calendarEntity = calendarRepository.findByIdAndUserId(calendarId, userId);
 
         if (calendarEntity.isEmpty()) {

@@ -4,7 +4,6 @@ import com.chpark.chcalendar.enumClass.CalendarCategory;
 import com.chpark.chcalendar.enumClass.JwtTokenType;
 import com.chpark.chcalendar.enumClass.OAuthLoginType;
 import com.chpark.chcalendar.service.calendar.sync.CalendarSyncService;
-import com.chpark.chcalendar.service.notification.QuartzSchedulerService;
 import com.chpark.chcalendar.service.schedule.sync.ScheduleSyncService;
 import com.chpark.chcalendar.utility.CookieUtility;
 import jakarta.servlet.http.HttpServletRequest;
@@ -25,7 +24,6 @@ import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 
 @RequiredArgsConstructor
 @Component

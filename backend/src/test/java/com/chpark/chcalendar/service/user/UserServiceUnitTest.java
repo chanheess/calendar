@@ -1,4 +1,4 @@
-package com.chpark.chcalendar.service;
+package com.chpark.chcalendar.service.user;
 
 import com.chpark.chcalendar.dto.calendar.CalendarDto;
 import com.chpark.chcalendar.dto.security.JwtAuthenticationResponseDto;
@@ -12,9 +12,7 @@ import com.chpark.chcalendar.service.calendar.CalendarMemberService;
 import com.chpark.chcalendar.service.calendar.CalendarService;
 import com.chpark.chcalendar.service.calendar.UserCalendarService;
 import com.chpark.chcalendar.service.redis.RedisService;
-import com.chpark.chcalendar.service.user.UserService;
 import jakarta.persistence.EntityNotFoundException;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

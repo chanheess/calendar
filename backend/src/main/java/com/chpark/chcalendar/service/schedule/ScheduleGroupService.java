@@ -196,6 +196,8 @@ public class ScheduleGroupService {
 
         for (ScheduleGroupEntity scheduleMember : scheduleGroupEntityList) {
             scheduleMember.setAuthority(currentOwner.getAuthority());
+            Optional<ScheduleEntity> scheduleEntity = scheduleRepository.findById(scheduleMember.getScheduleId());
+            scheduleEntity.ifPresent(entity -> entity.setUserId(scheduleMember.getUserId()));
             break;
         }
     }

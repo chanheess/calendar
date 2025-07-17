@@ -1,10 +1,9 @@
-package com.chpark.chcalendar.service;
+package com.chpark.chcalendar.service.schedule;
 
 import com.chpark.chcalendar.DotenvInitializer;
 import com.chpark.chcalendar.dto.schedule.ScheduleNotificationDto;
 import com.chpark.chcalendar.entity.schedule.ScheduleEntity;
 import com.chpark.chcalendar.repository.schedule.ScheduleRepository;
-import com.chpark.chcalendar.service.schedule.ScheduleNotificationService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;

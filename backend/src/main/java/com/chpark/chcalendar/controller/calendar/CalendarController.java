@@ -9,6 +9,7 @@ import com.chpark.chcalendar.repository.calendar.CalendarQueryRepository;
 import com.chpark.chcalendar.repository.calendar.CalendarRepository;
 import com.chpark.chcalendar.security.JwtTokenProvider;
 import com.chpark.chcalendar.service.calendar.CalendarService;
+import com.chpark.chcalendar.service.schedule.ScheduleService;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +28,7 @@ public class CalendarController {
     private final Map<CalendarCategory, CalendarService> calendarServiceMap;
     private final CalendarRepository calendarRepository;
     private final JwtTokenProvider jwtTokenProvider;
+    private final ScheduleService scheduleService;
 
     @GetMapping("/calendars")
     public ResponseEntity<List<CalendarDto.Response>> getCalendarList(@RequestParam(value = "category", required = false) CalendarCategory category,
@@ -71,7 +73,9 @@ public class CalendarController {
                 () -> new EntityNotFoundException("존재하지 않는 캘린더입니다.")
         );
 
+        scheduleService.deleteAccount(userId, calendarId);
         calendarServiceMap.get(calendar.getCategory()).deleteCalendar(userId, calendarId);
+
 
         return ResponseEntity.ok(calendar.getTitle() + " 캘린더에서 탈퇴되었습니다.");
     }

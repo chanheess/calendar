@@ -69,8 +69,6 @@ public class GroupCalendarService extends CalendarService {
 
     @Override
     public void deleteCalendar(long userId, long calendarId) {
-        super.deleteCalendar(userId, calendarId);
-
         calendarMemberService.removeGroupMembership(userId, calendarId);
         calendarSettingRepository.deleteByUserIdAndCalendarId(userId, calendarId);
 
