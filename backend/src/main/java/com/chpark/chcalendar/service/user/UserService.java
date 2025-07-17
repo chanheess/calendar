@@ -5,6 +5,7 @@ import com.chpark.chcalendar.dto.EmailDto;
 import com.chpark.chcalendar.dto.security.JwtAuthenticationResponseDto;
 import com.chpark.chcalendar.dto.user.UserDto;
 import com.chpark.chcalendar.entity.UserEntity;
+import com.chpark.chcalendar.entity.UserProviderEntity;
 import com.chpark.chcalendar.enumClass.CalendarCategory;
 import com.chpark.chcalendar.enumClass.JwtTokenType;
 import com.chpark.chcalendar.enumClass.RequestType;
@@ -29,6 +30,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Map;
 
 @RequiredArgsConstructor
@@ -79,17 +81,23 @@ public class UserService {
     public JwtAuthenticationResponseDto login(UserDto requestUser, String ipAddress) {
 
         redisService.checkRequestCount(RequestType.LOGIN, ipAddress);
-        redisService.increaseRequestCount(RequestType.LOGIN, ipAddress);
 
         try {
-            // 인증 시도
-            Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(requestUser.getEmail(), requestUser.getPassword())
-            );
-
             // 인증 성공 시 사용자 정보를 가져옴
             UserEntity userEntity = userRepository.findByEmail(requestUser.getEmail()).orElseThrow(
                     () -> new EntityNotFoundException("사용자를 찾을 수 없습니다: " + requestUser.getEmail())
+            );
+
+            List<UserProviderEntity> userProviderEntity = userProviderRepository.findByUserId(userEntity.getId());
+            boolean hasLocal = userProviderEntity.stream()
+                    .anyMatch(provider -> "local".equalsIgnoreCase(provider.getProvider()));
+            if (!hasLocal) {
+                throw new EntityNotFoundException("소셜 계정으로 로그인해주세요.");
+            }
+
+            // 인증 시도
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(requestUser.getEmail(), requestUser.getPassword())
             );
 
             redisService.deleteVerificationData(RequestType.LOGIN, ipAddress);
@@ -100,7 +108,11 @@ public class UserService {
                     jwtTokenProvider.generateToken(authentication, userEntity.getId(), JwtTokenType.REFRESH),
                     "로그인 성공."
             );
+        } catch (EntityNotFoundException e) {
+            throw new IllegalArgumentException(e.getMessage());
         } catch (BadCredentialsException e) {
+            redisService.increaseRequestCount(RequestType.LOGIN, ipAddress);
+
             throw new IllegalArgumentException(String.format(
                     "이메일이나 비밀번호를 확인해주세요. (%s)", redisService.getRequestCount(RequestType.LOGIN, ipAddress))
             );

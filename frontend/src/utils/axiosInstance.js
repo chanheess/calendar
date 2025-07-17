@@ -8,10 +8,18 @@ axios.interceptors.response.use(
   async error => {
     const originalRequest = error.config;
 
-    // 401이고, 재시도한 적 없으면
+    // CountAuthenticationException 등 인증 횟수 초과 메시지 예외 처리
+    const isCountAuthError =
+      error.response?.status === 401 &&
+      typeof error.response?.data?.message === "string" &&
+      error.response.data.message.includes("인증 요청") &&
+      error.response.data.message.includes("초과");
+
+    // 401이고, 재시도한 적 없고, 인증 횟수 초과 에러가 아닐 때만 토큰 갱신 시도
     if (
       error.response?.status === 401 &&
-      !originalRequest._retry
+      !originalRequest._retry &&
+      !isCountAuthError
     ) {
       if (!refreshPromise) {
         refreshPromise = axios.post('/auth/refresh', null, { withCredentials: true })

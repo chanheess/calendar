@@ -49,7 +49,6 @@ const LoginPage = () => {
       }
     } catch (error) {
       if (error.response && error.response.data) {
-        alert("로그인에 실패했습니다. 다시 시도해주세요.");
         setErrorMessage(error.response.data.message || "Unknown error occurred");
       } else {
         setErrorMessage(error.message);

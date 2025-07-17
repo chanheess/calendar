@@ -1,9 +1,12 @@
 package com.chpark.chcalendar.service.redis;
 
 import com.chpark.chcalendar.dto.EmailDto;
+import com.chpark.chcalendar.entity.UserEntity;
+import com.chpark.chcalendar.entity.UserProviderEntity;
 import com.chpark.chcalendar.enumClass.RequestType;
 import com.chpark.chcalendar.exception.authentication.CountAuthenticationException;
 import com.chpark.chcalendar.exception.authentication.EmailAuthenticationException;
+import com.chpark.chcalendar.repository.user.UserProviderRepository;
 import com.chpark.chcalendar.repository.user.UserRepository;
 import com.chpark.chcalendar.utility.KeyGeneratorUtility;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +15,8 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -22,6 +27,7 @@ public class RedisService {
     private final MailService mailService;
     private final StringRedisTemplate redisTemplate;
     private final UserRepository userRepository;
+    private final UserProviderRepository userProviderRepository;
 
     private final int maxRequestCount = 5;
 
@@ -34,8 +40,18 @@ public class RedisService {
                 }
             }
             case PASSWORD_RESET -> {
-                if (!userRepository.existsByEmail(emailDto.getEmail())) {
+                Optional<UserEntity> userEntity = userRepository.findByEmail(emailDto.getEmail());
+
+                if (userEntity.isEmpty()) {
                     throw new IllegalArgumentException("이메일을 정확하게 입력해주세요.");
+                }
+
+                // 사용자 provider 확인
+                List<UserProviderEntity> userProviderEntity = userProviderRepository.findByUserId(userEntity.get().getId());
+                boolean hasLocal = userProviderEntity.stream()
+                        .anyMatch(provider -> "local".equalsIgnoreCase(provider.getProvider()));
+                if (!hasLocal) {
+                    throw new IllegalArgumentException("해당 계정은 비밀번호 초기화를 지원하지 않습니다.");
                 }
             }
         }

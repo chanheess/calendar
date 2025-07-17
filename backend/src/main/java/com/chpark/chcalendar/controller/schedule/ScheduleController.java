@@ -34,7 +34,7 @@ public class ScheduleController {
     private final ScheduleService scheduleService;
     private final ScheduleTargetDispatcher scheduleTargetDispatcher;
 
-    @GetMapping
+    @GetMapping("/schedules")
     public ResponseEntity<List<ScheduleDto>> getSchedulesByTitle(@RequestParam(value = "title", required = false) String title,
                                                                  HttpServletRequest request) {
         List<ScheduleDto> schedules;
@@ -88,9 +88,8 @@ public class ScheduleController {
         return scheduleDto.map(dto -> new ResponseEntity<>(dto, HttpStatus.OK)).orElseGet(() -> new ResponseEntity<>(null, HttpStatus.OK));
     }
 
-    @PostMapping("calendars/{calendarId}/schedules")
-    public ResponseEntity<ScheduleDto.Response> createSchedule(@PathVariable("calendarId") long calendarId,
-                                                                @Validated(ValidGroup.CreateGroup.class) @RequestBody ScheduleDto.Request scheduleDto,
+    @PostMapping("/schedules")
+    public ResponseEntity<ScheduleDto.Response> createSchedule(@Validated(ValidGroup.CreateGroup.class) @RequestBody ScheduleDto.Request scheduleDto,
                                                                HttpServletRequest request) {
         String token = jwtTokenProvider.resolveToken(request, JwtTokenType.ACCESS.getValue());
         long userId = jwtTokenProvider.getUserIdFromToken(token);
