@@ -159,7 +159,7 @@ public class UserController {
         userService.deleteAccount(userId);
 
         String googleAccessToken = CookieUtility.getToken(request, JwtTokenType.GOOGLE_ACCESS);
-        if (googleAccessToken == null || googleAccessToken.isEmpty()) {
+        if (googleAccessToken != null && !googleAccessToken.isEmpty()) {
             oAuthTokenService.revokeGoogleToken(googleAccessToken);
         }
 
