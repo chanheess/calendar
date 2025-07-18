@@ -2,6 +2,7 @@ package com.chpark.chcalendar.event.schedule.google;
 
 import com.chpark.chcalendar.entity.schedule.ScheduleEntity;
 import com.chpark.chcalendar.repository.schedule.ScheduleRepository;
+import com.chpark.chcalendar.service.schedule.sync.GoogleScheduleSyncService;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.googleapis.json.GoogleJsonResponseException;
 import com.google.api.client.http.HttpBackOffUnsuccessfulResponseHandler;
@@ -17,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
@@ -28,6 +30,7 @@ import java.util.Optional;
 @Component
 public class GoogleScheduleEventListener {
 
+    private final GoogleScheduleSyncService googleScheduleSyncService;
     private final ScheduleRepository scheduleRepository;
     private static final Logger log = LoggerFactory.getLogger(GoogleScheduleEventListener.class);
 
@@ -156,5 +159,11 @@ public class GoogleScheduleEventListener {
                 GsonFactory.getDefaultInstance(),
                 requestInitializer
         ).setApplicationName("chcalendar").build();
+    }
+
+    @Async
+    @EventListener
+    public void handleSyncSchedules(GoogleScheduleSyncEvent event) {
+        googleScheduleSyncService.syncSchedules(event.getOauthAccessToken(), event.getUserId());
     }
 }

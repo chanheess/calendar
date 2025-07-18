@@ -1,17 +1,15 @@
 package com.chpark.chcalendar.security;
 
-import com.chpark.chcalendar.enumClass.CalendarCategory;
 import com.chpark.chcalendar.enumClass.JwtTokenType;
 import com.chpark.chcalendar.enumClass.OAuthLoginType;
-import com.chpark.chcalendar.service.calendar.sync.CalendarSyncService;
-import com.chpark.chcalendar.service.schedule.sync.ScheduleSyncService;
+import com.chpark.chcalendar.event.calendar.google.GoogleCalendarSyncEvent;
+import com.chpark.chcalendar.event.schedule.google.GoogleScheduleSyncEvent;
 import com.chpark.chcalendar.utility.CookieUtility;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
@@ -23,7 +21,6 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Map;
 
 @RequiredArgsConstructor
 @Component
@@ -31,10 +28,7 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
 
     private final JwtTokenProvider jwtTokenProvider;
     private final OAuth2AuthorizedClientService authorizedClientService;
-    private final Map<CalendarCategory, CalendarSyncService> calendarSyncService;
-    private final Map<CalendarCategory, ScheduleSyncService> scheduleSyncService;
-
-    private static final Logger log = LoggerFactory.getLogger(OAuth2SuccessHandler.class);
+    private final ApplicationEventPublisher eventPublisher;
 
     @Value("${home_url}")
     String homeUrl;
@@ -106,18 +100,8 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
 
         long userId = jwtTokenProvider.getUserIdFromToken(accessToken);
 
-        //TODO: 비동기로 변경하기
-//        CompletableFuture.runAsync(() -> {
-//
-//        });
-
-        try {
-            calendarSyncService.get(CalendarCategory.GOOGLE).syncCalendars(oauthAccessToken, userId);
-            scheduleSyncService.get(CalendarCategory.GOOGLE).syncSchedules(oauthAccessToken, userId);
-        } catch (Exception e) {
-            // 동기화 실패가 로그인을 방해하지 않도록 로그만 기록
-            log.error("Failed to sync calendars/schedules for user: " + email, e);
-        }
+        eventPublisher.publishEvent(new GoogleCalendarSyncEvent(oauthAccessToken, userId));
+        eventPublisher.publishEvent(new GoogleScheduleSyncEvent(oauthAccessToken, userId));
 
         response.sendRedirect(homeUrl);
     }

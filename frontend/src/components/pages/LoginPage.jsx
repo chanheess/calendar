@@ -10,6 +10,7 @@ const LoginPage = () => {
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [passwordResetPopupVisible, setPasswordResetPopupVisible] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
 
@@ -129,6 +130,7 @@ const LoginPage = () => {
       <button
         className={styles.googleButton}
         onClick={async () => {
+          setLoading(true);
           try {
             const response = await axios.post("/auth/oauth2/login", { type: "oauth" }, {
               withCredentials: true
@@ -144,6 +146,9 @@ const LoginPage = () => {
         <img src="/images/google-logo.svg" alt="Google" className={styles.googleIcon} />
         <span className={styles.googleText}>Google 계정으로 로그인</span>
       </button>
+      {loading && (
+        <div className={styles.loadingSpinner}></div>
+      )}
       <small onClick={() => setPasswordResetPopupVisible(true)}>비밀번호 찾기</small>
       {errorMessage && <div className={styles.error}>{errorMessage}</div>}
     </div>
