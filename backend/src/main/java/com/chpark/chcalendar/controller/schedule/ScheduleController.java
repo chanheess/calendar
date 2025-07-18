@@ -98,7 +98,7 @@ public class ScheduleController {
         ScheduleDto.Response result = scheduleService.createByForm(scheduleDto, userId);
 
         if (scheduleTargetActionDto != null) {
-            scheduleTargetDispatcher.createTargetSchedule(scheduleTargetActionDto, scheduleDto);
+            scheduleTargetDispatcher.createTargetSchedule(scheduleTargetActionDto, result);
         }
 
         return new ResponseEntity<>(result, HttpStatus.CREATED);
@@ -116,7 +116,7 @@ public class ScheduleController {
         ScheduleDto.Response response = scheduleService.updateSchedule(id, isRepeatChecked, scheduleDto, userId);
 
         if (scheduleTargetActionDto != null) {
-            scheduleTargetDispatcher.handleTargetScheduleAction(scheduleTargetActionDto, scheduleDto);
+            scheduleTargetDispatcher.handleTargetScheduleAction(scheduleTargetActionDto, response);
         }
 
         return new ResponseEntity<>(response, HttpStatus.OK);
