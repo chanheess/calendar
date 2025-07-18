@@ -8,24 +8,22 @@ axios.interceptors.response.use(
   async error => {
     const originalRequest = error.config;
 
-    // CountAuthenticationException 등 인증 횟수 초과 메시지 예외 처리
-    const isCountAuthError =
-      error.response?.status === 401 &&
-      typeof error.response?.data?.message === "string" &&
-      error.response.data.message.includes("인증 요청") &&
-      error.response.data.message.includes("초과");
-
-    // 401이고, 재시도한 적 없고, 인증 횟수 초과 에러가 아닐 때만 토큰 갱신 시도
     if (
       error.response?.status === 401 &&
-      !originalRequest._retry &&
-      !isCountAuthError
+      error.response.data === "jwtToken expired" &&
+      !originalRequest._retry
     ) {
       if (!refreshPromise) {
         refreshPromise = axios.post('/auth/refresh', null, { withCredentials: true })
-          .then(() => {
-            requestQueue.forEach(cb => cb());
+          .then(res => {
+            const newToken = res.data.accessToken;
+            axios.defaults.headers.common['Authorization'] = 'Bearer ' + newToken;
+
+            // 모든 대기 중인 요청 재처리
+            requestQueue.forEach(cb => cb(newToken));
             requestQueue = [];
+
+            return newToken;
           })
           .catch(err => {
             requestQueue = [];
@@ -37,9 +35,11 @@ axios.interceptors.response.use(
           });
       }
 
+      // 새 Promise를 만들어서 큐에 등록
       return new Promise((resolve, reject) => {
-        requestQueue.push(() => {
+        requestQueue.push(token => {
           originalRequest._retry = true;
+          originalRequest.headers['Authorization'] = 'Bearer ' + token;
           axios(originalRequest).then(resolve).catch(reject);
         });
       });
