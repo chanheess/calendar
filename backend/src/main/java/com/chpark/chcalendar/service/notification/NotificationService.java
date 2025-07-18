@@ -33,7 +33,6 @@ public class NotificationService {
 
     protected String messageFrom;
 
-
     //알림 가져오기
     @Transactional
     public List<NotificationDto> getNotifications(long userId) {
@@ -60,8 +59,8 @@ public class NotificationService {
                 () -> new EntityNotFoundException("사용자를 찾을 수 없습니다.")
         );
 
-        CalendarMemberEntity calendarMember = calendarMemberService.checkCalendarMemberAuthority(userId, calendarId, CalendarMemberRole.USER);
-        calendarMemberService.checkCalendarMemberExists(calendarId, inviteUserId);
+        CalendarMemberEntity calendarMember = calendarMemberService.checkCalendarMemberAuthority(userId, calendarId, CalendarMemberRole.SUB_ADMIN);
+        calendarMemberService.checkCalendarMemberExists(inviteUserId, calendarId);
         //TODO: 캘린더 최대 가입자 수 추가
 
         String message = calendarMember.getCalendar().getTitle() + messageFrom + nickname + "님을 초대합니다.";

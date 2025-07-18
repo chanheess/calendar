@@ -22,6 +22,7 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -63,6 +64,7 @@ class ScheduleServiceUnitTest {
 
     @InjectMocks
     private ScheduleService scheduleService;
+
 
     private UserEntity mockUser;
     private ScheduleEntity mockSchedule;
@@ -106,6 +108,10 @@ class ScheduleServiceUnitTest {
         mockRequestDto.setNotificationDto(Set.of(notificationDto));
         mockRequestDto.setRepeatDto(repeatDto);
         mockRequestDto.setGroupDto(scheduleGroupDto);
+
+        Map<CalendarCategory, CalendarService> map = new HashMap<>();
+        map.put(CalendarCategory.USER, userCalendarService);
+        ReflectionTestUtils.setField(scheduleService, "calendarServiceMap", map);
     }
 
     @Test
@@ -144,7 +150,7 @@ class ScheduleServiceUnitTest {
         when(scheduleRepository.save(any(ScheduleEntity.class)))
                 .thenAnswer(invocation -> invocation.<ScheduleEntity>getArgument(0));
 
-        ScheduleDto updatedSchedule = scheduleService.update(mockSchedule.getId(), scheduleDto, mockUser.getId());
+        ScheduleDto updatedSchedule = scheduleService.update(mockSchedule.getId(), scheduleDto);
 
         assertEquals("Updated Schedule", updatedSchedule.getTitle());
     }
