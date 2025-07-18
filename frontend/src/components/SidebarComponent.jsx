@@ -89,7 +89,7 @@ const SidebarComponent = forwardRef(({
                 color: calendar.color, 
                 category: "GOOGLE",
                 isSelected: calendar.checked !== false,
-                calendarMemberRole: calendar.calendarMemberRole
+                fileAuthority: calendar.fileAuthority
               };
               return acc;
             },
