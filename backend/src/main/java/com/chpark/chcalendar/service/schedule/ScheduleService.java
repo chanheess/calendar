@@ -1,10 +1,7 @@
 package com.chpark.chcalendar.service.schedule;
 
 import com.chpark.chcalendar.dto.CursorPage;
-import com.chpark.chcalendar.dto.schedule.ScheduleDto;
-import com.chpark.chcalendar.dto.schedule.ScheduleGroupDto;
-import com.chpark.chcalendar.dto.schedule.ScheduleNotificationDto;
-import com.chpark.chcalendar.dto.schedule.ScheduleRepeatDto;
+import com.chpark.chcalendar.dto.schedule.*;
 import com.chpark.chcalendar.entity.schedule.ScheduleEntity;
 import com.chpark.chcalendar.enumClass.CRUDAction;
 import com.chpark.chcalendar.enumClass.CalendarCategory;

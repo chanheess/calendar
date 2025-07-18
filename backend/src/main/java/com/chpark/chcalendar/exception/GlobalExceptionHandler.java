@@ -3,7 +3,6 @@ package com.chpark.chcalendar.exception;
 import com.chpark.chcalendar.dto.MessageResponseDto;
 import com.chpark.chcalendar.exception.authorization.CalendarAuthorizationException;
 import com.chpark.chcalendar.exception.authorization.GroupAuthorizationException;
-import com.chpark.chcalendar.exception.authorization.ScheduleAuthorizationException;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.http.HttpStatus;
@@ -97,22 +96,6 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(
                 createCustomErrorResponse(ex, HttpStatus.UNAUTHORIZED.value()),
                 HttpStatus.UNAUTHORIZED
-        );
-    }
-
-    @ExceptionHandler(CustomException.class)
-    public ResponseEntity<MessageResponseDto> handleCustomException(CustomException ex) {
-        return new ResponseEntity<>(
-                createCustomErrorResponse(ex, HttpStatus.BAD_REQUEST.value()),
-                HttpStatus.BAD_REQUEST
-        );
-    }
-
-    @ExceptionHandler(ScheduleAuthorizationException.class)
-    public ResponseEntity<MessageResponseDto> handleScheduleAuthorizationException(ScheduleAuthorizationException ex) {
-        return new ResponseEntity<>(
-                createCustomErrorResponse(ex, HttpStatus.FORBIDDEN.value()),
-                HttpStatus.FORBIDDEN
         );
     }
 

@@ -1,7 +1,6 @@
 package com.chpark.chcalendar.dto.schedule;
 
 import com.chpark.chcalendar.entity.schedule.ScheduleEntity;
-import com.chpark.chcalendar.enumClass.CalendarCategory;
 import com.chpark.chcalendar.exception.ValidGroup;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -64,12 +63,6 @@ public class ScheduleDto {
         this.updatedAt = entity.getUpdatedAt();
     }
 
-    public void validateScheduleDto() {
-        if(!getStartAt().isBefore(getEndAt())) {
-            throw new IllegalArgumentException("시작 시간은 종료 시간보다 이전이어야 합니다.");
-        }
-    }
-
     public static List<ScheduleDto> fromScheduleEntityList(List<ScheduleEntity> entityList) {
         return entityList.stream()
                 .map(ScheduleDto::new)
@@ -86,8 +79,6 @@ public class ScheduleDto {
         private Set<ScheduleNotificationDto> notificationDto = new HashSet<>();
         private ScheduleRepeatDto repeatDto;
         private Set<ScheduleGroupDto> groupDto = new HashSet<>();
-        @NotNull
-        private CalendarCategory calendarCategory;
     }
 
     @Getter

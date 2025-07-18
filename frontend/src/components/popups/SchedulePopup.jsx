@@ -60,7 +60,12 @@ import {
   const currentUserPermission =
     groupUserList.find((user) => user.userId === currentUserId)?.permission || "READ";
   // 일정 편집모드에서 현재 사용자가 ADMIN이거나 일정 소유자이면 그룹 관리를 할 수 있다.
+  const canManageGroup =
+    mode === "edit" && (currentUserPermission === "ADMIN" || scheduleData.userId === currentUserId);
   // 편집모드에서 READ/WRITE 권한이면 readOnly 처리
+  const isReadOnly =
+    (selectedCalendarList[scheduleData.calendarId]?.fileAuthority === "READ") ||
+    (mode === "edit" && currentUserPermission !== "ADMIN" && scheduleData.userId !== currentUserId);
 
   // 일정 데이터 로드
   useEffect(() => {
@@ -175,6 +180,7 @@ import {
             withCredentials: true,
             headers: { "Content-Type": "application/json" },
           }).then(res => res.data);
+
           if (reFetch.length > 0) {
             invitedUsers = reFetch;
           } else {
@@ -199,26 +205,23 @@ import {
         if (user.userId === currentUserId && invited) {
           setParticipationStatus(invited.status || "PENDING");
         }
-
         return {
           ...user,
           id: invited?.id || null,
           selected: !!invited,
-          permission: invited
-            ? (invited.authority || user.permission || "READ")
-            : (user.permission || "READ"),
+          permission: invited ? (invited.authority || "READ") : "READ",
           status: invited?.status || "PENDING",
           userNickname: user.userNickname || "",
         };
       });
 
       setGroupUserList(mergedUsers);
-      setShowGroupUsers(invitedUsers.length > 0 ? true : currentUserPermission === "ADMIN");
+      setShowGroupUsers(invitedUsers.length > 0 ? true : canManageGroup);
     } catch (error) {
       console.error("Error loading group users:", error);
       setShowGroupUsers(false);
     }
-  }, [selectedCalendarList, scheduleData.calendarId, scheduleData.id, mode, currentUserId, currentUserPermission]);
+  }, [selectedCalendarList, scheduleData.calendarId, scheduleData.id, mode, currentUserId, canManageGroup]);
 
   // 그룹 사용자 로드
   useEffect(() => {
@@ -229,8 +232,7 @@ import {
     ) {
       loadGroupUsers();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen, mode, scheduleData.id, selectedCalendarList, scheduleData.calendarId]);
+  }, [isOpen, mode, scheduleData.id, selectedCalendarList, scheduleData.calendarId, loadGroupUsers]);
 
   // 그룹 일정 생성 토글 ON 시 본인 자동 체크
   useEffect(() => {
@@ -276,7 +278,6 @@ import {
           : [],
         repeatDto: isRepeatEnabled ? formatRepeatDetails(scheduleData.repeatDetails) : null,
         groupDto: groupDto,
-        calendarCategory: selectedCalendarList[scheduleData.calendarId]?.category || null,
       };
     };
 
@@ -307,64 +308,7 @@ import {
     }
   };
 
-  // 구글 캘린더
   const isGoogleCalendar = selectedCalendarList[scheduleData.calendarId]?.category === "GOOGLE";
-  const isGroupCalendar = selectedCalendarList[scheduleData.calendarId]?.category === "GROUP";
-
-  // 일정 CRUD 권한
-  let canDelete = false;
-  let canManageGroup = false;
-  let isReadOnly = false;
-
-  const calendarRole = selectedCalendarList[scheduleData.calendarId]?.calendarMemberRole;
-
-  const attendee = groupUserList.find((user) => user.userId === currentUserId);
-  const attendeePermission = attendee?.authority || attendee?.permission;
-  const effectivePermission = attendeePermission || calendarRole || "READ";
-
-  const isGroupAdmin = effectivePermission === "ADMIN";
-  const isGroupWrite = effectivePermission === "WRITE";
-  const isGroupRead = effectivePermission === "READ";
-  const isGroupScheduleCreator = scheduleData.userId === currentUserId;
-
-
-  if (isGroupCalendar) {
-    // 그룹 캘린더 권한
-    if (isGroupAdmin) {
-      canDelete = true;
-      canManageGroup = true;
-      isReadOnly = false;
-    } else if (isGroupWrite) {
-      canDelete = false; // 그룹일정 및 일정 삭제 불가
-      isReadOnly = false; // 일정 내용만 수정 가능
-    } else if (isGroupRead) {
-      canDelete = false;
-      isReadOnly = true;
-    }
-    // 그룹 일정 생성자는 생성 가능
-    if (mode === "create" && isGroupScheduleCreator) {
-      canDelete = false;
-      isReadOnly = false;
-    }
-    if (isGroupWrite && isReadOnly) {
-      console.warn("[BUG] WRITE 권한인데 isReadOnly가 true입니다.", groupUserList, groupUserList);
-    }
-  } else if (isGoogleCalendar) {
-    // 구글 캘린더 권한
-    if (calendarRole === "READ") {
-      canDelete = false;
-      isReadOnly = true;
-    } else {
-      canDelete = true;
-    }
-  } else {
-    canDelete = true;
-  }
-
-  // 그룹 멤버 관리/해제 권한
-  if (isGroupCalendar && isGroupAdmin && mode === "edit") {
-    canManageGroup = true;
-  }
 
   // Save
   const handleSave = async () => {
@@ -417,7 +361,7 @@ import {
         }
       }
     } catch (error) {
-      alert(error.response.data.message || "Failed to delete schedule.");
+      alert("Failed to delete schedule.");
     }
   };
 
@@ -561,11 +505,6 @@ import {
     return `참석: ${stats.ACCEPTED}  불참: ${stats.DECLINED}  미정: ${stats.PENDING}`;
   };
 
-  // 원본 일정의 캘린더 권한 저장
-  const originalCalendarRole = eventDetails
-    ? selectedCalendarList[eventDetails.calendarId]?.calendarMemberRole
-    : null;
-
   return (
     <>
       {repeatPopupVisible && (
@@ -598,7 +537,6 @@ import {
                   type="text"
                   value={scheduleData.title}
                   onChange={(e) => handleInputChange("title", e.target.value)}
-                  disabled={isReadOnly}
                 />
               </div>
               <div className={styles.infoRow}>
@@ -606,7 +544,6 @@ import {
                 <textarea
                   value={scheduleData.description || ""}
                   onChange={(e) => handleInputChange("description", e.target.value)}
-                  disabled={isReadOnly}
                 />
               </div>
               <div className={styles.infoRow}>
@@ -615,7 +552,6 @@ import {
                   type="datetime-local"
                   value={scheduleData.startAt}
                   onChange={(e) => handleInputChange("startAt", e.target.value)}
-                  disabled={isReadOnly}
                 />
               </div>
               <div className={styles.infoRow}>
@@ -624,7 +560,6 @@ import {
                   type="datetime-local"
                   value={scheduleData.endAt}
                   onChange={(e) => handleInputChange("endAt", e.target.value)}
-                  disabled={isReadOnly}
                 />
               </div>
               <div className={styles.infoRow}>
@@ -632,7 +567,6 @@ import {
                 <select
                   value={scheduleData.calendarId}
                   onChange={(e) => handleInputChange("calendarId", e.target.value)}
-                  disabled={mode === "edit" && (originalCalendarRole === "READ" || showGroupUsers)}
                 >
                   {Object.entries(selectedCalendarList).map(([calendarId, calInfo]) => (
                     <option key={calendarId} value={calendarId}>
@@ -648,7 +582,6 @@ import {
                 <Toggle
                   checked={isNotificationEnabled}
                   onChange={() => setIsNotificationEnabled(!isNotificationEnabled)}
-                  disabled={isReadOnly}
                 />
               </div>
               {isNotificationEnabled && (
@@ -665,7 +598,6 @@ import {
                         }
                         className={styles.notificationInput}
                         min="1"
-                        disabled={isReadOnly}
                       />
                       <select
                         style={{maxWidth: "145px"}}
@@ -674,7 +606,6 @@ import {
                           handleUpdateNotification(index, "unit", e.target.value)
                         }
                         className={styles.notificationSelect}
-                        disabled={isReadOnly}
                       >
                         <option value="minutes">분</option>
                         <option value="hours">시간</option>
@@ -685,7 +616,6 @@ import {
                         variant="close"
                         size=""
                         onClick={() => handleRemoveNotification(index)}
-                        disabled={isReadOnly}
                       >
                         ×
                       </Button>
@@ -699,7 +629,6 @@ import {
                         e.preventDefault();
                         handleAddNotification();
                       }}
-                      disabled={isReadOnly}
                     >
                       알림 추가
                     </Button>
@@ -721,7 +650,6 @@ import {
                     <Toggle
                       checked={isRepeatEnabled}
                       onChange={() => setIsRepeatEnabled(!isRepeatEnabled)}
-                      disabled={isReadOnly}
                     />
                   </div>
                   {isRepeatEnabled && (
@@ -741,7 +669,6 @@ import {
                               },
                             }))
                           }
-                          disabled={isReadOnly}
                         />
                         <select
                           style={{maxWidth: "186px"}}
@@ -755,7 +682,6 @@ import {
                               },
                             }))
                           }
-                          disabled={isReadOnly}
                         >
                           <option value="DAY">일</option>
                           <option value="WEEK">주</option>
@@ -777,7 +703,6 @@ import {
                               },
                             }))
                           }
-                          disabled={isReadOnly}
                         />
                       </div>
                     </div>
@@ -802,7 +727,7 @@ import {
                           );
                         }
                       }}
-                      disabled={!canManageGroup || effectivePermission === "WRITE"}
+                      disabled={isReadOnly}
                     />
                   </div>
                   {showGroupUsers && (
@@ -862,7 +787,7 @@ import {
                                                 e.target.checked
                                               )
                                             }
-                                            disabled={!canManageGroup || user.userId === currentUserId}
+                                            disabled={isReadOnly || user.userId === currentUserId}
                                           />
                                         </td>
                                         <td>{user.userNickname}</td>
@@ -876,7 +801,7 @@ import {
                                                   e.target.value
                                                 )
                                               }
-                                              disabled={!canManageGroup || user.userId === currentUserId}
+                                              disabled={isReadOnly || user.userId === currentUserId}
                                             >
                                               <option value="READ">읽기</option>
                                               <option value="WRITE">일정 수정</option>
@@ -970,7 +895,7 @@ import {
               <Button variant="green" size="medium" onClick={handleSave} type="button">
                 저장
               </Button>
-              {mode === "edit" && canDelete && (
+              {mode === "edit" && (
                 <Button variant="logout" size="medium" onClick={handleDelete} type="button">
                   삭제
                 </Button>

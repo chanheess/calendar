@@ -1,7 +1,7 @@
 package com.chpark.chcalendar.dto.calendar;
 
 import com.chpark.chcalendar.enumClass.CalendarCategory;
-import com.chpark.chcalendar.enumClass.CalendarMemberRole;
+import com.chpark.chcalendar.enumClass.FileAuthority;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -34,7 +34,7 @@ public class CalendarDto {
         private String color;
         private CalendarCategory category;
         private Boolean checked;
-        private CalendarMemberRole calendarMemberRole;
+        private FileAuthority fileAuthority;
 
         public Response(String title, long id, String color, CalendarCategory category, Boolean checked) {
             super(title);
@@ -42,17 +42,17 @@ public class CalendarDto {
             this.color = color;
             this.category = category;
             this.checked = checked;
-            this.calendarMemberRole = null;
+            this.fileAuthority = null;
         }
 
         @Builder
-        public Response(String title, long id, String color, CalendarCategory category, Boolean checked, String calendarMemberRole) {
+        public Response(String title, long id, String color, CalendarCategory category, Boolean checked, String fileAuthority) {
             super(title);
             this.id = id;
             this.color = color;
             this.category = category;
             this.checked = checked;
-            this.calendarMemberRole = CalendarMemberRole.parseCalendarMemberRole(calendarMemberRole);
+            this.fileAuthority = FileAuthority.parseFileAuthority(fileAuthority);
         }
 
         @Override
