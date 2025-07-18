@@ -12,7 +12,6 @@ import com.chpark.chcalendar.repository.calendar.CalendarMemberRepository;
 import com.chpark.chcalendar.repository.calendar.CalendarQueryRepository;
 import com.chpark.chcalendar.repository.calendar.CalendarRepository;
 import com.chpark.chcalendar.repository.user.UserRepository;
-import com.chpark.chcalendar.service.notification.QuartzSchedulerService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -30,8 +29,6 @@ public class CalendarMemberService {
     private final CalendarMemberRepository calendarMemberRepository;
     private final CalendarQueryRepository calendarQueryRepository;
     private final UserRepository userRepository;
-
-    private static final Logger log = LoggerFactory.getLogger(CalendarMemberService.class);
 
     public CalendarMemberDto create(CalendarEntity calendarEntity, long userId, CalendarMemberRole calendarMemberRole) {
         UserEntity userEntity = userRepository.findById(userId).orElseThrow(
