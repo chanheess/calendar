@@ -54,5 +54,17 @@ public class CalendarDto {
             this.checked = checked;
             this.calendarMemberRole = CalendarMemberRole.parseCalendarMemberRole(calendarMemberRole);
         }
+
+        @Override
+        public String toString() {
+            return "Response{" +
+                    "id=" + id +
+                    ", color='" + color + '\'' +
+                    ", category=" + category +
+                    ", checked=" + checked +
+                    ", fileAuthority=" + fileAuthority +
+                    ", title='" + this.getTitle() + '\'' +
+                    '}';
+        }
     }
 }

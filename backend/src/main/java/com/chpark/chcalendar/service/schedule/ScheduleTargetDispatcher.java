@@ -7,9 +7,9 @@ import com.chpark.chcalendar.entity.schedule.ScheduleEntity;
 import com.chpark.chcalendar.enumClass.CRUDAction;
 import com.chpark.chcalendar.enumClass.CalendarCategory;
 import com.chpark.chcalendar.enumClass.JwtTokenType;
-import com.chpark.chcalendar.event.schedule.GoogleScheduleCreateEvent;
-import com.chpark.chcalendar.event.schedule.GoogleScheduleDeleteEvent;
-import com.chpark.chcalendar.event.schedule.GoogleScheduleUpdateEvent;
+import com.chpark.chcalendar.event.schedule.google.GoogleScheduleCreateEvent;
+import com.chpark.chcalendar.event.schedule.google.GoogleScheduleDeleteEvent;
+import com.chpark.chcalendar.event.schedule.google.GoogleScheduleUpdateEvent;
 import com.chpark.chcalendar.exception.ScheduleException;
 import com.chpark.chcalendar.repository.calendar.CalendarRepository;
 import com.chpark.chcalendar.repository.schedule.ScheduleRepository;
@@ -135,7 +135,7 @@ public class ScheduleTargetDispatcher {
     }
 
     @Transactional
-    public void handleTargetScheduleAction(ScheduleTargetActionDto scheduleTargetActionDto, ScheduleDto.Request scheduleDto) {
+    public void handleTargetScheduleAction(ScheduleTargetActionDto scheduleTargetActionDto, ScheduleDto.Response scheduleDto) {
         switch (scheduleTargetActionDto.getAction()) {
             case CREATE -> {
                 createTargetSchedule(scheduleTargetActionDto, scheduleDto);
@@ -150,7 +150,7 @@ public class ScheduleTargetDispatcher {
     }
 
     @Transactional
-    public void createTargetSchedule(ScheduleTargetActionDto scheduleTargetActionDto, ScheduleDto.Request scheduleDto) {
+    public void createTargetSchedule(ScheduleTargetActionDto scheduleTargetActionDto, ScheduleDto.Response scheduleDto) {
         ScheduleDto localSchedule = scheduleDto.getScheduleDto();
         CalendarCategory category = scheduleTargetActionDto.getCategory();
         String providerId = scheduleTargetActionDto.getCalendarProviderId();
@@ -171,7 +171,7 @@ public class ScheduleTargetDispatcher {
     }
 
     @Transactional
-    public void updateTargetSchedule(ScheduleTargetActionDto scheduleTargetActionDto, ScheduleDto.Request scheduleDto) {
+    public void updateTargetSchedule(ScheduleTargetActionDto scheduleTargetActionDto, ScheduleDto.Response scheduleDto) {
         ScheduleDto localSchedule = scheduleDto.getScheduleDto();
         CalendarCategory category = scheduleTargetActionDto.getCategory();
         String calendarProviderId = scheduleTargetActionDto.getCalendarProviderId();

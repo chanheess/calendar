@@ -31,10 +31,10 @@ public class CalendarEntity {
     @Column(nullable = false)
     private CalendarCategory category;
 
-    @OneToMany(mappedBy = "calendar", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "calendar", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<CalendarSettingEntity> calendarSettings = new ArrayList<>();
 
-    @OneToOne(mappedBy = "calendar", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToOne(mappedBy = "calendar", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     private CalendarProviderEntity calendarProvider;
 
     public void addCalendarSetting(CalendarSettingEntity setting) {

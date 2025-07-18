@@ -30,6 +30,8 @@ public interface ScheduleRepository extends JpaRepository<ScheduleEntity, Long> 
 
     List<ScheduleEntity> findByUserId(@Param("userId") Long userId);
 
+    List<ScheduleEntity> findByUserIdAndCalendarId(@Param("userId") Long userId, @Param("calendarId") Long calendarId);
+
     Optional<ScheduleEntity> findByIdAndUserId(@Param("id") Long id, @Param("userId") Long userId);
 
     Optional<ScheduleEntity> findByProviderId(@Param("providerId") String providerId);

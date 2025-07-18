@@ -8,7 +8,6 @@ axios.interceptors.response.use(
   async error => {
     const originalRequest = error.config;
 
-    // 401이고, 재시도한 적 없으면
     if (
       error.response?.status === 401 &&
       !originalRequest._retry
@@ -16,6 +15,7 @@ axios.interceptors.response.use(
       if (!refreshPromise) {
         refreshPromise = axios.post('/auth/refresh', null, { withCredentials: true })
           .then(() => {
+            // 모든 대기 중인 요청 재처리
             requestQueue.forEach(cb => cb());
             requestQueue = [];
           })
@@ -29,9 +29,12 @@ axios.interceptors.response.use(
           });
       }
 
+      // 새 Promise를 만들어서 큐에 등록
       return new Promise((resolve, reject) => {
         requestQueue.push(() => {
           originalRequest._retry = true;
+          // withCredentials 옵션을 반드시 true로 설정
+          originalRequest.withCredentials = true;
           axios(originalRequest).then(resolve).catch(reject);
         });
       });

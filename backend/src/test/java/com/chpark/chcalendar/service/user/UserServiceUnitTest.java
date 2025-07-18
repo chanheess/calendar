@@ -1,16 +1,17 @@
-package com.chpark.chcalendar.service;
+package com.chpark.chcalendar.service.user;
 
-import com.chpark.chcalendar.dto.user.UserDto;
 import com.chpark.chcalendar.dto.calendar.CalendarDto;
 import com.chpark.chcalendar.dto.security.JwtAuthenticationResponseDto;
+import com.chpark.chcalendar.dto.user.UserDto;
 import com.chpark.chcalendar.entity.UserEntity;
+import com.chpark.chcalendar.enumClass.CalendarCategory;
 import com.chpark.chcalendar.enumClass.JwtTokenType;
 import com.chpark.chcalendar.repository.user.UserRepository;
 import com.chpark.chcalendar.security.JwtTokenProvider;
+import com.chpark.chcalendar.service.calendar.CalendarMemberService;
+import com.chpark.chcalendar.service.calendar.CalendarService;
 import com.chpark.chcalendar.service.calendar.UserCalendarService;
 import com.chpark.chcalendar.service.redis.RedisService;
-import com.chpark.chcalendar.service.calendar.CalendarMemberService;
-import com.chpark.chcalendar.service.user.UserService;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -22,11 +23,13 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -54,6 +57,12 @@ class UserServiceUnitTest {
     private AuthenticationManager authenticationManager;
 
     @Mock
+    private Map<CalendarCategory, CalendarService> calendarServiceMap;
+
+    @Mock
+    private CalendarService mockCalendarService;
+
+    @Mock
     private JwtTokenProvider jwtTokenProvider;
 
     @Test
@@ -61,17 +70,18 @@ class UserServiceUnitTest {
         //given
         UserDto.RegisterRequest userDto = new UserDto.RegisterRequest("testing1@naver.com", "testpassword123!!", "testingKing", "1234", "local");
 
-
         when(passwordEncoder.encode(userDto.getPassword())).thenReturn("encoded_password");
 
         UserEntity savedUser = UserEntity.builder()
+                .id(1L)
                 .email(userDto.getEmail())
                 .password("encoded_password")
                 .nickname(userDto.getNickname())
                 .build();
 
         when(userRepository.save(any(UserEntity.class))).thenReturn(savedUser);
-        when(userCalendarService.create(0L, "내 캘린더")).thenReturn(new CalendarDto.Response());
+        when(calendarServiceMap.get(CalendarCategory.USER)).thenReturn(mockCalendarService);
+        when(calendarServiceMap.get(CalendarCategory.USER).create(1L, "내 캘린더")).thenReturn(new CalendarDto.Response());
 
         //when
         userService.create(userDto);
@@ -85,6 +95,7 @@ class UserServiceUnitTest {
         // given
         UserDto userDto = new UserDto("testing1@naver.com", "testpassword123!!");
         UserEntity savedUser = UserEntity.builder()
+                .id(1L)
                 .email(userDto.getEmail())
                 .password("encoded_password")
                 .build();

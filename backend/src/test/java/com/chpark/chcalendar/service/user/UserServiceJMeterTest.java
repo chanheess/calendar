@@ -1,10 +1,9 @@
-package com.chpark.chcalendar.service;
+package com.chpark.chcalendar.service.user;
 
 import com.chpark.chcalendar.DotenvInitializer;
 import com.chpark.chcalendar.dto.user.UserDto;
 import com.chpark.chcalendar.entity.UserEntity;
 import com.chpark.chcalendar.repository.user.UserRepository;
-import com.chpark.chcalendar.service.user.UserService;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

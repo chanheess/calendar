@@ -1,11 +1,17 @@
 package com.chpark.chcalendar.utility;
 
+import com.chpark.chcalendar.dto.calendar.CalendarDto;
+import com.chpark.chcalendar.enumClass.CRUDAction;
+import com.chpark.chcalendar.enumClass.CalendarCategory;
+import com.chpark.chcalendar.exception.ScheduleException;
+import com.chpark.chcalendar.exception.authorization.CalendarAuthorizationException;
+import com.chpark.chcalendar.exception.authorization.GroupAuthorizationException;
 import com.chpark.chcalendar.service.calendar.CalendarService;
+import com.chpark.chcalendar.service.schedule.ScheduleGroupService;
+import com.chpark.chcalendar.service.schedule.ScheduleService;
+import jakarta.persistence.EntityNotFoundException;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class CalendarUtility {
 
@@ -17,6 +23,17 @@ public class CalendarUtility {
         return calendarService.findCalendarIdList(userId);
     }
 
+    public static void deleteCalendarAccount(long userId, Map<CalendarCategory, CalendarService> calendarServiceMap, ScheduleService scheduleService) {
+        calendarServiceMap.forEach((category, calendar) -> {
+            List<CalendarDto.Response> calendarList = calendar.findCalendarList(userId);
+
+            calendarList.forEach(targetCalendar -> {
+                scheduleService.deleteAccount(userId, targetCalendar.getId());
+                calendarServiceMap.get(targetCalendar.getCategory()).deleteCalendar(userId, targetCalendar.getId());
+            });
+        });
+    }
+
     public static List<Long> getUserAllCalendar(long userId, List<CalendarService> calendarServiceList) {
         List<Long> result = new ArrayList<>();
 
@@ -25,6 +42,28 @@ public class CalendarUtility {
         );
 
         return result;
+    }
+
+    public static void checkCalendarAuthority(CRUDAction action, long userId, long createdUserId, long calendarId, Long scheduleId, List<CalendarService> calendarServiceList, ScheduleGroupService scheduleGroupService) {
+        int checkCount = 0;
+
+        for (CalendarService calendarService : calendarServiceList) {
+            try {
+                calendarService.checkAuthority(action, userId, calendarId);
+            } catch (GroupAuthorizationException | EntityNotFoundException ex) {
+                checkCount++;
+            }
+        }
+
+        try {
+            scheduleGroupService.checkScheduleGroupAuth(userId, createdUserId, scheduleId);
+        } catch (ScheduleException ex) {
+            checkCount++;
+        }
+
+        if (checkCount == calendarServiceList.size() + 1) {
+            throw new CalendarAuthorizationException("You do not have permission.");
+        }
     }
 
     public static List<Long> getAuthorizedCalendars(long userId, List<Long> calendarIdList, List<CalendarService> calendarServiceList) {

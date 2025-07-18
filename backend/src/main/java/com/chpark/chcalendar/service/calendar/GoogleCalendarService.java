@@ -7,8 +7,6 @@ import com.chpark.chcalendar.entity.calendar.CalendarProviderEntity;
 import com.chpark.chcalendar.enumClass.CRUDAction;
 import com.chpark.chcalendar.enumClass.CalendarCategory;
 import com.chpark.chcalendar.enumClass.JwtTokenType;
-import com.chpark.chcalendar.exception.CustomException;
-import com.chpark.chcalendar.exception.authentication.TokenAuthenticationException;
 import com.chpark.chcalendar.exception.authorization.CalendarAuthorizationException;
 import com.chpark.chcalendar.repository.calendar.CalendarProviderRepository;
 import com.chpark.chcalendar.repository.calendar.CalendarQueryRepository;
@@ -18,6 +16,7 @@ import com.chpark.chcalendar.security.JwtTokenProvider;
 import com.chpark.chcalendar.utility.CookieUtility;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,10 +31,10 @@ public class GoogleCalendarService extends CalendarService {
     private final CalendarProviderRepository calendarProviderRepository;
     private final RestClient restClient;
 
-    public GoogleCalendarService(CalendarRepository calendarRepository, CalendarSettingRepository calendarSettingRepository, JwtTokenProvider jwtTokenProvider, JwtTokenProvider jwtTokenProvider1, CalendarQueryRepository calendarQueryRepository, CalendarProviderRepository calendarExternalRepository, RestClient restClient) {
-        super(calendarRepository, calendarSettingRepository, jwtTokenProvider);
+    public GoogleCalendarService(CalendarRepository calendarRepository, CalendarSettingRepository calendarSettingRepository, JwtTokenProvider jwtTokenProvider, ApplicationEventPublisher eventPublisher, CalendarQueryRepository calendarQueryRepository, CalendarProviderRepository calendarProviderRepository, RestClient restClient) {
+        super(calendarRepository, calendarSettingRepository, jwtTokenProvider, eventPublisher);
         this.calendarQueryRepository = calendarQueryRepository;
-        this.calendarProviderRepository = calendarExternalRepository;
+        this.calendarProviderRepository = calendarProviderRepository;
         this.restClient = restClient;
     }
 
@@ -55,18 +54,35 @@ public class GoogleCalendarService extends CalendarService {
     }
 
     @Override
-    public void checkAuthority(CRUDAction action, long userId, long createdUserId, long calendarId) {
+    public void checkAuthority(CRUDAction action, long userId, long calendarId) {
         CalendarEntity calendarEntity = calendarRepository.findByIdAndUserId(calendarId, userId).orElseThrow(
-                () -> new CalendarAuthorizationException("캘린더에 대한 권한이 없습니다.")
+                () -> new EntityNotFoundException("접근 권한이 없습니다.")
         );
 
         if (calendarEntity.getCalendarProvider() == null) {
-            throw new CalendarAuthorizationException("캘린더에 대한 권한이 없습니다.");
+            throw new EntityNotFoundException("접근 권한이 없습니다.");
         }
 
-        if (Objects.equals(calendarEntity.getCalendarProvider().getStatus(), "reader")) {
-            throw new CalendarAuthorizationException("읽기만 가능한 캘린더입니다.");
+        if (Objects.equals(calendarEntity.getCalendarProvider().getStatus(), "reader") && !action.equals(CRUDAction.READ)) {
+            if (action.equals(CRUDAction.CREATE)) {
+                return; //구글 캘린더 목록을 불러오기 위함
+            }
+
+            throw new CalendarAuthorizationException("읽기 권한만 있습니다. (수정/삭제/생성 불가)");
         }
+    }
+
+    @Override
+    public void deleteCalendar(long userId, long calendarId) {
+        Optional<CalendarEntity> calendarEntity = calendarRepository.findByIdAndUserId(calendarId, userId);
+
+        if (calendarEntity.isEmpty()) {
+            return;
+        }
+
+        calendarSettingRepository.deleteAll(calendarEntity.get().getCalendarSettings());
+        calendarProviderRepository.deleteByCalendarId(calendarId);
+        calendarRepository.delete(calendarEntity.get());
     }
 
     @Override
@@ -87,7 +103,7 @@ public class GoogleCalendarService extends CalendarService {
     @Transactional
     public void updateGoogleCalendarTitle(String googleAccessToken, CalendarSettingDto calendarSettingDto) {
         if (googleAccessToken == null || googleAccessToken.trim().isEmpty()) {
-            throw new TokenAuthenticationException("Google Access Token이 필요합니다.");
+            throw new IllegalArgumentException("Google Access Token이 필요합니다.");
         }
 
         CalendarProviderEntity calendarProviderEntity = calendarProviderRepository.findByCalendarId(calendarSettingDto.getCalendarId())

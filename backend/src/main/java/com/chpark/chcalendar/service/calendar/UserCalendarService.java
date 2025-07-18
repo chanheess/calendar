@@ -4,22 +4,24 @@ import com.chpark.chcalendar.dto.calendar.CalendarDto;
 import com.chpark.chcalendar.entity.calendar.CalendarEntity;
 import com.chpark.chcalendar.enumClass.CRUDAction;
 import com.chpark.chcalendar.enumClass.CalendarCategory;
-import com.chpark.chcalendar.exception.authorization.CalendarAuthorizationException;
 import com.chpark.chcalendar.repository.calendar.CalendarQueryRepository;
 import com.chpark.chcalendar.repository.calendar.CalendarRepository;
 import com.chpark.chcalendar.repository.calendar.CalendarSettingRepository;
 import com.chpark.chcalendar.security.JwtTokenProvider;
+import jakarta.persistence.EntityNotFoundException;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class UserCalendarService extends CalendarService {
 
     private final CalendarQueryRepository calendarQueryRepository;
 
-    public UserCalendarService(CalendarRepository calendarRepository, CalendarSettingRepository calendarSettingRepository, JwtTokenProvider jwtTokenProvider, CalendarQueryRepository calendarQueryRepository) {
-        super(calendarRepository, calendarSettingRepository, jwtTokenProvider);
+    public UserCalendarService(CalendarRepository calendarRepository, CalendarSettingRepository calendarSettingRepository, JwtTokenProvider jwtTokenProvider, ApplicationEventPublisher eventPublisher, CalendarQueryRepository calendarQueryRepository) {
+        super(calendarRepository, calendarSettingRepository, jwtTokenProvider, eventPublisher);
         this.calendarQueryRepository = calendarQueryRepository;
     }
 
@@ -48,7 +50,7 @@ public class UserCalendarService extends CalendarService {
 
     @Override
     public List<CalendarDto.Response> findCalendarList(long userId) {
-        return calendarQueryRepository.findCalendarsByUserId(userId);
+        return calendarQueryRepository.findUserCalendarList(userId);
     }
 
     public List<Long> findCalendarIdList(long userId) {
@@ -56,9 +58,21 @@ public class UserCalendarService extends CalendarService {
     }
 
     @Override
-    public void checkAuthority(CRUDAction action, long userId, long createdUserId, long calendarId) {
+    public void checkAuthority(CRUDAction action, long userId, long calendarId) {
         calendarRepository.findByIdAndUserId(calendarId, userId).orElseThrow(
-                () -> new CalendarAuthorizationException("캘린더에 대한 권한이 없습니다.")
+                () -> new EntityNotFoundException("You do not have permission.")
         );
+    }
+
+    @Override
+    public void deleteCalendar(long userId, long calendarId) {
+        Optional<CalendarEntity> calendarEntity = calendarRepository.findByIdAndUserId(calendarId, userId);
+
+        if (calendarEntity.isEmpty()) {
+            return;
+        }
+
+        calendarSettingRepository.deleteAll(calendarEntity.get().getCalendarSettings());
+        calendarRepository.delete(calendarEntity.get());
     }
 }

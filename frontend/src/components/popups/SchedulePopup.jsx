@@ -138,7 +138,7 @@ import {
     try {
       // 그룹 내 전체 사용자 가져오기
       const allUsersResponse = await axios.get(
-        `/groups/${scheduleData.calendarId}/users`,
+        `/calendars/${scheduleData.calendarId}/members`,
         {
           withCredentials: true,
           headers: { "Content-Type": "application/json" },

@@ -21,4 +21,13 @@ public interface CalendarMemberRepository extends JpaRepository<CalendarMemberEn
     Optional<CalendarMemberEntity> findByUserIdAndCalendarId(Long userId, Long calendarId);
 
     List<CalendarMemberEntity> findByCalendarId(Long calendarId);
+
+    long countByCalendarId(long calendarId);
+
+    @Query("SELECT c FROM CalendarMemberEntity c " +
+            "WHERE c.calendar.id = :calendarId AND c.user.id <> :excludeUserId " +
+            "ORDER BY c.role ASC")
+    List<CalendarMemberEntity> findByNextOwner(@Param("calendarId") Long calendarId, @Param("excludeUserId") Long excludeUserId);
+
+    List<CalendarMemberEntity> findByUserId(Long userId);
 }

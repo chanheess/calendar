@@ -15,12 +15,15 @@ import java.util.Optional;
 public interface FirebaseTokenRepository extends JpaRepository<FirebaseTokenEntity, Long> {
 
     List<FirebaseTokenEntity> findByUserId(long userId);
+
     void deleteByUserIdAndToken(long userId, String token);
+    void deleteByUserId(long userId);
 
     @Modifying
     @Transactional
     @Query("DELETE FROM FirebaseTokenEntity f WHERE f.token = :token")
     int deleteByToken(@Param("token") String token);
+
 
     Optional<FirebaseTokenEntity> findByUserIdAndToken(long userId, String token);
     Optional<FirebaseTokenEntity> findByUserIdAndPlatform(long userId, String platform);

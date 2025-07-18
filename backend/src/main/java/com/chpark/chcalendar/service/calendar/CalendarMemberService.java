@@ -14,6 +14,8 @@ import com.chpark.chcalendar.repository.calendar.CalendarRepository;
 import com.chpark.chcalendar.repository.user.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -62,7 +64,7 @@ public class CalendarMemberService {
     public CalendarMemberEntity checkCalendarMemberAuthority(long userId, long calendarId, CalendarMemberRole role) {
         CalendarMemberEntity result = this.getCalendarMember(userId, calendarId);
 
-        if (result.getRole().ordinal() > role.ordinal()) {
+        if (result.getRole().compareTo(role) >= 0) {
             throw new GroupAuthorizationException("캘린더에 대한 권한이 없습니다.");
         }
 
@@ -91,4 +93,56 @@ public class CalendarMemberService {
     public List<Long> getUserList(long calendarId) {
         return calendarMemberRepository.findUserIdByCalendarId(calendarId);
     }
+
+    @Transactional
+    public void OwnershipTransfer(long userId, long calendarId, CalendarMemberEntity calendarMemberEntity) {
+        List<CalendarMemberEntity> memberList = calendarMemberRepository.findByNextOwner(calendarId, userId);
+
+        if (memberList.isEmpty() || !isCalendarOwner(calendarMemberEntity)) {
+            return;
+        }
+
+        for (CalendarMemberEntity member : memberList) {
+            UserEntity user = member.getUser();
+            CalendarEntity calendar = member.getCalendar();
+
+            if (user != null) {
+                member.setRole(calendarMemberEntity.getRole());
+                calendar.setUserId(user.getId());
+                break;
+            }
+        }
+    }
+
+    public boolean isCalendarOwner(CalendarMemberEntity calendarMemberEntity) {
+        if (calendarMemberEntity == null) {
+            return false;
+        }
+
+        return CalendarMemberRole.ADMIN.equals(calendarMemberEntity.getRole());
+    }
+
+    @Transactional
+    public long getMemberCount(long calendarId) {
+        return calendarMemberRepository.countByCalendarId(calendarId);
+    }
+
+    @Transactional
+    public void deleteMember(CalendarMemberEntity calendarMemberEntity) {
+        calendarMemberRepository.delete(calendarMemberEntity);
+    }
+
+    @Transactional
+    public void removeGroupMembership(long userId, long calendarId) {
+        CalendarMemberEntity calendarMemberEntity = getCalendarMember(userId, calendarId);
+
+        if (isCalendarOwner(calendarMemberEntity)) {
+            if (getMemberCount(calendarId) > 1) {
+                OwnershipTransfer(userId, calendarId, calendarMemberEntity);
+            }
+        }
+
+        deleteMember(calendarMemberEntity);
+    }
+
 }

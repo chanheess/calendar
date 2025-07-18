@@ -59,6 +59,9 @@ class ScheduleServiceUnitTest {
     @Mock
     private ScheduleGroupService scheduleGroupService;
 
+    @Mock
+    private Map<CalendarCategory, CalendarService> calendarServiceMap;
+
     @InjectMocks
     private ScheduleService scheduleService;
 
@@ -71,7 +74,7 @@ class ScheduleServiceUnitTest {
     void setup() {
         // 유저 및 일정 기본값 설정
         mockUser = UserEntity.builder()
-                .id(1)
+                .id(1L)
                 .email("test@example.com")
                 .build();
 

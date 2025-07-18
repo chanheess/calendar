@@ -29,7 +29,7 @@ import java.util.Optional;
 
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api/schedules")
+@RequestMapping("/api")
 @Slf4j
 public class ScheduleController {
 
@@ -38,7 +38,7 @@ public class ScheduleController {
     private final CalendarRepository calendarRepository;
     private final ScheduleTargetDispatcher scheduleTargetDispatcher;
 
-    @GetMapping
+    @GetMapping("/schedules")
     public ResponseEntity<List<ScheduleDto>> getSchedulesByTitle(@RequestParam(value = "title", required = false) String title,
                                                                  HttpServletRequest request) {
         List<ScheduleDto> schedules;
@@ -55,7 +55,7 @@ public class ScheduleController {
         return new ResponseEntity<>(schedules, HttpStatus.OK);
     }
 
-    @GetMapping("/date")
+    @GetMapping("/schedules/date")
     public ResponseEntity<CursorPage<ScheduleDto>> getNextSchedules(
             @RequestParam("start") String start,
             @RequestParam("end") String end,
@@ -81,7 +81,7 @@ public class ScheduleController {
         return ResponseEntity.ok(result);
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/schedules/{id}")
     public ResponseEntity<ScheduleDto> getScheduleById(@PathVariable("id") long id,
                                                        HttpServletRequest request) {
         String token = jwtTokenProvider.resolveToken(request, JwtTokenType.ACCESS.getValue());
@@ -92,7 +92,7 @@ public class ScheduleController {
         return scheduleDto.map(dto -> new ResponseEntity<>(dto, HttpStatus.OK)).orElseGet(() -> new ResponseEntity<>(null, HttpStatus.OK));
     }
 
-    @PostMapping
+    @PostMapping("/schedules")
     public ResponseEntity<ScheduleDto.Response> createSchedule(@Validated(ValidGroup.CreateGroup.class) @RequestBody ScheduleDto.Request scheduleDto,
                                                                HttpServletRequest request) {
         String token = jwtTokenProvider.resolveToken(request, JwtTokenType.ACCESS.getValue());
@@ -102,13 +102,13 @@ public class ScheduleController {
         ScheduleDto.Response result = scheduleService.createByForm(scheduleDto, userId);
 
         if (scheduleTargetActionDto != null) {
-            scheduleTargetDispatcher.createTargetSchedule(scheduleTargetActionDto, scheduleDto);
+            scheduleTargetDispatcher.createTargetSchedule(scheduleTargetActionDto, result);
         }
 
         return new ResponseEntity<>(result, HttpStatus.CREATED);
     }
 
-    @PatchMapping("/{id}")
+    @PatchMapping("/schedules/{id}")
     public ResponseEntity<ScheduleDto.Response> updateSchedule(@PathVariable("id") long id,
                                                                @RequestParam("repeat") boolean isRepeatChecked,
                                                                @Validated @RequestBody ScheduleDto.Request scheduleDto,
@@ -119,13 +119,13 @@ public class ScheduleController {
         ScheduleDto.Response response = scheduleService.updateSchedule(id, isRepeatChecked, scheduleDto, userId);
 
         if (scheduleTargetActionDto != null) {
-            scheduleTargetDispatcher.handleTargetScheduleAction(scheduleTargetActionDto, scheduleDto);
+            scheduleTargetDispatcher.handleTargetScheduleAction(scheduleTargetActionDto, response);
         }
 
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    @PatchMapping("/{id}/{update-scope}")
+    @PatchMapping("/schedules/{id}/{update-scope}")
     public ResponseEntity<ScheduleDto.Response> updateRepeatSchedule(@PathVariable("id") long id,
                                                                      @PathVariable("update-scope") String repeatStringScope,
                                                                      @RequestParam("repeat") boolean isRepeatChecked,
@@ -149,7 +149,7 @@ public class ScheduleController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    @DeleteMapping("/{schedule-id}/calendars/{calendar-id}")
+    @DeleteMapping("/schedules/{schedule-id}/calendars/{calendar-id}")
     public ResponseEntity<String> deleteSchedule(@PathVariable("schedule-id") long scheduleId,
                                                  @PathVariable("calendar-id") long calendarId,
                                                  HttpServletRequest request) {
@@ -167,7 +167,7 @@ public class ScheduleController {
         return new ResponseEntity<>("Schedule deleted successfully.", HttpStatus.OK);
     }
 
-    @DeleteMapping("/{schedule-id}/{delete-scope}/calendars/{calendar-id}")
+    @DeleteMapping("/schedules/{schedule-id}/{delete-scope}/calendars/{calendar-id}")
     public ResponseEntity<String> deleteRepeatSchedule(@PathVariable("schedule-id") long scheduleId,
                                                        @PathVariable("delete-scope") String repeatStringScope,
                                                        @PathVariable("calendar-id") long calendarId,
