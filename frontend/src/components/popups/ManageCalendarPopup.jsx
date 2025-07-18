@@ -111,8 +111,7 @@ const ManageCalendarPopup = ({
       setInviteUserName("");
       loadUserList(calendarInfo.id);
     } catch (error) {
-      console.error("Error inviting user:", error);
-      alert(`${inviteUserName} 초대 실패`);
+      alert(error.response?.data.message || `${inviteUserName} 초대 실패`);
     }
   };
 
