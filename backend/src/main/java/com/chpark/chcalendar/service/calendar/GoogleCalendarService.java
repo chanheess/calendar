@@ -64,6 +64,10 @@ public class GoogleCalendarService extends CalendarService {
         }
 
         if (Objects.equals(calendarEntity.getCalendarProvider().getStatus(), "reader") && !action.equals(CRUDAction.READ)) {
+            if (action.equals(CRUDAction.CREATE)) {
+                return; //구글 캘린더 목록을 불러오기 위함
+            }
+
             throw new CalendarAuthorizationException("읽기 권한만 있습니다. (수정/삭제/생성 불가)");
         }
     }

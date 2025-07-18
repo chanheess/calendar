@@ -342,7 +342,11 @@ public class ScheduleService {
     }
 
     public void validateScheduleDto(ScheduleDto scheduleDto) {
-        if(!scheduleDto.getStartAt().isBefore(scheduleDto.getEndAt())) {
+        if (scheduleDto.getStartAt().equals(scheduleDto.getEndAt())) {
+            return;
+        }
+
+        if (!scheduleDto.getStartAt().isBefore(scheduleDto.getEndAt())) {
             throw new IllegalArgumentException("시작 시간은 종료 시간보다 이전이어야 합니다.");
         }
     }

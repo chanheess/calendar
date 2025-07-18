@@ -6,6 +6,7 @@ import com.chpark.chcalendar.entity.calendar.CalendarEntity;
 import com.chpark.chcalendar.entity.schedule.ScheduleEntity;
 import com.chpark.chcalendar.entity.schedule.ScheduleNotificationEntity;
 import com.chpark.chcalendar.enumClass.CalendarCategory;
+import com.chpark.chcalendar.exception.authorization.GroupAuthorizationException;
 import com.chpark.chcalendar.repository.calendar.CalendarRepository;
 import com.chpark.chcalendar.repository.schedule.ScheduleNotificationRepository;
 import com.chpark.chcalendar.repository.schedule.ScheduleRepository;
@@ -156,8 +157,6 @@ public class ScheduleNotificationService {
 
     @Transactional
     public void updateNotificationScheduler(long userId, ScheduleEntity scheduleEntity, ScheduleNotificationEntity notification) {
-
-
         List<Long> targetUserIds = getUserIdList(userId, scheduleEntity);
 
         targetUserIds.forEach(targetUserId -> {
@@ -187,15 +186,17 @@ public class ScheduleNotificationService {
     }
 
     public List<Long> getUserIdList(long userId, ScheduleEntity scheduleEntity) {
-        List<CalendarMemberDto> groupUserList = calendarMemberService.findCalendarMemberList(userId, scheduleEntity.getCalendarId());
+        List<CalendarMemberDto> groupUserList = new ArrayList<>();
+        List<Long> targetUserIds = new ArrayList<>();
+
+        try {
+            groupUserList = calendarMemberService.findCalendarMemberList(userId, scheduleEntity.getCalendarId());
+        } catch (GroupAuthorizationException e) {
+            targetUserIds.add(userId);
+        }
 
         // 대상 사용자 ID를 담을 리스트 생성
-        List<Long> targetUserIds = new ArrayList<>();
-        if (groupUserList == null || groupUserList.isEmpty()) {
-            targetUserIds.add(userId);
-        } else {
-            groupUserList.forEach(groupUser -> targetUserIds.add(groupUser.getUserId()));
-        }
+        groupUserList.forEach(groupUser -> targetUserIds.add(groupUser.getUserId()));
 
         return targetUserIds;
     }
