@@ -25,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -239,41 +240,42 @@ public class GoogleScheduleSyncService implements ScheduleSyncService{
 
     @Transactional
     private String getGoogleSchedule(String accessToken, String urlString) throws IOException {
-        URL url = new URL(urlString);
-        HttpURLConnection con = (HttpURLConnection) url.openConnection();
-        con.setRequestMethod("GET");
-        con.setRequestProperty("Content-Type", "application/json");
-        con.setRequestProperty("Authorization", "Bearer " + accessToken);
+        HttpURLConnection con = null;
 
-        int responseCode = con.getResponseCode();
-        if (responseCode >= 400) {
-            try (BufferedReader errorReader = new BufferedReader(new InputStreamReader(con.getErrorStream()))) {
-                StringBuilder errorResponse = new StringBuilder();
+        try {
+            URL url = new URL(urlString);
+            con = (HttpURLConnection) url.openConnection();
+            con.setRequestMethod("GET");
+            con.setRequestProperty("Content-Type", "application/json");
+            con.setRequestProperty("Authorization", "Bearer " + accessToken);
+
+            int responseCode = con.getResponseCode();
+
+            InputStream stream = responseCode >= 400 ? con.getErrorStream() : con.getInputStream();
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(stream))) {
+                StringBuilder response = new StringBuilder();
                 String inputLine;
-                while ((inputLine = errorReader.readLine()) != null) {
-                    errorResponse.append(inputLine);
-                }
-                if (responseCode == 410 && errorResponse.toString().contains("fullSyncRequired")) {
-                    // 예외를 던지거나, 플래그 반환 또는 로깅
-                    throw new TokenAuthenticationException("Sync token is no longer valid. Full sync is required.");
+
+                while ((inputLine = reader.readLine()) != null) {
+                    response.append(inputLine);
                 }
 
-                throw new IOException("HTTP error code: " + responseCode + ", response: " + errorResponse.toString());
+                if (responseCode >= 400) {
+                    if (responseCode == 410 && response.toString().contains("fullSyncRequired")) {
+                        throw new TokenAuthenticationException("Sync token is no longer valid. Full sync is required.");
+                    }
+                    throw new IOException("HTTP error code: " + responseCode + ", response: " + response);
+                }
+
+                return response.toString();
+            }
+
+        } finally {
+            if (con != null) {
+                con.disconnect();
             }
         }
-
-        BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
-        String inputLine;
-        StringBuilder response = new StringBuilder();
-        while ((inputLine = in.readLine()) != null) {
-            response.append(inputLine);
-        }
-        in.close();
-
-        return response.toString();
     }
-
-
 
     private Map<GoogleScheduleStatus, List<ScheduleDto.Request>> parseGoogleScheduleMap(JsonNode rootNode, CalendarEntity calendarEntity) {
         Map<GoogleScheduleStatus, List<ScheduleDto.Request>> scheduleEntityMap = new HashMap<>();
