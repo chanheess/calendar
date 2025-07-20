@@ -129,7 +129,7 @@ public class GoogleCalendarService extends CalendarService {
                              })
                     .body(String.class);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Google Calendar API 호출 실패: {}", e.getMessage(), e);
             throw new RuntimeException("Google Calendar 업데이트에 실패했습니다.", e);
         }
     }

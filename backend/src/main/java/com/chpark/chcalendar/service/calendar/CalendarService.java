@@ -21,7 +21,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public abstract class CalendarService {
 
-    private static final Logger log = LoggerFactory.getLogger(CalendarService.class);
+    protected static final Logger log = LoggerFactory.getLogger(CalendarService.class);
     protected final CalendarRepository calendarRepository;
     protected final CalendarSettingRepository calendarSettingRepository;
     private final JwtTokenProvider jwtTokenProvider;
