@@ -15,14 +15,14 @@ public class OAuth2Controller {
     @PostMapping("/login")
     public String login(HttpServletRequest request) {
         HttpSession session = request.getSession();
-        session.setAttribute("oauth2_type", "login");
+        session.setAttribute("oauth_login_type", "login");
         return "/oauth2/authorization/google";
     }
 
     @PostMapping("/link")
     public String link(HttpServletRequest request) {
         HttpSession session = request.getSession();
-        session.setAttribute("oauth2_type", "link");
+        session.setAttribute("oauth_login_type", "link");
         return "/oauth2/authorization/google";
     }
 }
