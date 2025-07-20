@@ -1,6 +1,7 @@
 package com.chpark.chcalendar.entity;
 
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -24,6 +25,13 @@ public class UserProviderEntity {
     private UserEntity user;
 
     public UserProviderEntity(String provider, UserEntity user) {
+        this.provider = provider;
+        this.user = user;
+    }
+
+    @Builder
+    public UserProviderEntity(Long id, String provider, UserEntity user) {
+        this.id = id;
         this.provider = provider;
         this.user = user;
     }
