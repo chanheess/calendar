@@ -4,8 +4,11 @@ import com.chpark.chcalendar.dto.calendar.CalendarDto;
 import com.chpark.chcalendar.dto.security.JwtAuthenticationResponseDto;
 import com.chpark.chcalendar.dto.user.UserDto;
 import com.chpark.chcalendar.entity.UserEntity;
+import com.chpark.chcalendar.entity.UserProviderEntity;
 import com.chpark.chcalendar.enumClass.CalendarCategory;
 import com.chpark.chcalendar.enumClass.JwtTokenType;
+import com.chpark.chcalendar.enumClass.RequestType;
+import com.chpark.chcalendar.repository.user.UserProviderRepository;
 import com.chpark.chcalendar.repository.user.UserRepository;
 import com.chpark.chcalendar.security.JwtTokenProvider;
 import com.chpark.chcalendar.service.calendar.CalendarMemberService;
@@ -19,10 +22,13 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -37,6 +43,9 @@ class UserServiceUnitTest {
 
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private UserProviderRepository userProviderRepository;
 
     @Mock
     private UserCalendarService userCalendarService;
@@ -108,6 +117,15 @@ class UserServiceUnitTest {
         when(jwtTokenProvider.generateToken(authentication, savedUser.getId(), JwtTokenType.ACCESS))
                 .thenReturn("mocked_jwt_token");
 
+        when(userProviderRepository.findByUserId(savedUser.getId()))
+                .thenReturn(List.of(
+                        UserProviderEntity.builder()
+                                .id(1L)
+                                .user(savedUser)
+                                .provider("local")
+                                .build()
+                ));
+
         // when
         JwtAuthenticationResponseDto token = userService.login(userDto, "1234");
 
@@ -120,13 +138,14 @@ class UserServiceUnitTest {
         // given
         UserDto userDto = new UserDto("imnotuser@naver.com", "testpassword123!");
 
-        when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
-                .thenThrow(new IllegalArgumentException("Invalid email or password."));
+        // 사용자 조회 실패하도록 설정
+        when(userRepository.findByEmail(userDto.getEmail()))
+                .thenReturn(Optional.empty());
 
         // when & then
         assertThatThrownBy(() -> userService.login(userDto, "1234"))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Invalid email or password.");
+                .hasMessage("사용자를 찾을 수 없습니다");
     }
 
     @Test
@@ -134,13 +153,38 @@ class UserServiceUnitTest {
         // given
         UserDto userDto = new UserDto("testing1@naver.com", "wrongpassword");
 
+        UserEntity savedUser = UserEntity.builder()
+                .id(1L)
+                .email(userDto.getEmail())
+                .password("encoded_password")
+                .build();
+
+        // 사용자 조회는 성공
+        when(userRepository.findByEmail(userDto.getEmail()))
+                .thenReturn(Optional.of(savedUser));
+
+        // provider가 local임
+        when(userProviderRepository.findByUserId(savedUser.getId()))
+                .thenReturn(List.of(
+                        UserProviderEntity.builder()
+                                .id(1L)
+                                .user(savedUser)
+                                .provider("local")
+                                .build()
+                ));
+
+        // 비밀번호가 틀려 인증 실패
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
-                .thenThrow(new IllegalArgumentException("Invalid email or password."));
+                .thenThrow(new BadCredentialsException("비밀번호 틀림"));
+
+        // 로그인 요청 횟수 증가와 조회 모킹
+        doNothing().when(redisService).increaseRequestCount(RequestType.LOGIN, "1234");
+        when(redisService.getRequestCount(RequestType.LOGIN, "1234")).thenReturn("1");
 
         // when & then
         assertThatThrownBy(() -> userService.login(userDto, "1234"))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("Invalid email or password.");
+                .hasMessageContaining("이메일이나 비밀번호를 확인해주세요");
     }
 
     @Test
