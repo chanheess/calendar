@@ -13,7 +13,7 @@ import java.util.List;
 @AllArgsConstructor
 public class NotificationScheduleDto {
 
-    long groupId;
+    long calendarId;
 
     @NotNull
     List<ScheduleGroupDto> scheduleGroupDto;

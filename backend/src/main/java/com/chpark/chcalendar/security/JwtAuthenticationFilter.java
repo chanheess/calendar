@@ -5,6 +5,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -24,19 +25,32 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
-        if (request.getRequestURI().startsWith("/api/auth/login") || request.getRequestURI().startsWith("/api/auth/refresh")) {
-            filterChain.doFilter(request, response);
-            return;
-        }
 
+        String googleToken = jwtTokenProvider.resolveToken(request, JwtTokenType.GOOGLE_ACCESS.getValue());
         String token = jwtTokenProvider.resolveToken(request, JwtTokenType.ACCESS.getValue());
 
-        if (token != null && jwtTokenProvider.validateToken(token, JwtTokenType.ACCESS)) {
+        if (googleToken != null) {
+            Authentication googleAuth = new UsernamePasswordAuthenticationToken("google_user", null, null);
+            SecurityContextHolder.getContext().setAuthentication(googleAuth);
+        } else if (token != null && jwtTokenProvider.validateToken(token, JwtTokenType.ACCESS)) {
             Authentication auth = jwtTokenProvider.getAuthentication(token);
             SecurityContextHolder.getContext().setAuthentication(auth);
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+        String path = request.getRequestURI();
+        return path.startsWith("/swagger-ui") ||
+               path.startsWith("/v3/api-docs") ||
+               path.startsWith("/swagger-resources") ||
+               path.startsWith("/webjars") ||
+               path.equals("/swagger-ui.html") ||
+               path.equals("/swagger-ui/index.html") ||
+               path.contains("/swagger-ui/") ||
+               path.contains("/v3/api-docs/");
     }
 
 }

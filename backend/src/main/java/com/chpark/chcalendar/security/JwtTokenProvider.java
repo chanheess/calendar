@@ -1,78 +1,103 @@
 package com.chpark.chcalendar.security;
 
 import com.chpark.chcalendar.dto.security.JwtAuthenticationResponseDto;
+import com.chpark.chcalendar.entity.UserEntity;
 import com.chpark.chcalendar.enumClass.JwtTokenType;
 import com.chpark.chcalendar.exception.authentication.TokenAuthenticationException;
+import com.chpark.chcalendar.repository.user.UserRepository;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
 import java.util.Collections;
 import java.util.Date;
 
+@RequiredArgsConstructor
 @Component
 public class JwtTokenProvider {
     @Value("${JWT_SECRET}")
     private String SECRET_KEY;
 
+    @Getter
     private Key key;
+
+    @Getter
+    private long EXPIRATION_TIME = 60 * 60 * 1000;
+
+    @Getter
+    private long REFRESH_EXPIRATION_TIME = 14 * 24 * 60 * 60 * 1000;
+
+    @Getter
+    private SignatureAlgorithm signatureAlgorithm = SignatureAlgorithm.HS512;
 
     @PostConstruct
     public void init() {
         this.key = Keys.hmacShaKeyFor(Decoders.BASE64.decode(SECRET_KEY));
     }
 
-    // JWT 액세스 토큰 생성
-    public String generateAccessToken(Authentication authentication, long userId) {
+    private final UserRepository userRepository;
+
+    // JWT 토큰 생성
+    public String generateToken(Authentication authentication, long userId, JwtTokenType tokenType) {
         String username;
         Object principal = authentication.getPrincipal();
-        if (principal instanceof org.springframework.security.core.userdetails.UserDetails) {
-            username = ((org.springframework.security.core.userdetails.UserDetails) principal).getUsername();
+        if (principal instanceof UserDetails) {
+            username = ((UserDetails) principal).getUsername();
         } else {
             username = principal.toString();
         }
 
-        long EXPIRATION_TIME = 60 * 60 * 1000;
+        long expirationTime = (tokenType == JwtTokenType.ACCESS) ? EXPIRATION_TIME : REFRESH_EXPIRATION_TIME;
+
         return Jwts.builder()
                 .setSubject(username)
                 .claim("userId", userId) // 사용자 ID를 payload에 추가
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
-                .signWith(key, SignatureAlgorithm.HS512)
+                .setExpiration(new Date(System.currentTimeMillis() + expirationTime))
+                .signWith(key, signatureAlgorithm)
                 .compact();
     }
 
-    // JWT 리프레시 토큰 생성
-    public String generateRefreshToken(Authentication authentication, long userId) {
-        String username;
-        Object principal = authentication.getPrincipal();
-        if (principal instanceof org.springframework.security.core.userdetails.UserDetails) {
-            username = ((org.springframework.security.core.userdetails.UserDetails) principal).getUsername();
-        } else {
-            username = principal.toString();
-        }
+    public String generateToken(String email, JwtTokenType tokenType) {
+        UserEntity userEntity = userRepository.findByEmail(email).orElseThrow(
+                () -> new OAuth2AuthenticationException("존재하지 않는 사용자입니다.")
+        );
 
-        long EXPIRATION_TIME = 14 * 24 * 60 * 60 * 1000;
+        long expiration = switch (tokenType) {
+            case ACCESS -> getEXPIRATION_TIME();
+            case REFRESH -> getREFRESH_EXPIRATION_TIME();
+            case GOOGLE_ACCESS, GOOGLE_REFRESH -> 0L;
+        };
+
         return Jwts.builder()
-                .setSubject(username)
-                .claim("userId", userId) // 사용자 ID를 payload에 추가
+                .setSubject(email)
+                .claim("userId", userEntity.getId())
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
-                .signWith(key, SignatureAlgorithm.HS512)
+                .setExpiration(new Date(System.currentTimeMillis() + expiration))
+                .signWith(getKey(), getSignatureAlgorithm())
                 .compact();
     }
 
     // 쿠키에서 JWT 토큰 추출
     public String resolveToken(HttpServletRequest request, String tokenName) {
+        // Authorization 헤더 먼저 확인
+        String bearerToken = request.getHeader("Authorization");
+        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
+            return bearerToken.substring(7); // "Bearer " 이후 토큰
+        }
+
         if (request.getCookies() != null) {
             for (Cookie cookie : request.getCookies()) {
                 if (tokenName.equals(cookie.getName())) {
@@ -109,14 +134,14 @@ public class JwtTokenProvider {
         return new UsernamePasswordAuthenticationToken(username, "", Collections.emptyList());
     }
 
-    public int getUserIdFromToken(String token) {
+    public Long getUserIdFromToken(String token) {
         Claims claims = Jwts.parserBuilder()
                 .setSigningKey(key)
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
 
-        Integer userId = claims.get("userId", Integer.class);
+        Long userId = claims.get("userId", Long.class);
         return userId != null ? userId : 0;
     }
 
@@ -127,8 +152,8 @@ public class JwtTokenProvider {
         Authentication authentication = getAuthentication(refreshToken);
         long userId = getUserIdFromToken(refreshToken);
 
-        String newAccessToken = generateAccessToken(authentication, userId);
-        String newRefreshToken = generateRefreshToken(authentication, userId);
+        String newAccessToken = generateToken(authentication, userId, JwtTokenType.ACCESS);
+        String newRefreshToken = generateToken(authentication, userId, JwtTokenType.REFRESH);
 
         return new JwtAuthenticationResponseDto(newAccessToken, newRefreshToken, "Tokens renewed successfully");
     }

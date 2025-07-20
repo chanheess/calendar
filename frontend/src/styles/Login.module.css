@@ -39,3 +39,64 @@
   opacity: 0.8;
 }
 
+.divider {
+  margin: 20px 0;
+  border: none;
+  border-top: 1px solid #ccc;
+}
+
+.googleButton {
+  width: 100%;
+  height: 40px;
+  background-color: #fff;
+  border: 1px solid #dadce0;
+  border-radius: 4px;
+  padding: 0 12px;
+  margin: 8px 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Roboto', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: #3c4043;
+  transition: background-color 0.2s;
+}
+
+.googleButton:hover {
+  background-color: #f8f9fa;
+  border-color: #dadce0;
+  box-shadow: 0 1px 2px rgba(60,64,67,0.1);
+}
+
+.googleButton:active {
+  background-color: #f1f3f4;
+  border-color: #dadce0;
+  box-shadow: 0 1px 2px rgba(60,64,67,0.1);
+}
+
+.googleIcon {
+  width: 18px;
+  height: 18px;
+  margin-right: 8px;
+}
+
+.googleText {
+  letter-spacing: 0.25px;
+}
+
+.loadingSpinner {
+  margin: 20px auto;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #3498db;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}

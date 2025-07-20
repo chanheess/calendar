@@ -3,16 +3,25 @@ package com.chpark.chcalendar.service.user;
 
 import com.chpark.chcalendar.dto.EmailDto;
 import com.chpark.chcalendar.dto.security.JwtAuthenticationResponseDto;
-import com.chpark.chcalendar.dto.UserDto;
+import com.chpark.chcalendar.dto.user.UserDto;
 import com.chpark.chcalendar.entity.UserEntity;
+import com.chpark.chcalendar.entity.UserProviderEntity;
+import com.chpark.chcalendar.enumClass.CalendarCategory;
+import com.chpark.chcalendar.enumClass.JwtTokenType;
 import com.chpark.chcalendar.enumClass.RequestType;
+import com.chpark.chcalendar.repository.FirebaseTokenRepository;
+import com.chpark.chcalendar.repository.user.UserProviderRepository;
 import com.chpark.chcalendar.repository.user.UserRepository;
 import com.chpark.chcalendar.security.JwtTokenProvider;
-import com.chpark.chcalendar.service.calendar.UserCalendarService;
+import com.chpark.chcalendar.service.calendar.CalendarService;
 import com.chpark.chcalendar.service.redis.RedisService;
+import com.chpark.chcalendar.service.schedule.ScheduleService;
+import com.chpark.chcalendar.utility.CalendarUtility;
 import com.chpark.chcalendar.utility.ScheduleUtility;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -21,17 +30,25 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.Map;
+
 @RequiredArgsConstructor
 @Service
 public class UserService {
     private final UserRepository userRepository;
-    private final UserCalendarService userCalendarService;
+    private final UserProviderRepository userProviderRepository;
+    private final FirebaseTokenRepository firebaseTokenRepository;
+
+    private final Map<CalendarCategory, CalendarService> calendarServiceMap;
+    private final ScheduleService scheduleService;
     private final PasswordEncoder passwordEncoder;
-    private final GroupUserService groupUserService;
     private final RedisService redisService;
 
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider jwtTokenProvider;
+
+    private static final Logger log = LoggerFactory.getLogger(UserService.class);
 
     @Transactional
     public void create(UserDto.RegisterRequest requestUser) {
@@ -40,7 +57,7 @@ public class UserService {
         UserEntity user = userRepository.save(UserEntity.createWithEncodedPassword(requestUser, passwordEncoder));
 
         //기본 캘린더 생성
-        userCalendarService.create(user.getId(), "내 캘린더");
+        calendarServiceMap.get(CalendarCategory.USER).create(user.getId(), "내 캘린더");
     }
 
     @Transactional
@@ -64,28 +81,38 @@ public class UserService {
     public JwtAuthenticationResponseDto login(UserDto requestUser, String ipAddress) {
 
         redisService.checkRequestCount(RequestType.LOGIN, ipAddress);
-        redisService.increaseRequestCount(RequestType.LOGIN, ipAddress);
 
         try {
+            // 인증 성공 시 사용자 정보를 가져옴
+            UserEntity userEntity = userRepository.findByEmail(requestUser.getEmail()).orElseThrow(
+                    () -> new EntityNotFoundException("사용자를 찾을 수 없습니다")
+            );
+
+            List<UserProviderEntity> userProviderEntity = userProviderRepository.findByUserId(userEntity.getId());
+            boolean hasLocal = userProviderEntity.stream()
+                    .anyMatch(provider -> "local".equalsIgnoreCase(provider.getProvider()));
+            if (!hasLocal) {
+                throw new EntityNotFoundException("소셜 계정으로 로그인해주세요.");
+            }
+
             // 인증 시도
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(requestUser.getEmail(), requestUser.getPassword())
-            );
-
-            // 인증 성공 시 사용자 정보를 가져옴
-            UserEntity userEntity = userRepository.findByEmail(requestUser.getEmail()).orElseThrow(
-                    () -> new EntityNotFoundException("사용자를 찾을 수 없습니다: " + requestUser.getEmail())
             );
 
             redisService.deleteVerificationData(RequestType.LOGIN, ipAddress);
 
             // JWT 토큰 생성 후 반환
             return new JwtAuthenticationResponseDto(
-                    jwtTokenProvider.generateAccessToken(authentication, userEntity.getId()),
-                    jwtTokenProvider.generateRefreshToken(authentication, userEntity.getId()),
+                    jwtTokenProvider.generateToken(authentication, userEntity.getId(), JwtTokenType.ACCESS),
+                    jwtTokenProvider.generateToken(authentication, userEntity.getId(), JwtTokenType.REFRESH),
                     "로그인 성공."
             );
+        } catch (EntityNotFoundException e) {
+            throw new IllegalArgumentException(e.getMessage());
         } catch (BadCredentialsException e) {
+            redisService.increaseRequestCount(RequestType.LOGIN, ipAddress);
+
             throw new IllegalArgumentException(String.format(
                     "이메일이나 비밀번호를 확인해주세요. (%s)", redisService.getRequestCount(RequestType.LOGIN, ipAddress))
             );
@@ -123,9 +150,6 @@ public class UserService {
                 .nickname(userInfo.getNickname())
                 .build();
         userRepository.updateUserInfo(userId, userEntity);
-
-        //닉네임 수정시 동기화
-        groupUserService.updateGroupUserNickname(userId, userEntity.getNickname());
     }
 
     @Transactional
@@ -155,5 +179,17 @@ public class UserService {
         userEntity.changePassword(userDto.getPassword(), passwordEncoder);
 
         redisService.deleteVerificationData(RequestType.LOGIN, ipAddress);
+    }
+
+    @Transactional
+    public void deleteAccount(long userId) {
+        userRepository.findById(userId).orElseThrow(
+                () -> new EntityNotFoundException("해당하는 유저가 없습니다."));
+
+        CalendarUtility.deleteCalendarAccount(userId, calendarServiceMap, scheduleService);
+
+        userProviderRepository.deleteByUserId(userId);
+        firebaseTokenRepository.deleteByUserId(userId);
+        userRepository.deleteById(userId);
     }
 }

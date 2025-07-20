@@ -72,6 +72,11 @@ public class ScheduleRepeatService {
         return scheduleRepeatRepository.existsById(id);
     }
 
+    @Transactional
+    public void deleteRepeat(long id) {
+        scheduleRepeatRepository.deleteById(id);
+    }
+
 }
 
 

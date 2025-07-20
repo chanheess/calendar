@@ -2,6 +2,8 @@ package com.chpark.chcalendar.repository.schedule;
 
 import com.chpark.chcalendar.entity.schedule.ScheduleGroupEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
@@ -13,6 +15,14 @@ public interface ScheduleGroupRepository extends JpaRepository<ScheduleGroupEnti
 
     List<ScheduleGroupEntity> findByScheduleId(long scheduleId);
 
+    List<ScheduleGroupEntity> findByUserId(long userId);
+
     void deleteByScheduleId(long scheduleId);
 
+    long countByScheduleId(long scheduleId);
+
+    @Query("SELECT s FROM ScheduleGroupEntity s " +
+            "WHERE s.scheduleId = :scheduleId AND s.userId <> :excludeUserId " +
+            "ORDER BY s.authority ASC")
+    List<ScheduleGroupEntity> findByNextOwner(@Param("scheduleId") long scheduleId,@Param("excludeUserId") long excludeUserId);
 }

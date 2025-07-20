@@ -54,9 +54,8 @@ const PasswordResetPopup = ({ isOpen, onClose }) => {
     const data = { email: email, type: "PASSWORD_RESET" };
 
     try {
-      const response = await axios.post("/auth/mail", data);
+      await axios.post("/auth/mail", data);
       openChangePassword();
-      alert(response.data);
     } catch (error) {
       alert(error.response.data.message);
     }

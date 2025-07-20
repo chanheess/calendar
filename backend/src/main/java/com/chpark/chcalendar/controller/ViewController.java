@@ -1,6 +1,6 @@
 package com.chpark.chcalendar.controller;
 
-import com.chpark.chcalendar.dto.UserDto;
+import com.chpark.chcalendar.dto.user.UserDto;
 import com.chpark.chcalendar.service.redis.RedisService;
 import com.chpark.chcalendar.service.user.UserService;
 import lombok.RequiredArgsConstructor;

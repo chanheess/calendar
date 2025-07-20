@@ -2,13 +2,11 @@ package com.chpark.chcalendar.dto.schedule;
 
 import com.chpark.chcalendar.entity.schedule.ScheduleEntity;
 import com.chpark.chcalendar.exception.ValidGroup;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -17,6 +15,8 @@ import java.util.stream.Collectors;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class ScheduleDto {
 
     private long id;
@@ -40,13 +40,13 @@ public class ScheduleDto {
     @NotNull(groups = ValidGroup.CreateGroup.class)
     private Long calendarId;
 
-    public ScheduleDto(String title, String description, LocalDateTime startAt, LocalDateTime endAt, Long calendarId) {
-        this.title = title;
-        this.description = description;
-        this.startAt = startAt;
-        this.endAt = endAt;
-        this.calendarId = calendarId;
-    }
+    private String providerId;
+
+    private String etag;
+
+    private LocalDateTime createdAt;
+
+    private LocalDateTime updatedAt;
 
     public ScheduleDto(ScheduleEntity entity) {
         this.id = entity.getId();
@@ -57,10 +57,10 @@ public class ScheduleDto {
         this.repeatId = entity.getRepeatId();
         this.userId = entity.getUserId();
         this.calendarId = entity.getCalendarId();
-    }
-
-    public static ScheduleDto fromScheduleEntity(ScheduleEntity scheduleEntity) {
-        return new ScheduleDto(scheduleEntity);
+        this.providerId = entity.getProviderId();
+        this.etag = entity.getEtag();
+        this.createdAt = entity.getCreatedAt();
+        this.updatedAt = entity.getUpdatedAt();
     }
 
     public static List<ScheduleDto> fromScheduleEntityList(List<ScheduleEntity> entityList) {
@@ -69,23 +69,11 @@ public class ScheduleDto {
                 .collect(Collectors.toList());
     }
 
-    @Override
-    public String toString() {
-        return "ScheduleDto{" +
-                "id=" + id +
-                ", title='" + title + '\'' +
-                ", description='" + description + '\'' +
-                ", startAt=" + startAt +
-                ", endAt=" + endAt +
-                '}';
-    }
-
-
-
     @Getter
     @Setter
     @NoArgsConstructor
     public static class Request {
+        @Valid
         @NotNull(groups = ValidGroup.CreateGroup.class)
         private ScheduleDto scheduleDto;
         private Set<ScheduleNotificationDto> notificationDto = new HashSet<>();

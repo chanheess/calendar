@@ -4,16 +4,14 @@ import com.chpark.chcalendar.entity.schedule.ScheduleRepeatEntity;
 import com.chpark.chcalendar.enumClass.ScheduleRepeatType;
 import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotNull;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
 @EqualsAndHashCode
 public class ScheduleRepeatDto {
 
