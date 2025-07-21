@@ -2,8 +2,10 @@ package com.chpark.chcalendar.security;
 
 import com.chpark.chcalendar.dto.security.JwtAuthenticationResponseDto;
 import com.chpark.chcalendar.entity.UserEntity;
+import com.chpark.chcalendar.entity.UserProviderEntity;
 import com.chpark.chcalendar.enumClass.JwtTokenType;
 import com.chpark.chcalendar.exception.authentication.TokenAuthenticationException;
+import com.chpark.chcalendar.repository.user.UserProviderRepository;
 import com.chpark.chcalendar.repository.user.UserRepository;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
@@ -19,10 +21,12 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.security.Key;
 import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 
 @RequiredArgsConstructor
 @Component
@@ -48,6 +52,7 @@ public class JwtTokenProvider {
     }
 
     private final UserRepository userRepository;
+    private final UserProviderRepository userProviderRepository;
 
     // JWT 토큰 생성
     public String generateToken(Authentication authentication, long userId, JwtTokenType tokenType) {
@@ -70,10 +75,17 @@ public class JwtTokenProvider {
                 .compact();
     }
 
+    @Transactional
     public String generateToken(String email, JwtTokenType tokenType) {
-        UserEntity userEntity = userRepository.findByEmail(email).orElseThrow(
-                () -> new OAuth2AuthenticationException("존재하지 않는 사용자입니다.")
-        );
+        List<UserProviderEntity> userProviderEntity = userProviderRepository.findByProviderEmail(email);
+
+        if (userProviderEntity.get(0) == null) {
+            throw new OAuth2AuthenticationException("존재하지 않는 사용자입니다.");
+        }
+
+        if (userProviderEntity.get(0).getUser() == null) {
+            throw new OAuth2AuthenticationException("존재하지 않는 사용자입니다.");
+        }
 
         long expiration = switch (tokenType) {
             case ACCESS -> getEXPIRATION_TIME();
@@ -83,7 +95,7 @@ public class JwtTokenProvider {
 
         return Jwts.builder()
                 .setSubject(email)
-                .claim("userId", userEntity.getId())
+                .claim("userId", userProviderEntity.get(0).getUser().getId())
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + expiration))
                 .signWith(getKey(), getSignatureAlgorithm())

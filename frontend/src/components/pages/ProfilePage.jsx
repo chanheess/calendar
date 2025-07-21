@@ -4,6 +4,7 @@ import styles from "styles/Profile.module.css";
 import Button from "../Button";
 import HeaderComponent from "../HeaderComponent";
 import popupStyles from "styles/Popup.module.css";
+import LoadingOverlay from "../LoadingOverlay";
 
 const ProfilePage = () => {
   const [email, setEmail] = useState("");
@@ -14,6 +15,7 @@ const ProfilePage = () => {
   const [isNicknameChanged, setIsNicknameChanged] = useState(false);
   const [providers, setProviders] = useState([]);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     fetchUserInfo();
@@ -107,12 +109,11 @@ const ProfilePage = () => {
 
   const handleGoogleLink = async () => {
     try {
-      const response = await axios.post("/auth/oauth2/link", null, {
+      const response = await axios.post(`/auth/oauth2/link/${email}`, null, {
         withCredentials: true
       });
-      
-      // 응답으로 받은 URL로 리다이렉트
-      window.location.href = `${process.env.REACT_APP_DOMAIN}${response.data}`;
+      // eslint-disable-next-line
+      window.location.href = process.env.REACT_APP_DOMAIN + response.data;
     } catch (error) {
       console.error("Failed to initiate Google account linking:", error);
       alert("Google 계정 연동을 시작할 수 없습니다. 다시 시도해주세요.");
@@ -126,6 +127,7 @@ const ProfilePage = () => {
   // 회원탈퇴 핸들러 추가
   const handleDeleteAccount = async () => {
     setShowDeleteModal(false);
+    setIsLoading(true);
     try {
       await axios.delete("/user", { withCredentials: true });
       alert("회원 탈퇴가 완료되었습니다.");
@@ -133,11 +135,14 @@ const ProfilePage = () => {
       window.location.href = "/";
     } catch (error) {
       alert(error?.response?.data?.message || "회원 탈퇴에 실패했습니다.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
     <div>
+      {isLoading && <LoadingOverlay fullScreen={true} />}
       <HeaderComponent mode="profile" />
 
       <div className={styles.formContainer}>

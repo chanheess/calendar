@@ -4,6 +4,7 @@ import com.chpark.chcalendar.dto.user.UserDto;
 import com.chpark.chcalendar.entity.UserEntity;
 import com.chpark.chcalendar.entity.UserProviderEntity;
 import com.chpark.chcalendar.enumClass.OAuthLoginType;
+import com.chpark.chcalendar.repository.user.UserProviderRepository;
 import com.chpark.chcalendar.repository.user.UserRepository;
 import com.chpark.chcalendar.service.calendar.UserCalendarService;
 import com.chpark.chcalendar.utility.KeyGeneratorUtility;
@@ -21,11 +22,14 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
+import java.util.List;
+
 @RequiredArgsConstructor
 @Service
 public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequest, OAuth2User> {
 
     private final UserRepository userRepository;
+    private final UserProviderRepository userProviderRepository;
     private final PasswordEncoder passwordEncoder;
     private final UserCalendarService userCalendarService;
 
@@ -34,7 +38,7 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
     public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
         OAuth2User oauth2User = new DefaultOAuth2UserService().loadUser(userRequest);
 
-        String registrationId = userRequest.getClientRegistration().getRegistrationId();
+        String providerId = userRequest.getClientRegistration().getRegistrationId();
         String email = oauth2User.getAttribute("email");
         
         // 세션에서 요청 타입 확인
@@ -59,19 +63,27 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
             type = OAuthLoginType.OAUTH;
         }
 
-        UserEntity user = userRepository.findByEmail(email)
-                .orElse(null);
+        List<UserProviderEntity> userProviderList = userProviderRepository.findByProviderEmail(email);
 
-        if (user != null) {
+        if (!userProviderList.isEmpty()) {
             switch (type) {
-                case LINK -> addUserProvider(user, registrationId);
-                case OAUTH ->  validateUser(user, registrationId);
-                case LOCAL -> {}
+                case LINK -> {
+                    validateUser(userProviderList, providerId, true); //있으면 실패
+                    String userEmail = (String) request.getSession().getAttribute("oauth_login_email");
+                    addUserProvider(userEmail, email, providerId);
+                }
+                case LOCAL, OAUTH -> {
+                    validateUser(userProviderList, providerId, false); //있으면 통과
+                }
                 default -> throw new OAuth2AuthenticationException("잘못된 요청입니다.");
             }
         } else {
             switch (type) {
-                case OAUTH ->  registerUser(email, registrationId);
+                case LINK -> {
+                    String userEmail = (String) request.getSession().getAttribute("oauth_login_email");
+                    addUserProvider(userEmail, email, providerId);
+                }
+                case OAUTH ->  registerUser(email, providerId);
                 default -> throw new OAuth2AuthenticationException(
                         new OAuth2Error("invalid_request", "연동할 계정이 존재하지 않습니다.", null)
                 );
@@ -81,11 +93,11 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
         return oauth2User;
     }
 
-    private void validateUser(UserEntity user, String provider) {
-        boolean matched = user.getProviders().stream()
-                .anyMatch(p -> p.getProvider().equalsIgnoreCase(provider));
+    private void validateUser(List<UserProviderEntity> userProviderList, String providerId, boolean exists) {
+        boolean hasProvider = userProviderList.stream()
+                .anyMatch(up -> providerId.equalsIgnoreCase(up.getProvider()));
 
-        if (!matched) {
+        if (hasProvider == exists) {
             throw new OAuth2AuthenticationException(
                     new OAuth2Error("invalid_provider", "해당 이메일은 다른 로그인 방식으로 이미 가입되어 있습니다.", null)
             );
@@ -108,17 +120,20 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
         userCalendarService.create(user.getId(), "내 캘린더");
     }
 
-    private void addUserProvider(UserEntity user, String provider) {
-        boolean matched = user.getProviders().stream()
-                .anyMatch(p -> p.getProvider().equalsIgnoreCase(provider));
+    private void addUserProvider(String email, String providerEmail, String provider) {
+        UserEntity user = userRepository.findByEmail(email).orElseThrow(
+                () -> new OAuth2AuthenticationException(
+                        new OAuth2Error("invalid_request", "연동할 계정이 존재하지 않습니다.", null)
+                )
+        );
 
-        if (matched) {
-            return; // 이미 연동된 경우
-        }
+        UserProviderEntity userProviderEntity = UserProviderEntity.builder()
+                .provider(provider)
+                .providerEmail(providerEmail)
+                .user(user)
+                .build();
 
-        UserProviderEntity providerEntity = new UserProviderEntity();
-        providerEntity.setProvider(provider);
-        user.addProvider(providerEntity);
+        user.addProvider(userProviderEntity);
 
         userRepository.save(user);
     }
