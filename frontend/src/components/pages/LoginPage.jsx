@@ -71,7 +71,7 @@ const LoginPage = () => {
       );
 
       if (isGoogleLinked) {
-        const response = await axios.post("/auth/oauth2/login", { type: "local"}, {
+        const response = await axios.post(`/auth/oauth2/login/${"local"}`, {
           withCredentials: true
         });
 
@@ -132,7 +132,7 @@ const LoginPage = () => {
         onClick={async () => {
           setLoading(true);
           try {
-            const response = await axios.post("/auth/oauth2/login", { type: "oauth" }, {
+            const response = await axios.post(`/auth/oauth2/login/${"oauth"}`, {
               withCredentials: true
             });
             window.location.href = `${process.env.REACT_APP_DOMAIN}${response.data}`;

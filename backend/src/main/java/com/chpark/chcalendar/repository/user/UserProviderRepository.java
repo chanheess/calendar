@@ -12,4 +12,5 @@ public interface UserProviderRepository extends JpaRepository<UserProviderEntity
     void deleteByUserId(long userId);
 
     List<UserProviderEntity> findByUserId(long userId);
+    List<UserProviderEntity> findByProviderEmail(String providerEmail);
 }

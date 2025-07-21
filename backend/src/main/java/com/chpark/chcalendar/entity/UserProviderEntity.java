@@ -17,23 +17,28 @@ public class UserProviderEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, length = 10)
-    private String provider = "local";
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private UserEntity user;
 
-    public UserProviderEntity(String provider, UserEntity user) {
+    @Column(nullable = false, length = 10)
+    private String provider = "local";
+
+    @Column(name = "provider_email")
+    private String providerEmail;
+
+    public UserProviderEntity(String provider, UserEntity user, String providerEmail) {
         this.provider = provider;
         this.user = user;
+        this.providerEmail = providerEmail;
     }
 
     @Builder
-    public UserProviderEntity(Long id, String provider, UserEntity user) {
+    public UserProviderEntity(Long id, String provider, UserEntity user, String providerEmail) {
         this.id = id;
         this.provider = provider;
         this.user = user;
+        this.providerEmail = providerEmail;
     }
 }
 

@@ -85,6 +85,7 @@ public class ScheduleUtility {
         }
     }
 
+    //TODO: 다른 유틸리티 관심사로 이동 필요
     public static void validateEmail(String email) {
         EmailValidator validator = EmailValidator.getInstance();
         if (!validator.isValid(email)) {
