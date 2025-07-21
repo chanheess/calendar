@@ -43,8 +43,11 @@ public class UserEntity {
                 .nickname(request.getNickname())
                 .build();
 
-        UserProviderEntity provider = new UserProviderEntity();
-        provider.setProvider(request.getProvider());
+        UserProviderEntity provider = UserProviderEntity.builder()
+                .provider(request.getProvider())
+                .providerEmail(request.getEmail())
+                .user(user)
+                .build();
 
         user.addProvider(provider);
         return user;
