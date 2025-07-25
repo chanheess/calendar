@@ -136,9 +136,6 @@ const LoginPage = () => {
           로그인
         </Button>
       </form>
-      <Button variant="blue" size="medium" margin="top" onClick={() => navigate("/auth/register")}>
-        회원가입
-      </Button>
       <hr className={styles.divider} />
       <button
         className={styles.googleButton}
@@ -162,7 +159,23 @@ const LoginPage = () => {
       {loading && (
         <div className={styles.loadingSpinner}></div>
       )}
-      <small onClick={() => setPasswordResetPopupVisible(true)}>비밀번호 찾기</small>
+      <div className={styles.bottomLinksRow}>
+        <button
+          type="button"
+          className={styles.textLink}
+          onClick={() => navigate("/auth/register")}
+        >
+          회원가입
+        </button>
+        <span className={styles.dividerDot}>|</span>
+        <button
+          type="button"
+          className={styles.textLink}
+          onClick={() => setPasswordResetPopupVisible(true)}
+        >
+          비밀번호 찾기
+        </button>
+      </div>
       {errorMessage && <div className={styles.error}>{errorMessage}</div>}
     </div>
     </>

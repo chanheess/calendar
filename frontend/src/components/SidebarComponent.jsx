@@ -383,7 +383,7 @@ const SidebarComponent = forwardRef(({
 
         <div className={styles.dropdownWrapper} ref={dropdownRef}>
           <Button
-            variant="blue"
+            variant="primary"
             size=""
             onClick={() => setDropdownOpen(!dropdownOpen)}
           >

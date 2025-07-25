@@ -204,6 +204,7 @@ const RegisterPage = () => {
         >
           회원가입
         </Button>
+        <div style={{ padding: 5 }}></div>
         <Button
           type="button"
           variant="danger"
