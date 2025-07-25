@@ -495,21 +495,21 @@ html, body {
     border-radius: 10px;
   }
   .featureDesktopNotification {
-    width: 60px;
-    right: -4px;
-    top: 4px;
+    width: 100px;
+    right: 20px;
+    top: -8px;
     border-radius: 7px;
   }
   .featureSidebarImage {
-    width: 100px;
-    left: -30px;
+    width: 140px;
+    left: 20px;
     top: 20px;
     border-radius: 8px;
   }
   .featureMobileNotification {
-    width: 80px;
-    right: -10px;
-    top: 10px;
+    width: 100px;
+    right: 20px;
+    top: 25px;
     border-radius: 7px;
   }
   .featureSecondaryImage {
