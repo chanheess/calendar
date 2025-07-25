@@ -161,6 +161,79 @@ html, body {
   color: #1565c0;
   text-decoration: underline;
 }
+.sectionTitle {
+  font-size: 1.9rem;
+  font-weight: 800;
+  color: #222;
+  text-align: center;
+  margin-bottom: 0.7rem;
+  margin-top: 0.5rem;
+  letter-spacing: -1px;
+}
+.sectionSubtitle {
+  font-size: 1.1rem;
+  font-weight: 400;
+  color: #888;
+  text-align: center;
+  margin-bottom: 1.5rem;
+  margin-top: 0.2rem;
+  line-height: 1.6;
+}
+.featureImageGroup {
+  flex: 1 1 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  min-height: 340px;
+  width: 100%;
+}
+.featureMainImage {
+  width: 420px;
+  max-width: 90vw;
+  border-radius: 18px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.10);
+  background: #fff;
+  z-index: 1;
+}
+.featureMobileImage {
+  position: absolute;
+  right: -80px;
+  top: 76px;
+  width: 280px;
+  max-width: 50vw;
+  border-radius: 18px;
+  z-index: 4;
+}
+.featureDesktopNotification {
+  position: absolute;
+  right: -80px;
+  top: -20px;
+  width: 280px;
+  max-width: 55vw;
+  z-index: 5;
+  border-radius: 14px;
+  opacity: 0.98;
+}
+.featureMainImageLarge {
+  width: 700px;
+  max-width: 98vw;
+  border-radius: 24px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.13);
+  background: #fff;
+  z-index: 2;
+}
+.featureSecondaryImage {
+  position: absolute;
+  left: -60px;
+  top: 50px;
+  width: 400px;
+  max-width: 60vw;
+  border-radius: 20px;
+  box-shadow: 0 6px 28px rgba(0,0,0,0.12);
+  background: #fff;
+  z-index: 3;
+}
 @media (max-width: 900px) {
   .featureContent {
     flex-direction: column;
@@ -175,6 +248,30 @@ html, body {
   .featureSection {
     min-height: 40vh;
     padding: 2rem 0;
+  }
+  .featureImageGroup {
+    min-height: 220px;
+  }
+  .featureMainImage {
+    width: 98vw;
+    max-width: 340px;
+  }
+  .featureMobileImage {
+    width: 120px;
+    left: -30px;
+    bottom: -20px;
+  }
+  .featureDesktopNotification {
+    width: 110px;
+    right: -10px;
+    top: 10px;
+    border-radius: 10px;
+  }
+  .featureSecondaryImage {
+    width: 200px;
+    right: -30px;
+    top: 20px;
+    border-radius: 12px;
   }
 }
 
@@ -353,5 +450,41 @@ html, body {
     max-width: 260px;
     height: 180px;
     font-size: 0.8rem;
+  }
+}
+@media (max-width: 600px) {
+  .sectionTitle {
+    font-size: 1.3rem;
+    margin-bottom: 0.5rem;
+  }
+  .sectionSubtitle {
+    font-size: 0.95rem;
+    margin-bottom: 1rem;
+  }
+  .featureImageGroup {
+    min-height: 120px;
+  }
+  .featureMainImage {
+    width: 98vw;
+    max-width: 220px;
+    border-radius: 12px;
+  }
+  .featureMobileImage {
+    width: 70px;
+    left: -10px;
+    bottom: -10px;
+    border-radius: 10px;
+  }
+  .featureDesktopNotification {
+    width: 60px;
+    right: -4px;
+    top: 4px;
+    border-radius: 7px;
+  }
+  .featureSecondaryImage {
+    width: 120px;
+    right: -15px;
+    top: 10px;
+    border-radius: 8px;
   }
 }

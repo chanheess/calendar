@@ -3,7 +3,7 @@
   width: 250px;
   background: #f9f9f9;
   border-right: 1px solid #ddd;
-  padding: 20px;
+  padding: 15px;
   overflow-y: auto;
   height: calc(100vh - 60px); /* 헤더 높이 제외 */
   box-sizing: border-box;
@@ -39,7 +39,7 @@
 
 /* 캘린더 섹션 */
 .calendarSection {
-  margin-bottom: 20px;
+  margin-bottom: 10px;
 }
 
 .sectionHeader {
@@ -115,7 +115,7 @@
 .calendarItem {
   display: flex;
   align-items: center;
-  margin-bottom: 4px;
+  margin-bottom: 2px;
   justify-content: flex-start;
   border-radius: 6px;
   transition: background-color 0.2s ease-in-out;
@@ -209,7 +209,6 @@
     left: 0;
     height: 100%;
     z-index: 1;
-    padding: 20px;
     transition: none;
   }
 
