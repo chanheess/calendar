@@ -3,13 +3,12 @@
   width: 250px;
   background: #f9f9f9;
   border-right: 1px solid #ddd;
-  padding: calc(20px + env(safe-area-inset-top)) 20px 20px 20px;
-  padding-top: calc(60px + env(safe-area-inset-top)); /* 헤더(60px) 만큼 + 노치 대응 */
+  padding: 15px;
   overflow-y: auto;
-  height: 100vh;
+  height: calc(100vh - 60px); /* 헤더 높이 제외 */
   box-sizing: border-box;
   position: fixed;
-  top: 0;
+  top: 60px; /* 헤더 아래에서 시작 */
   left: -250px;
   transition: left 0.3s ease-in-out;
   z-index: 1000;
@@ -40,14 +39,32 @@
 
 /* 캘린더 섹션 */
 .calendarSection {
-  margin-bottom: 20px;
+  margin-bottom: 10px;
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 10px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  margin-bottom: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  user-select: none;
+}
+
+.sectionHeader:hover {
+  background: #e9ecef;
 }
 
 .sectionTitle {
-  font-size: 16px;
-  font-weight: bold;
-  margin-bottom: 10px;
-  color: #333;
+  font-size: 15px;
+  font-weight: 600;
+  color: #495057;
+  margin: 0;
+  letter-spacing: -0.3px;
 }
 
 .googleCalendarLink {
@@ -75,24 +92,34 @@
 }
 
 .toggleIcon {
-  font-size: 12px;
-  color: #4285f4;
+  font-size: 10px;
+  color: #6c757d;
+  transition: transform 0.2s ease;
+  font-weight: bold;
+}
+
+.toggleIcon.expanded {
+  transform: rotate(0deg);
+}
+
+.toggleIcon.collapsed {
+  transform: rotate(-90deg);
 }
 
 .calendarList {
   list-style: none;
   padding: 0;
-  margin: 10px 0 0 0;
+  margin: 0;
 }
 
 .calendarItem {
   display: flex;
   align-items: center;
-  margin-bottom: 10px;
+  margin-bottom: 2px;
   justify-content: flex-start;
-  border-radius: 8px;
+  border-radius: 6px;
   transition: background-color 0.2s ease-in-out;
-  padding-right: 8px; /* 오른쪽에 여백 추가 */
+  padding: 4px 8px;
 }
 
 .calendarItem:hover {
@@ -108,23 +135,27 @@
 .calendarItem label {
   flex: 1 1 auto; /* label은 남는 공간 다 차지 */
   margin-left: 10px;
-  font-size: 16px;
+  font-size: 14px;
+  font-weight: 400;
+  color: #495057;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  letter-spacing: -0.2px;
 }
 
 .calendarItem button {
   flex: 0 0 auto;
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
   padding: 0;
-  font-size: 18px;
+  font-size: 14px;
   margin-left: 8px;
   background: none;
   border: none;
   opacity: 0;
   transition: opacity 0.3s ease;
+  color: #6c757d;
 }
 
 .calendarItem:hover button {
@@ -132,8 +163,11 @@
 }
 
 .emptyMessage {
-  font-size: 14px;
-  color: #888;
+  font-size: 12px;
+  color: #6c757d;
+  font-weight: 400;
+  padding: 8px 12px;
+  letter-spacing: -0.2px;
 }
 
 /* + 버튼 감싸는 div */
@@ -173,9 +207,8 @@
     position: relative;
     top: 0;
     left: 0;
-    height: auto;
+    height: 100%;
     z-index: 1;
-    padding-top: 20px; /* 노치 필요 없음 */
     transition: none;
   }
 

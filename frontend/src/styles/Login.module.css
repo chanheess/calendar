@@ -100,3 +100,35 @@
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
+
+.bottomLinksRow {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  margin-top: 18px;
+  margin-bottom: 0;
+}
+
+.textLink {
+  background: none;
+  border: none;
+  color: #495057;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0 4px;
+  transition: color 0.2s;
+}
+.textLink:hover {
+  text-decoration: underline;
+  color: #174ea6;
+}
+
+.dividerDot {
+  color: #adb5bd;
+  font-size: 15px;
+  font-weight: 400;
+  user-select: none;
+}

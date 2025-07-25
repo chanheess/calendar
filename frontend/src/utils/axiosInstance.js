@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { setRedirectPath } from './authUtils';
 
 let refreshPromise = null;
 let requestQueue = [];
@@ -21,6 +22,8 @@ axios.interceptors.response.use(
           })
           .catch(err => {
             requestQueue = [];
+            // 현재 경로를 저장하고 로그인 페이지로 리다이렉트
+            setRedirectPath(window.location.pathname);
             window.location.href = "/auth/login";
             throw err;
           })

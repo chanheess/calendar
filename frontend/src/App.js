@@ -4,24 +4,23 @@ import LoginPage from "./components/pages/LoginPage";
 import RegisterPage from "./components/pages/RegisterPage";
 import HomePage from "./components/pages/HomePage";
 import ProfilePage from "./components/pages/ProfilePage";
-import CheckLoginStatus from "./components/CheckLoginStatus";
+import MainLandingPage from "./components/pages/MainLandingPage";
+import PrivacyPolicyPage from "./components/pages/PrivacyPolicyPage";
+import ConditionalRoute from "./components/ConditionalRoute";
 
 function App() {
   return (
     <Router>
       <Routes>
         <Route path="/user/profile" element={
-          <CheckLoginStatus>
+          <ConditionalRoute>
             <ProfilePage />
-          </CheckLoginStatus>
+          </ConditionalRoute>
         } />
         <Route path="/auth/login" element={<LoginPage />} />
         <Route path="/auth/register" element={<RegisterPage />} />
-        <Route path="/" element={
-          <CheckLoginStatus>
-            <HomePage />
-          </CheckLoginStatus>
-        } />
+        <Route path="/" element={<ConditionalRoute />} />
+        <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
       </Routes>
     </Router>
   );
