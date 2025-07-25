@@ -2,9 +2,7 @@ import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import LoginPage from "./components/pages/LoginPage";
 import RegisterPage from "./components/pages/RegisterPage";
-import HomePage from "./components/pages/HomePage";
 import ProfilePage from "./components/pages/ProfilePage";
-import MainLandingPage from "./components/pages/MainLandingPage";
 import PrivacyPolicyPage from "./components/pages/PrivacyPolicyPage";
 import ConditionalRoute from "./components/ConditionalRoute";
 

@@ -1,10 +1,9 @@
 import React, { useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import styles from "../../styles/LandingPage.module.css";
 import HeaderComponent from "../HeaderComponent";
 
 const MainLandingPage = () => {
-  const navigate = useNavigate();
   useEffect(() => {
     document.body.classList.add("landing-scroll");
     return () => {
