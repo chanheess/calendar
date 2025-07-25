@@ -9,6 +9,11 @@
   overflow: hidden;
 }
 
+:global(.fc-theme-standard .fc-scrollgrid) {
+  border: none;
+  border-top: 1px solid var(--fc-border-color);
+}
+
 :global(.fc .fc-toolbar.fc-header-toolbar) {
   padding-left: 10px;
   padding-right: 10px;
