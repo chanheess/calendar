@@ -34,7 +34,7 @@ const MainLandingPage = () => {
             </div>
           </div>
           <div className={styles.featureImageGroup}>
-            <img src="/images/landing-calendar-main.png" alt="캘린더 통합 관리 화면 예시" className={styles.featureMainImage} />
+            <img src="/images/landing-calendar-main.png" alt="캘린더 통합 관리 화면 예시" className={styles.featureMainImageLarge} />
           </div>
         </div>
       </section>
@@ -63,8 +63,9 @@ const MainLandingPage = () => {
             </div>
           </div>
           <div className={styles.featureImageGroup}>
-            <img src="/images/landing-calendar-main.png" alt="캘린더 화면 예시" className={styles.featureMainImage} />
-            <img src="/images/landing-push-mobile.svg" alt="모바일 푸시 알림 예시" className={styles.featureMobileImage} />
+            <img src="/images/landing-group-repeat.png" alt="반복 일정 관리 화면" className={styles.featureMainImage + ' ' + styles.featureMainImageLarge} />
+            <img src="/images/landing-group-alert.png" alt="알림 설정 화면" className={styles.featureSidebarImage} />
+            <img src="/images/landing-push-mobile.svg" alt="모바일 푸시 알림 예시" className={styles.featureMobileNotification} />
             <img src="/images/landing-desktop-notification.svg" alt="데스크탑 알림 예시" className={styles.featureDesktopNotification} />
           </div>
         </div>
