@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import MainLandingPage from "./pages/MainLandingPage";
 import HomePage from "./pages/HomePage";
 import { checkLoginStatus } from "../utils/authUtils";
@@ -7,7 +7,6 @@ import { checkLoginStatus } from "../utils/authUtils";
 const ConditionalRoute = ({ children, fallback = <MainLandingPage /> }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const navigate = useNavigate();
   const location = useLocation();
 
   useEffect(() => {
