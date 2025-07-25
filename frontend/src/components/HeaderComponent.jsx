@@ -7,6 +7,7 @@ import styles from "styles/Header.module.css";
 import Button from "./Button";
 import { getFirebaseToken } from "components/FirebaseToken";
 import LoadingOverlay from "components/LoadingOverlay";
+import { checkLoginStatus, clearRedirectPath } from "../utils/authUtils";
 
 const HeaderComponent = forwardRef(({ mode, onSidebarToggle, onCloseSidebarPopups }, ref) => {
   const [notifications, setNotifications] = useState([]);
@@ -32,6 +33,12 @@ const HeaderComponent = forwardRef(({ mode, onSidebarToggle, onCloseSidebarPopup
 
   const fetchNotifications = useCallback(async () => {
     try {
+      // 로그인 상태 확인
+      const isLoggedIn = await checkLoginStatus();
+      if (!isLoggedIn) {
+        return; // 로그인되지 않은 경우 API 호출하지 않음
+      }
+      
       const response = await axios.get("/notifications", { withCredentials: true });
       setNotifications(response.data || []);
     } catch (error) {
@@ -39,10 +46,12 @@ const HeaderComponent = forwardRef(({ mode, onSidebarToggle, onCloseSidebarPopup
     }
   }, []);
 
-  // 초기 알림 데이터 로딩
+  // 초기 알림 데이터 로딩 (로그인된 경우에만)
   useEffect(() => {
-    fetchNotifications();
-  }, [fetchNotifications]);
+    if (mode !== "landing") { // 랜딩 페이지가 아닌 경우에만
+      fetchNotifications();
+    }
+  }, [fetchNotifications, mode]);
 
   // 리사이즈 이벤트 처리
   useEffect(() => {
@@ -157,9 +166,15 @@ const HeaderComponent = forwardRef(({ mode, onSidebarToggle, onCloseSidebarPopup
       } else {
         await axios.post(`/auth/logout`, {}, { withCredentials: true });
       }
-      navigate("/auth/login");
+      // 리다이렉트 경로 정리
+      clearRedirectPath();
+      // 로그아웃 완료 후 페이지 새로고침하여 상태 초기화
+      window.location.href = "/";
     } catch (error) {
       console.error("Logout error:", error);
+      // 에러가 발생해도 리다이렉트 경로 정리하고 랜딩 페이지로 이동
+      clearRedirectPath();
+      window.location.href = "/";
     } finally {
       setIsLoading(false);
     }
@@ -184,6 +199,21 @@ const HeaderComponent = forwardRef(({ mode, onSidebarToggle, onCloseSidebarPopup
     }
     openDropdownRef.current = newRef;
   }).current;
+
+  if (mode === "landing") {
+    return (
+      <header className={styles.header}>
+        <div className={styles.leftSection}>
+          <button type="button" onClick={handleHome} className={styles.logo}>
+            chcalendar
+          </button>
+        </div>
+        <div className={styles.rightSection}>
+          <Button variant="green" size="header" onClick={() => navigate("/auth/login")}>로그인</Button>
+        </div>
+      </header>
+    );
+  }
 
   if (mode === "profile") {
     return (
