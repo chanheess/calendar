@@ -9,6 +9,37 @@ import { getFirebaseToken } from "components/FirebaseToken";
 import LoadingOverlay from "components/LoadingOverlay";
 import { checkLoginStatus, clearRedirectPath } from "../utils/authUtils";
 
+function NotificationBellIcon({ hasNotification, ...props }) {
+  return (
+    <svg
+      width="22"
+      height="22"
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      {...props}
+    >
+      <path
+        d="M12 22c1.1 0 2-.9 2-2h-4a2 2 0 002 2zm6-6V11c0-3.07-1.63-5.64-5-6.32V4a1 1 0 10-2 0v.68C7.63 5.36 6 7.92 6 11v5l-1.29 1.29A1 1 0 006 19h12a1 1 0 00.71-1.71L18 16z"
+        fill={hasNotification ? "#4285f4" : "#adb5bd"}
+      />
+    </svg>
+  );
+}
+
+function ChCalendarLogo({ size = 32, ...props }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 192 192" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+      <rect width="192" height="192" rx="40" fill="#4285f4"/>
+      <rect x="36" y="48" width="120" height="96" rx="16" fill="#fff"/>
+      <rect x="36" y="48" width="120" height="24" rx="8" fill="#bcd0ee"/>
+      <circle cx="60" cy="60" r="6" fill="#4285f4"/>
+      <circle cx="132" cy="60" r="6" fill="#4285f4"/>
+      <path d="M80 112l16 16 32-32" stroke="#4285f4" strokeWidth="8" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  );
+}
+
 const HeaderComponent = forwardRef(({ mode, onSidebarToggle, onCloseSidebarPopups }, ref) => {
   const [notifications, setNotifications] = useState([]);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -204,8 +235,9 @@ const HeaderComponent = forwardRef(({ mode, onSidebarToggle, onCloseSidebarPopup
     return (
       <header className={styles.header}>
         <div className={styles.leftSection}>
-          <button type="button" onClick={handleHome} className={styles.logo}>
-            chcalendar
+          <button type="button" onClick={handleHome} className={styles.logoButton}>
+            <ChCalendarLogo size={32} style={{ marginRight: 10, verticalAlign: 'middle' }} />
+            <span className={styles.logoText}>chcalendar</span>
           </button>
         </div>
         <div className={styles.rightSection}>
@@ -225,8 +257,9 @@ const HeaderComponent = forwardRef(({ mode, onSidebarToggle, onCloseSidebarPopup
            </button>
           )}
           {!isMobile && (
-           <button type="button" onClick={handleHome} className={styles.logo}>
-             chcalendar
+           <button type="button" onClick={handleHome} className={styles.logoButton}>
+             <ChCalendarLogo size={32} style={{ marginRight: 10, verticalAlign: 'middle' }} />
+             <span className={styles.logoText}>chcalendar</span>
            </button>
           )}
         </div>
@@ -280,8 +313,9 @@ const HeaderComponent = forwardRef(({ mode, onSidebarToggle, onCloseSidebarPopup
           </button>
         )}
         {!isMobile && (
-          <button type="button" onClick={handleHome} className={styles.logo}>
-            chcalendar
+          <button type="button" onClick={handleHome} className={styles.logoButton}>
+            <ChCalendarLogo size={32} style={{ marginRight: 10, verticalAlign: 'middle' }} />
+            <span className={styles.logoText}>chcalendar</span>
           </button>
         )}
       </div>
@@ -313,7 +347,7 @@ const HeaderComponent = forwardRef(({ mode, onSidebarToggle, onCloseSidebarPopup
             onClick={toggleDropdown}
             aria-label="알림 보기"
           >
-            <span className={styles.bellIcon}>🔔</span>
+            <NotificationBellIcon hasNotification={notifications.length > 0} className={styles.notificationBellIcon} />
             {notifications.length > 0 && (
               <span className={styles.badge}>{notifications.length}</span>
             )}

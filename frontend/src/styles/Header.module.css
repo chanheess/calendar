@@ -61,6 +61,30 @@
   transform: translateY(-1px);
 }
 
+.logoButton {
+  display: flex;
+  align-items: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 10px;
+  margin: 0;
+  transition: background 0.2s;
+  border-radius: 20px;
+}
+.logoButton:hover {
+  padding: 10px;
+  background: #f5f6fa;
+  border-radius: 20px;
+}
+.logoText {
+  font-size: 25px;
+  font-weight: bold;
+  color: #111;
+  letter-spacing: -0.5px;
+  vertical-align: middle;
+}
+
 /* 햄버거 버튼 */
 .hamburgerButton {
   font-size: 24px;
@@ -360,4 +384,12 @@
   .rightSection {
     gap: 6px;
   }
+}
+
+.notificationBellIcon path {
+  transition: fill 0.2s;
+}
+
+.notificationBell:hover .notificationBellIcon path {
+  fill: #174ea6;
 }
