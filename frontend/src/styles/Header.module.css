@@ -6,9 +6,13 @@
   padding: 10px 20px;
   background: #fff;
   border-bottom: 1px solid #ddd;
-  position: relative;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
   height: 60px;
-  z-index: 10;
+  z-index: 1000;
+  box-sizing: border-box;
 }
 
 /* 왼쪽 */
@@ -55,6 +59,30 @@
   background: #f0f0f0;
   border-color: #ddd;
   transform: translateY(-1px);
+}
+
+.logoButton {
+  display: flex;
+  align-items: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 10px;
+  margin: 0;
+  transition: background 0.2s;
+  border-radius: 20px;
+}
+.logoButton:hover {
+  padding: 10px;
+  background: #f5f6fa;
+  border-radius: 20px;
+}
+.logoText {
+  font-size: 25px;
+  font-weight: bold;
+  color: #111;
+  letter-spacing: -0.5px;
+  vertical-align: middle;
 }
 
 /* 햄버거 버튼 */
@@ -356,4 +384,21 @@
   .rightSection {
     gap: 6px;
   }
+
+  .logoButton svg {
+    width: 20px !important;
+    height: 20px !important;
+    margin-right: 6px !important;
+  }
+  .logoText {
+    font-size: 20px !important;
+  }
+}
+
+.notificationBellIcon path {
+  transition: fill 0.2s;
+}
+
+.notificationBell:hover .notificationBellIcon path {
+  fill: #174ea6;
 }

@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import axios from 'utils/axiosInstance';
 import styles from "styles/Login.module.css";
 import Button from "../Button";
 import PasswordResetPopup from "../popups/PasswordResetPopup";
+import { getRedirectPath, clearRedirectPath } from "../../utils/authUtils";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
@@ -13,6 +14,7 @@ const LoginPage = () => {
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     const cookies = document.cookie.split(";").map(c => c.trim());
@@ -26,6 +28,15 @@ const LoginPage = () => {
       document.cookie = "oauth_error=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
     }
   }, []);
+
+  // 로그인 페이지 진입 시 현재 경로를 저장
+  useEffect(() => {
+    if (location.state?.from) {
+      sessionStorage.setItem('redirectPath', location.state.from);
+    } else if (location.pathname !== '/auth/login') {
+      sessionStorage.setItem('redirectPath', location.pathname);
+    }
+  }, [location]);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -44,9 +55,11 @@ const LoginPage = () => {
       // 로그인 성공 후 OAuth 계정 연동 상태 확인
       const hasOAuthLink = await checkAndRequestOAuthLink();
 
-      // OAuth 연동이 없을 때만 메인 페이지로 이동
+      // OAuth 연동이 없을 때만 원래 페이지로 이동
       if (!hasOAuthLink) {
-        navigate("/");
+        const redirectPath = getRedirectPath();
+        clearRedirectPath();
+        navigate(redirectPath);
       }
     } catch (error) {
       if (error.response && error.response.data) {
@@ -123,9 +136,6 @@ const LoginPage = () => {
           로그인
         </Button>
       </form>
-      <Button variant="blue" size="medium" margin="top" onClick={() => navigate("/auth/register")}>
-        회원가입
-      </Button>
       <hr className={styles.divider} />
       <button
         className={styles.googleButton}
@@ -149,7 +159,23 @@ const LoginPage = () => {
       {loading && (
         <div className={styles.loadingSpinner}></div>
       )}
-      <small onClick={() => setPasswordResetPopupVisible(true)}>비밀번호 찾기</small>
+      <div className={styles.bottomLinksRow}>
+        <button
+          type="button"
+          className={styles.textLink}
+          onClick={() => navigate("/auth/register")}
+        >
+          회원가입
+        </button>
+        <span className={styles.dividerDot}>|</span>
+        <button
+          type="button"
+          className={styles.textLink}
+          onClick={() => setPasswordResetPopupVisible(true)}
+        >
+          비밀번호 찾기
+        </button>
+      </div>
       {errorMessage && <div className={styles.error}>{errorMessage}</div>}
     </div>
     </>

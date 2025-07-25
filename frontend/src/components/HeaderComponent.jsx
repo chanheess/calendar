@@ -7,6 +7,38 @@ import styles from "styles/Header.module.css";
 import Button from "./Button";
 import { getFirebaseToken } from "components/FirebaseToken";
 import LoadingOverlay from "components/LoadingOverlay";
+import { checkLoginStatus, clearRedirectPath } from "../utils/authUtils";
+
+function NotificationBellIcon({ hasNotification, ...props }) {
+  return (
+    <svg
+      width="22"
+      height="22"
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      {...props}
+    >
+      <path
+        d="M12 22c1.1 0 2-.9 2-2h-4a2 2 0 002 2zm6-6V11c0-3.07-1.63-5.64-5-6.32V4a1 1 0 10-2 0v.68C7.63 5.36 6 7.92 6 11v5l-1.29 1.29A1 1 0 006 19h12a1 1 0 00.71-1.71L18 16z"
+        fill={hasNotification ? "#4285f4" : "#adb5bd"}
+      />
+    </svg>
+  );
+}
+
+function ChCalendarLogo({ size = 32, ...props }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 192 192" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+      <rect width="192" height="192" rx="40" fill="#4285f4"/>
+      <rect x="36" y="48" width="120" height="96" rx="16" fill="#fff"/>
+      <rect x="36" y="48" width="120" height="24" rx="8" fill="#bcd0ee"/>
+      <circle cx="60" cy="60" r="6" fill="#4285f4"/>
+      <circle cx="132" cy="60" r="6" fill="#4285f4"/>
+      <path d="M80 112l16 16 32-32" stroke="#4285f4" strokeWidth="8" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  );
+}
 
 const HeaderComponent = forwardRef(({ mode, onSidebarToggle, onCloseSidebarPopups }, ref) => {
   const [notifications, setNotifications] = useState([]);
@@ -32,6 +64,12 @@ const HeaderComponent = forwardRef(({ mode, onSidebarToggle, onCloseSidebarPopup
 
   const fetchNotifications = useCallback(async () => {
     try {
+      // 로그인 상태 확인
+      const isLoggedIn = await checkLoginStatus();
+      if (!isLoggedIn) {
+        return; // 로그인되지 않은 경우 API 호출하지 않음
+      }
+      
       const response = await axios.get("/notifications", { withCredentials: true });
       setNotifications(response.data || []);
     } catch (error) {
@@ -39,10 +77,12 @@ const HeaderComponent = forwardRef(({ mode, onSidebarToggle, onCloseSidebarPopup
     }
   }, []);
 
-  // 초기 알림 데이터 로딩
+  // 초기 알림 데이터 로딩 (로그인된 경우에만)
   useEffect(() => {
-    fetchNotifications();
-  }, [fetchNotifications]);
+    if (mode !== "landing") { // 랜딩 페이지가 아닌 경우에만
+      fetchNotifications();
+    }
+  }, [fetchNotifications, mode]);
 
   // 리사이즈 이벤트 처리
   useEffect(() => {
@@ -157,9 +197,15 @@ const HeaderComponent = forwardRef(({ mode, onSidebarToggle, onCloseSidebarPopup
       } else {
         await axios.post(`/auth/logout`, {}, { withCredentials: true });
       }
-      navigate("/auth/login");
+      // 리다이렉트 경로 정리
+      clearRedirectPath();
+      // 로그아웃 완료 후 페이지 새로고침하여 상태 초기화
+      window.location.href = "/";
     } catch (error) {
       console.error("Logout error:", error);
+      // 에러가 발생해도 리다이렉트 경로 정리하고 랜딩 페이지로 이동
+      clearRedirectPath();
+      window.location.href = "/";
     } finally {
       setIsLoading(false);
     }
@@ -185,6 +231,22 @@ const HeaderComponent = forwardRef(({ mode, onSidebarToggle, onCloseSidebarPopup
     openDropdownRef.current = newRef;
   }).current;
 
+  if (mode === "landing") {
+    return (
+      <header className={styles.header}>
+        <div className={styles.leftSection}>
+          <button type="button" onClick={handleHome} className={styles.logoButton}>
+            <ChCalendarLogo size={32} style={{ marginRight: 10, verticalAlign: 'middle' }} />
+            <span className={styles.logoText}>chcalendar</span>
+          </button>
+        </div>
+        <div className={styles.rightSection}>
+          <Button variant="green" size="header" onClick={() => navigate("/auth/login")}>로그인</Button>
+        </div>
+      </header>
+    );
+  }
+
   if (mode === "profile") {
     return (
       <header className={styles.header}>
@@ -195,16 +257,18 @@ const HeaderComponent = forwardRef(({ mode, onSidebarToggle, onCloseSidebarPopup
            </button>
           )}
           {!isMobile && (
-           <button type="button" onClick={handleHome} className={styles.logo}>
-             chcalendar
+           <button type="button" onClick={handleHome} className={styles.logoButton}>
+             <ChCalendarLogo size={32} style={{ marginRight: 10, verticalAlign: 'middle' }} />
+             <span className={styles.logoText}>chcalendar</span>
            </button>
           )}
         </div>
         <div className={styles.rightSection}>
          {isMobile && (
            <div className={styles.centerSection}>
-             <button type="button" onClick={handleHome} className={styles.logo}>
-               chcalendar
+             <button type="button" onClick={handleHome} className={styles.logoButton}>
+               <ChCalendarLogo size={32} style={{ marginRight: 10, verticalAlign: 'middle' }} />
+               <span className={styles.logoText}>chcalendar</span>
              </button>
            </div>
          )}
@@ -250,16 +314,18 @@ const HeaderComponent = forwardRef(({ mode, onSidebarToggle, onCloseSidebarPopup
           </button>
         )}
         {!isMobile && (
-          <button type="button" onClick={handleHome} className={styles.logo}>
-            chcalendar
+          <button type="button" onClick={handleHome} className={styles.logoButton}>
+            <ChCalendarLogo size={32} style={{ marginRight: 10, verticalAlign: 'middle' }} />
+            <span className={styles.logoText}>chcalendar</span>
           </button>
         )}
       </div>
 
       {isMobile && (
         <div className={styles.centerSection}>
-          <button type="button" onClick={handleHome} className={styles.logo}>
-            chcalendar
+          <button type="button" onClick={handleHome} className={styles.logoButton}>
+            <ChCalendarLogo size={32} style={{ marginRight: 10, verticalAlign: 'middle' }} />
+            <span className={styles.logoText}>chcalendar</span>
           </button>
         </div>
       )}
@@ -283,7 +349,7 @@ const HeaderComponent = forwardRef(({ mode, onSidebarToggle, onCloseSidebarPopup
             onClick={toggleDropdown}
             aria-label="알림 보기"
           >
-            <span className={styles.bellIcon}>🔔</span>
+            <NotificationBellIcon hasNotification={notifications.length > 0} className={styles.notificationBellIcon} />
             {notifications.length > 0 && (
               <span className={styles.badge}>{notifications.length}</span>
             )}

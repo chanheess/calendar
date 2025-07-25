@@ -103,6 +103,13 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
         eventPublisher.publishEvent(new GoogleCalendarSyncEvent(oauthAccessToken, userId));
         eventPublisher.publishEvent(new GoogleScheduleSyncEvent(oauthAccessToken, userId));
 
-        response.sendRedirect(homeUrl);
+        // 세션에서 리다이렉트 경로 확인
+        String redirectPath = (String) request.getSession().getAttribute("redirectPath");
+        if (redirectPath != null && !redirectPath.isEmpty()) {
+            request.getSession().removeAttribute("redirectPath");
+            response.sendRedirect(redirectPath);
+        } else {
+            response.sendRedirect(homeUrl);
+        }
     }
 }
