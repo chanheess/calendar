@@ -384,6 +384,15 @@
   .rightSection {
     gap: 6px;
   }
+
+  .logoButton svg {
+    width: 20px !important;
+    height: 20px !important;
+    margin-right: 6px !important;
+  }
+  .logoText {
+    font-size: 20px !important;
+  }
 }
 
 .notificationBellIcon path {

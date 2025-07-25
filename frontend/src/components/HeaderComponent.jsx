@@ -266,8 +266,9 @@ const HeaderComponent = forwardRef(({ mode, onSidebarToggle, onCloseSidebarPopup
         <div className={styles.rightSection}>
          {isMobile && (
            <div className={styles.centerSection}>
-             <button type="button" onClick={handleHome} className={styles.logo}>
-               chcalendar
+             <button type="button" onClick={handleHome} className={styles.logoButton}>
+               <ChCalendarLogo size={32} style={{ marginRight: 10, verticalAlign: 'middle' }} />
+               <span className={styles.logoText}>chcalendar</span>
              </button>
            </div>
          )}
@@ -322,8 +323,9 @@ const HeaderComponent = forwardRef(({ mode, onSidebarToggle, onCloseSidebarPopup
 
       {isMobile && (
         <div className={styles.centerSection}>
-          <button type="button" onClick={handleHome} className={styles.logo}>
-            chcalendar
+          <button type="button" onClick={handleHome} className={styles.logoButton}>
+            <ChCalendarLogo size={32} style={{ marginRight: 10, verticalAlign: 'middle' }} />
+            <span className={styles.logoText}>chcalendar</span>
           </button>
         </div>
       )}
