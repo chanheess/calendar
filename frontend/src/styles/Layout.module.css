@@ -2,6 +2,7 @@
   display: flex;
   flex-direction: column;
   height: 100vh; /* 화면 전체 높이 */
+  height: calc(var(--vh, 1vh) * 100); /* 실제 viewport 높이 사용 */
   padding-top: 60px; /* 헤더 높이만큼 상단 여백 */
   box-sizing: border-box;
 }
@@ -10,6 +11,7 @@
   display: flex;
   flex: 1;
   height: calc(100vh - 60px); /* 헤더를 제외한 나머지 공간 */
+  height: calc((var(--vh, 1vh) * 100) - 60px); /* 실제 viewport 높이에서 헤더 높이 제외 */
   overflow: hidden; /* 오버플로우 방지 */
 }
 
@@ -33,5 +35,19 @@
 @media (min-width: 768px) {
   .dimmedOverlay {
     display: none;
+  }
+}
+
+/* 모바일 환경에서 동적 높이 조정 */
+@media screen and (max-width: 768px) {
+  .layout {
+    height: 100vh;
+    height: calc(var(--vh, 1vh) * 100);
+    padding-top: 60px;
+  }
+  
+  .content {
+    height: calc(100vh - 60px);
+    height: calc((var(--vh, 1vh) * 100) - 60px);
   }
 }
