@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, forwardRef, useImperativeHandle } from "react";
+import { Link } from "react-router-dom";
 import styles from "styles/Sidebar.module.css";
 import Button from "./Button";
 import CalendarList from "./CalendarList";
@@ -399,6 +400,13 @@ const SidebarComponent = forwardRef(({
               </div>
             </div>
           )}
+        </div>
+
+        {/* 개인정보 처리방침 링크 */}
+        <div className={styles.privacyLinkContainer}>
+          <Link to="/privacy-policy" className={styles.privacyLink}>
+            개인정보 처리방침
+          </Link>
         </div>
       </div>
     </>
