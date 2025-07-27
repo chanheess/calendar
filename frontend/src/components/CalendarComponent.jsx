@@ -409,33 +409,7 @@ const CalendarComponent = forwardRef(({ selectedCalendarList, refreshKey, refres
     }
   };
 
-  // 모바일 브라우저 viewport 높이 조정
-  useEffect(() => {
-    const setViewportHeight = () => {
-      const vh = window.innerHeight * 0.01;
-      document.documentElement.style.setProperty('--vh', `${vh}px`);
-    };
 
-    setViewportHeight();
-    window.addEventListener('resize', setViewportHeight);
-    window.addEventListener('orientationchange', setViewportHeight);
-
-    // iOS Safari에서 주소창 표시/숨김에 대응
-    let lastScrollTop = window.pageYOffset || document.documentElement.scrollTop;
-    window.addEventListener('scroll', () => {
-      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-      if (Math.abs(scrollTop - lastScrollTop) > 50) {  // 50px 이상 스크롤된 경우에만 처리
-        setViewportHeight();
-        lastScrollTop = scrollTop;
-      }
-    });
-
-    return () => {
-      window.removeEventListener('resize', setViewportHeight);
-      window.removeEventListener('orientationchange', setViewportHeight);
-      window.removeEventListener('scroll', setViewportHeight);
-    };
-  }, []);
 
   // 모바일 환경 감지
   useEffect(() => {
