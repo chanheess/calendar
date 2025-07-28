@@ -402,10 +402,13 @@ const SidebarComponent = forwardRef(({
           )}
         </div>
 
-        {/* 개인정보 처리방침 링크 */}
+        {/* 개인정보 처리방침 및 서비스 이용약관 링크 */}
         <div className={styles.privacyLinkContainer}>
           <Link to="/privacy-policy" className={styles.privacyLink}>
             개인정보 처리방침
+          </Link>
+          <Link to="/terms-of-service" className={styles.privacyLink}>
+            서비스 이용약관
           </Link>
         </div>
       </div>

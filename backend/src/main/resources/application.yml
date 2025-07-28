@@ -24,6 +24,8 @@ spring:
         smtp:
           auth: true
           starttls.enable: true
+          starttls.required: true
+          ssl.trust: ${SMTP_HOST}
 
   redis:
     host: ${REDIS_HOST}

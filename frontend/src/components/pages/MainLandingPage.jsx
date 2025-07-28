@@ -74,6 +74,10 @@ const MainLandingPage = () => {
         <Link to="/privacy-policy" className={styles.privacyLink}>
           개인정보 처리방침
         </Link>
+        {" | "}
+        <Link to="/terms-of-service" className={styles.privacyLink}>
+          서비스 이용약관
+        </Link>
       </footer>
     </div>
   );
