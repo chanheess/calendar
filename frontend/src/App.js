@@ -4,6 +4,7 @@ import LoginPage from "./components/pages/LoginPage";
 import RegisterPage from "./components/pages/RegisterPage";
 import ProfilePage from "./components/pages/ProfilePage";
 import PrivacyPolicyPage from "./components/pages/PrivacyPolicyPage";
+import TermsOfServicePage from "./components/pages/TermsOfServicePage";
 import ConditionalRoute from "./components/ConditionalRoute";
 
 function App() {
@@ -49,6 +50,7 @@ function App() {
         <Route path="/auth/register" element={<RegisterPage />} />
         <Route path="/" element={<ConditionalRoute />} />
         <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+        <Route path="/terms-of-service" element={<TermsOfServicePage />} />
       </Routes>
     </Router>
   );
