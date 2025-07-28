@@ -359,7 +359,7 @@ const PrivacyPolicyPage = () => {
             &nbsp;&nbsp;성명: 박찬희<br />
             &nbsp;&nbsp;직책: 개발자<br />
             &nbsp;&nbsp;전화번호: 01035633446<br />
-            &nbsp;&nbsp;이메일: ghghfkd52@gmail.com
+            &nbsp;&nbsp;이메일: support@chcalendar.site
           </p>
 
           <h2 style={{ fontSize: "18px", marginTop: "30px", marginBottom: "15px", color: "#2c3e50" }}>

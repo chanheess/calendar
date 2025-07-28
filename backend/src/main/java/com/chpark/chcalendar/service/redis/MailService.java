@@ -23,6 +23,7 @@ public class MailService {
         String text = "인증 코드는 " + code + " 입니다.";
 
         SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom("support@chcalendar.site"); // 발신자 이메일 설정
         message.setTo(emailDto.getEmail());
         message.setSubject(subject);
         message.setText(text);
