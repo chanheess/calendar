@@ -85,6 +85,7 @@ Google 캘린더, 그룹 캘린더 등 다양한 캘린더를 한 번에 관리�
 `AWS EC2` `AWS RDS` `Docker` `Jenkins` `NGINX`
 
 # ERD
- ![chcalendar (2)](https://github.com/user-attachments/assets/d459c942-62af-4e22-9092-195c58e96eb1)
+ <img width="1140" height="1272" alt="chcalendar" src="https://github.com/user-attachments/assets/23ebf620-0ac8-423a-8011-24667ff37816" />
+
 
 
