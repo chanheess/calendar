@@ -25,6 +25,6 @@
   <text x="140" y="260" text-anchor="middle" font-family="Arial, sans-serif" font-size="48" font-weight="bold" fill="#4285f4">chcalendar</text>
   
   <!-- 서브 텍스트 -->
-  <text x="150" y="290" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" fill="#666">모든 일정을 한 곳에서</text>
-  <text x="150" y="320" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" fill="#888">통합 캘린더 서비스</text>
+  <text x="140" y="290" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" fill="#666">모든 일정을 한 곳에서</text>
+  <text x="140" y="320" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" fill="#888">통합 캘린더 서비스</text>
 </svg>
