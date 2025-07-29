@@ -1,7 +1,11 @@
-#  chcalendar
+
+
+<h1 align="center">🚀 chcalendar 🖥️</h1>
+
+<div align="center">
+  <img src="frontend/public/slogan.svg" alt="chcalendar slogan" width=250px>
+</div>
 <img width="1512" height="855" alt="landing-calendar-main" src="https://github.com/user-attachments/assets/d5810692-94bc-41bd-a14b-3812b437d43d" />
-
-
 사이트 링크: https://chcalendar.site/
 
 # 서비스 소개
