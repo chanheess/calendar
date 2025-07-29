@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 841.9 595.3">
+  <!-- 배경 -->
+  <rect width="841.9" height="595.3" fill="white"/>
+  
+  <!-- 캘린더 아이콘 -->
+  <g transform="translate(320.9, 147.65)">
+    <!-- 파란색 배경 사각형 -->
+    <rect width="200" height="200" rx="40" fill="#4285f4"/>
+    
+    <!-- 흰색 캘린더 -->
+    <rect x="36" y="48" width="128" height="104" rx="16" fill="#fff"/>
+    
+    <!-- 캘린더 헤더 -->
+    <rect x="36" y="48" width="128" height="24" rx="8" fill="#bcd0ee"/>
+    
+    <!-- 헤더의 점들 -->
+    <circle cx="60" cy="60" r="6" fill="#4285f4"/>
+    <circle cx="132" cy="60" r="6" fill="#4285f4"/>
+    
+    <!-- 체크마크 -->
+    <path d="M80 112l16 16 32-32" stroke="#4285f4" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  </g>
+  
+  <!-- chcalendar 텍스트 -->
+  <text x="420.95" y="420" text-anchor="middle" font-family="Arial, sans-serif" font-size="48" font-weight="bold" fill="#4285f4">chcalendar</text>
+  
+  <!-- 서브 텍스트 -->
+  <text x="420.95" y="460" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" fill="#666">모든 일정을 한 곳에서</text>
+  <text x="420.95" y="490" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" fill="#888">통합 캘린더 서비스</text>
+</svg>
