@@ -63,6 +63,7 @@ Google 캘린더, 그룹 캘린더 등 다양한 캘린더를 한 번에 관리�
 - 구글 캘린더 연동 [PR #114](https://github.com/chanheess/calendar/pull/114)
 - 구글 캘린더 일정 작성 [PR #114](https://github.com/chanheess/calendar/pull/114)
 </br>연관 이슈: [Issue #101](https://github.com/chanheess/calendar/issues/101)
+</br>블로그 링크: [데이터베이스 구조 리팩토링 및 마이그레이션 경험 공유](https://chanheess.tistory.com/280)
 
 **그 외**
 - 외부 메일주소 사용 [PR #131](https://github.com/chanheess/calendar/pull/131)
