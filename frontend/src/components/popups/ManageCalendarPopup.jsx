@@ -240,7 +240,6 @@ const ManageCalendarPopup = ({
                   )}
                 </div>
               </div>
-              <hr />
             </>
           )}
         </div>
