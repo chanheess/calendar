@@ -12,6 +12,7 @@ import com.chpark.chcalendar.repository.calendar.CalendarProviderRepository;
 import com.chpark.chcalendar.repository.calendar.CalendarQueryRepository;
 import com.chpark.chcalendar.repository.calendar.CalendarRepository;
 import com.chpark.chcalendar.repository.calendar.CalendarSettingRepository;
+import com.chpark.chcalendar.repository.calendar.CalendarMemberRepository;
 import com.chpark.chcalendar.security.JwtTokenProvider;
 import com.chpark.chcalendar.utility.CookieUtility;
 import jakarta.persistence.EntityNotFoundException;
@@ -31,8 +32,8 @@ public class GoogleCalendarService extends CalendarService {
     private final CalendarProviderRepository calendarProviderRepository;
     private final RestClient restClient;
 
-    public GoogleCalendarService(CalendarRepository calendarRepository, CalendarSettingRepository calendarSettingRepository, JwtTokenProvider jwtTokenProvider, ApplicationEventPublisher eventPublisher, CalendarQueryRepository calendarQueryRepository, CalendarProviderRepository calendarProviderRepository, RestClient restClient) {
-        super(calendarRepository, calendarSettingRepository, jwtTokenProvider, eventPublisher);
+    public GoogleCalendarService(CalendarRepository calendarRepository, CalendarSettingRepository calendarSettingRepository, JwtTokenProvider jwtTokenProvider, ApplicationEventPublisher eventPublisher, CalendarQueryRepository calendarQueryRepository, CalendarProviderRepository calendarProviderRepository, RestClient restClient, CalendarMemberRepository calendarMemberRepository) {
+        super(calendarRepository, calendarSettingRepository, jwtTokenProvider, eventPublisher, calendarMemberRepository);
         this.calendarQueryRepository = calendarQueryRepository;
         this.calendarProviderRepository = calendarProviderRepository;
         this.restClient = restClient;

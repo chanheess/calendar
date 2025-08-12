@@ -5,9 +5,12 @@ import com.chpark.chcalendar.dto.calendar.CalendarSettingDto;
 import com.chpark.chcalendar.entity.calendar.CalendarSettingEntity;
 import com.chpark.chcalendar.enumClass.CRUDAction;
 import com.chpark.chcalendar.enumClass.JwtTokenType;
+import com.chpark.chcalendar.enumClass.CalendarMemberRole;
 import com.chpark.chcalendar.repository.calendar.CalendarRepository;
 import com.chpark.chcalendar.repository.calendar.CalendarSettingRepository;
+import com.chpark.chcalendar.repository.calendar.CalendarMemberRepository;
 import com.chpark.chcalendar.security.JwtTokenProvider;
+import com.chpark.chcalendar.exception.authorization.GroupAuthorizationException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -25,8 +28,17 @@ public abstract class CalendarService {
     protected final CalendarRepository calendarRepository;
     protected final CalendarSettingRepository calendarSettingRepository;
     private final JwtTokenProvider jwtTokenProvider;
+    private final CalendarMemberRepository calendarMemberRepository;
 
     private final ApplicationEventPublisher eventPublisher;
+
+    public CalendarService(CalendarRepository calendarRepository, CalendarSettingRepository calendarSettingRepository, JwtTokenProvider jwtTokenProvider, ApplicationEventPublisher eventPublisher, CalendarMemberRepository calendarMemberRepository) {
+        this.calendarRepository = calendarRepository;
+        this.calendarSettingRepository = calendarSettingRepository;
+        this.jwtTokenProvider = jwtTokenProvider;
+        this.eventPublisher = eventPublisher;
+        this.calendarMemberRepository = calendarMemberRepository;
+    }
 
     public abstract CalendarDto.Response create(long userId, String title);
     public abstract List<CalendarDto.Response> findCalendarList(long userId);
@@ -45,7 +57,17 @@ public abstract class CalendarService {
                 () -> new EntityNotFoundException("캘린더를 찾을 수 없습니다.")
         );
 
+        // 이름 변경 시 권한 확인
         if (calendarSettingDto.getTitle() != null) {
+            // 그룹 캘린더인 경우 권한 확인
+            if (calendarSettingEntity.getCalendar().getCategory().name().equals("GROUP")) {
+                var memberEntity = calendarMemberRepository.findByUserIdAndCalendarId(userId, calendarSettingDto.getCalendarId())
+                    .orElseThrow(() -> new GroupAuthorizationException("캘린더에 대한 권한이 없습니다."));
+                
+                if (memberEntity.getRole() == CalendarMemberRole.USER) {
+                    throw new GroupAuthorizationException("이름 변경 권한이 없습니다. ADMIN 또는 SUB_ADMIN 권한이 필요합니다.");
+                }
+            }
             calendarSettingEntity.getCalendar().setTitle(calendarSettingDto.getTitle());
         }
 

@@ -34,4 +34,16 @@ public class CalendarMemberController {
 
         return ResponseEntity.ok(result);
     }
+
+    @GetMapping("/calendars/{calendar-id}/my-role")
+    public ResponseEntity<CalendarMemberDto> getMyRole(@NotNull @PathVariable("calendar-id") Long calendarId,
+                                                       HttpServletRequest request) {
+
+        String token = jwtTokenProvider.resolveToken(request, JwtTokenType.ACCESS.getValue());
+        long userId = jwtTokenProvider.getUserIdFromToken(token);
+
+        CalendarMemberDto result = calendarMemberService.findMyRole(userId, calendarId);
+
+        return ResponseEntity.ok(result);
+    }
 }

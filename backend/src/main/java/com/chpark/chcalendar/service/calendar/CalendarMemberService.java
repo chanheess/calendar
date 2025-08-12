@@ -12,7 +12,6 @@ import com.chpark.chcalendar.repository.calendar.CalendarMemberRepository;
 import com.chpark.chcalendar.repository.calendar.CalendarQueryRepository;
 import com.chpark.chcalendar.repository.calendar.CalendarRepository;
 import com.chpark.chcalendar.repository.user.UserRepository;
-import com.chpark.chcalendar.service.notification.QuartzSchedulerService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -82,6 +81,8 @@ public class CalendarMemberService {
 
     @Transactional
     public void addUser(long userId, long calendarId) {
+        checkCalendarMemberExists(userId, calendarId);
+
         CalendarEntity calendar = calendarRepository.findByIdAndCategory(calendarId, CalendarCategory.GROUP).orElseThrow(
                 () -> new IllegalArgumentException("존재하지 않는 그룹입니다.")
         );
@@ -128,6 +129,17 @@ public class CalendarMemberService {
     @Transactional
     public long getMemberCount(long calendarId) {
         return calendarMemberRepository.countByCalendarId(calendarId);
+    }
+
+    public CalendarMemberDto findMyRole(long userId, long calendarId) {
+        CalendarMemberEntity calendarMember = getCalendarMember(userId, calendarId);
+        
+        return CalendarMemberDto.builder()
+                .calendarId(calendarMember.getCalendar().getId())
+                .userId(calendarMember.getUser().getId())
+                .role(calendarMember.getRole())
+                .userNickname(calendarMember.getUser().getNickname())
+                .build();
     }
 
     @Transactional
