@@ -54,7 +54,7 @@ const ManageCalendarPopup = ({
 
   const loadMyRole = async (groupId) => {
     try {
-      const response = await axios.get(`/calendars/${groupId}/my-role`, {
+      const response = await axios.get(`/calendars/${groupId}/members/me`, {
         headers: { "Content-Type": "application/json" },
       });
       setMyRole(response.data.role);

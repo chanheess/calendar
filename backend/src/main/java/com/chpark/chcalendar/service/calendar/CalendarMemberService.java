@@ -131,6 +131,7 @@ public class CalendarMemberService {
         return calendarMemberRepository.countByCalendarId(calendarId);
     }
 
+    @Transactional
     public CalendarMemberDto findMyRole(long userId, long calendarId) {
         CalendarMemberEntity calendarMember = getCalendarMember(userId, calendarId);
         
