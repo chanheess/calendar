@@ -52,10 +52,6 @@ server:
 jwt:
   secret: ${JWT_SECRET}
 
-logging:
-  level:
-    org.hibernate.SQL: debug
-
 password:
   reset:
     url: ${DOMAIN}
