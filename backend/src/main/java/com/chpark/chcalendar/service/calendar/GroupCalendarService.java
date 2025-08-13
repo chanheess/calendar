@@ -8,6 +8,7 @@ import com.chpark.chcalendar.enumClass.CalendarMemberRole;
 import com.chpark.chcalendar.repository.calendar.CalendarQueryRepository;
 import com.chpark.chcalendar.repository.calendar.CalendarRepository;
 import com.chpark.chcalendar.repository.calendar.CalendarSettingRepository;
+import com.chpark.chcalendar.repository.calendar.CalendarMemberRepository;
 import com.chpark.chcalendar.security.JwtTokenProvider;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
@@ -21,8 +22,8 @@ public class GroupCalendarService extends CalendarService {
     private final CalendarMemberService calendarMemberService;
     private final CalendarQueryRepository calendarQueryRepository;
 
-    public GroupCalendarService(CalendarRepository calendarRepository, CalendarSettingRepository calendarSettingRepository, JwtTokenProvider jwtTokenProvider, ApplicationEventPublisher eventPublisher, CalendarMemberService calendarMemberService, CalendarQueryRepository calendarQueryRepository) {
-        super(calendarRepository, calendarSettingRepository, jwtTokenProvider, eventPublisher);
+    public GroupCalendarService(CalendarRepository calendarRepository, CalendarSettingRepository calendarSettingRepository, JwtTokenProvider jwtTokenProvider, ApplicationEventPublisher eventPublisher, CalendarMemberService calendarMemberService, CalendarQueryRepository calendarQueryRepository, CalendarMemberRepository calendarMemberRepository) {
+        super(calendarRepository, calendarSettingRepository, jwtTokenProvider, eventPublisher, calendarMemberRepository);
         this.calendarMemberService = calendarMemberService;
         this.calendarQueryRepository = calendarQueryRepository;
     }

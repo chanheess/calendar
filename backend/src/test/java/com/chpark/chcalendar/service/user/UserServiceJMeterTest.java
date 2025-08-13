@@ -3,11 +3,14 @@ package com.chpark.chcalendar.service.user;
 import com.chpark.chcalendar.DotenvInitializer;
 import com.chpark.chcalendar.dto.user.UserDto;
 import com.chpark.chcalendar.entity.UserEntity;
+import com.chpark.chcalendar.enumClass.CalendarCategory;
 import com.chpark.chcalendar.repository.user.UserRepository;
+import com.chpark.chcalendar.service.calendar.UserCalendarService;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ContextConfiguration;
 
 import java.io.BufferedWriter;
@@ -27,6 +30,12 @@ public class UserServiceJMeterTest {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private UserCalendarService userCalendarService;
+
     String password = "qwer1234!";
 
     @Test
@@ -42,6 +51,22 @@ public class UserServiceJMeterTest {
 
             userService.create(userDto);
         }
+    }
+
+    @Test
+    void 유저생성() {
+        UserDto.RegisterRequest requestUser  = new UserDto.RegisterRequest(
+                "test1",
+                "qwer",
+                "test1",
+                "",
+                "local"
+        );
+
+        UserEntity user = userRepository.save(UserEntity.createWithEncodedPassword(requestUser, passwordEncoder));
+
+        //기본 캘린더 생성
+        userCalendarService.create(user.getId(), "내 캘린더");
     }
 
     @Test

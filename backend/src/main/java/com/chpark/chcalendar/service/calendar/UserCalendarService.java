@@ -7,6 +7,7 @@ import com.chpark.chcalendar.enumClass.CalendarCategory;
 import com.chpark.chcalendar.repository.calendar.CalendarQueryRepository;
 import com.chpark.chcalendar.repository.calendar.CalendarRepository;
 import com.chpark.chcalendar.repository.calendar.CalendarSettingRepository;
+import com.chpark.chcalendar.repository.calendar.CalendarMemberRepository;
 import com.chpark.chcalendar.security.JwtTokenProvider;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.context.ApplicationEventPublisher;
@@ -20,8 +21,8 @@ public class UserCalendarService extends CalendarService {
 
     private final CalendarQueryRepository calendarQueryRepository;
 
-    public UserCalendarService(CalendarRepository calendarRepository, CalendarSettingRepository calendarSettingRepository, JwtTokenProvider jwtTokenProvider, ApplicationEventPublisher eventPublisher, CalendarQueryRepository calendarQueryRepository) {
-        super(calendarRepository, calendarSettingRepository, jwtTokenProvider, eventPublisher);
+    public UserCalendarService(CalendarRepository calendarRepository, CalendarSettingRepository calendarSettingRepository, JwtTokenProvider jwtTokenProvider, ApplicationEventPublisher eventPublisher, CalendarQueryRepository calendarQueryRepository, CalendarMemberRepository calendarMemberRepository) {
+        super(calendarRepository, calendarSettingRepository, jwtTokenProvider, eventPublisher, calendarMemberRepository);
         this.calendarQueryRepository = calendarQueryRepository;
     }
 
