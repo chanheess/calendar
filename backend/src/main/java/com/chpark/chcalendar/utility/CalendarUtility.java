@@ -50,7 +50,7 @@ public class CalendarUtility {
         for (CalendarService calendarService : calendarServiceList) {
             try {
                 calendarService.checkAuthority(action, userId, calendarId);
-            } catch (GroupAuthorizationException | EntityNotFoundException ex) {
+            } catch (CalendarAuthorizationException | GroupAuthorizationException | EntityNotFoundException ex) {
                 checkCount++;
             }
         }
