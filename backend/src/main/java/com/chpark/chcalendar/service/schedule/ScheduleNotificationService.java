@@ -148,7 +148,7 @@ public class ScheduleNotificationService {
                         jobId,
                         scheduleEntity.getTitle(),
                         body,
-                        homeUrl,  // homeUrl은 클래스 멤버 변수 또는 상수로 정의되어 있어야 합니다.
+                        homeUrl,
                         notification.getNotificationAt()
                 );
             }
@@ -157,6 +157,8 @@ public class ScheduleNotificationService {
 
     @Transactional
     public void updateNotificationScheduler(long userId, ScheduleEntity scheduleEntity, ScheduleNotificationEntity notification) {
+        String body = ScheduleUtility.formatNotificationDate(scheduleEntity.getStartAt(), notification.getNotificationAt());
+
         List<Long> targetUserIds = getUserIdList(userId, scheduleEntity);
 
         targetUserIds.forEach(targetUserId -> {
@@ -164,6 +166,9 @@ public class ScheduleNotificationService {
                     firebaseService.updateNotifications(
                             targetUserId,
                             jobId,
+                            scheduleEntity.getTitle(),
+                            body,
+                            homeUrl,
                             notification.getNotificationAt()
                     );
             }
