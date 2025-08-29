@@ -1,16 +1,16 @@
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}
+    url: jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}?useSSL=false&serverTimezone=UTC
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
 
   jpa:
     hibernate:
       ddl-auto: validate
-      format_sql: true
     properties:
       hibernate:
+        format_sql: true
         dialect: org.hibernate.dialect.MySQLDialect
 
   mail:
@@ -23,9 +23,11 @@ spring:
       mail:
         smtp:
           auth: true
-          starttls.enable: true
-          starttls.required: true
-          ssl.trust: ${SMTP_HOST}
+          starttls:
+            enable: true
+            required: true
+          ssl:
+            trust: ${SMTP_HOST}
 
   redis:
     host: ${REDIS_HOST}
@@ -44,6 +46,15 @@ spring:
             scope:
               - email
               - https://www.googleapis.com/auth/calendar
+
+  quartz:
+    job-store-type: jdbc
+    jdbc:
+      initialize-schema: never
+    datasource: quartzDataSource
+    properties:
+      org.quartz.scheduler.instanceId: AUTO
+      org.quartz.jobStore.tablePrefix: QRTZ_
 
 server:
   forward-headers-strategy: native
