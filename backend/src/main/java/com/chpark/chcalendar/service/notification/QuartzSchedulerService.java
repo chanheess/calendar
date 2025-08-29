@@ -71,7 +71,7 @@ public class QuartzSchedulerService {
         try {
             // 기존 트리거가 존재하면 수정
             if (scheduler.checkExists(triggerKey)) {
-                Date newTriggerTime = Date.from(newScheduledTime.atZone(ZoneId.systemDefault()).toInstant());
+                Date newTriggerTime = Date.from(newScheduledTime.atZone(ZoneId.of("Asia/Seoul")).toInstant());
                 Trigger newTrigger = TriggerBuilder.newTrigger()
                         .withIdentity(jobId, userPlatformKey)
                         .startAt(newTriggerTime)

@@ -64,7 +64,7 @@ public class FirebaseService {
                 if (e.getMessage() != null && e.getMessage().contains("Previous notification expired")) {
                     try {
                         quartzSchedulerService.createFcmPushNotification(
-                                jobId + fcmToken.getToken(),
+                                jobId,
                                 fcmToken.getToken(),
                                 getUserPlatformKey(fcmToken),
                                 title,
@@ -92,7 +92,7 @@ public class FirebaseService {
 
         fcmTokenList.forEach(fcmToken -> {
             try {
-                quartzSchedulerService.deleteFcmPushNotification(jobId + fcmToken.getToken(), getUserPlatformKey(fcmToken));
+                quartzSchedulerService.deleteFcmPushNotification(jobId, getUserPlatformKey(fcmToken));
             } catch (SchedulerException e) {
                 checkTokenExpired(e, userId, fcmToken.getToken());
             }
