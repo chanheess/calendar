@@ -26,6 +26,11 @@ public class QuartzSchedulerService {
     public void createFcmPushNotification(String jobId, String fcmToken, String userPlatformKey,
                                           String title, String body, String url, LocalDateTime scheduledTime)
             throws SchedulerException {
+        // 과거 시간인지 확인
+        if (scheduledTime.isBefore(LocalDateTime.now())) {
+            return;
+        }
+        
         log.info("Creating FCM Push Notification: jobId={}, userPlatformKey={}, scheduledTime={}",
                 jobId, userPlatformKey, scheduledTime);
 
@@ -55,21 +60,46 @@ public class QuartzSchedulerService {
     }
 
     @Transactional
-    public void updateFcmPushNotification(String jobId, LocalDateTime newScheduledTime) throws SchedulerException {
-        TriggerKey triggerKey = TriggerKey.triggerKey(jobId);
-        Date newTriggerTime = Date.from(newScheduledTime.atZone(ZoneId.systemDefault()).toInstant());
-        Trigger newTrigger = TriggerBuilder.newTrigger()
-                .withIdentity(jobId)
-                .startAt(newTriggerTime)
-                .withSchedule(SimpleScheduleBuilder.simpleSchedule())
-                .build();
-        scheduler.rescheduleJob(triggerKey, newTrigger);
+    public void updateFcmPushNotification(String jobId, String userPlatformKey, LocalDateTime newScheduledTime) throws SchedulerException {
+        // 과거 시간인지 확인
+        if (newScheduledTime.isBefore(LocalDateTime.now())) {
+            return;
+        }
+        
+        TriggerKey triggerKey = TriggerKey.triggerKey(jobId, userPlatformKey);
+        
+        try {
+            // 기존 트리거가 존재하면 수정
+            if (scheduler.checkExists(triggerKey)) {
+                Date newTriggerTime = Date.from(newScheduledTime.atZone(ZoneId.systemDefault()).toInstant());
+                Trigger newTrigger = TriggerBuilder.newTrigger()
+                        .withIdentity(jobId, userPlatformKey)
+                        .startAt(newTriggerTime)
+                        .withSchedule(SimpleScheduleBuilder.simpleSchedule())
+                        .build();
+                scheduler.rescheduleJob(triggerKey, newTrigger);
+                log.info("Updated existing notification: jobId={}, userPlatformKey={}, newTime={}", 
+                        jobId, userPlatformKey, newScheduledTime);
+            } else {
+                //상위 계층에서 create 해주도록 처리
+                throw new SchedulerException("Previous notification expired. Please recreate the notification.");
+            }
+        } catch (SchedulerException e) {
+            throw e;
+        }
     }
 
     @Transactional
-    public void deleteFcmPushNotification(String jobId) throws SchedulerException {
-        JobKey jobKey = JobKey.jobKey(jobId);
+    public void deleteFcmPushNotification(String jobId, String userPlatformKey) throws SchedulerException {
+        JobKey jobKey = JobKey.jobKey(jobId, userPlatformKey);
+        
+        // 잡이 존재하는지 확인
+        if (!scheduler.checkExists(jobKey)) {
+            return; // 이미 만료되어 삭제된 상태
+        }
+        
         scheduler.deleteJob(jobKey);
+        log.info("Deleted notification: jobId={}, userPlatformKey={}", jobId, userPlatformKey);
     }
 
     @Transactional
