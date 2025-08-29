@@ -63,9 +63,8 @@ public class ScheduleUtility {
     }
 
     public static String formatNotificationDate(LocalDateTime dateTime, LocalDateTime noticiationTime) {
-
         long days = ChronoUnit.DAYS.between(noticiationTime, dateTime);
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("M월 d일, a h:mm분", Locale.KOREAN);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("M월 d일, a h:mm", Locale.KOREAN);
         String formattedDate = dateTime.format(formatter);
 
         if (days > 0) {
