@@ -50,7 +50,7 @@ spring:
   quartz:
     job-store-type: jdbc
     jdbc:
-      initialize-schema: never
+      initialize-schema: always
     datasource: quartzDataSource
     properties:
       org.quartz.scheduler.instanceId: AUTO
