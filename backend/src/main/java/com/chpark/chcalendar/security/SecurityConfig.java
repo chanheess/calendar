@@ -49,6 +49,7 @@ public class SecurityConfig {
                         "/webjars/**",
                         "/swagger-ui/index.html"
                     ).permitAll()
+                    .requestMatchers("/actuator/health", "/actuator/info", "/actuator/prometheus").permitAll()
                     .requestMatchers("/api/auth/**").permitAll()
                     .requestMatchers("/login/**").permitAll()
                     .requestMatchers("/auth/**").permitAll()
@@ -79,6 +80,7 @@ public class SecurityConfig {
                 )
                 .requiresChannel(channel -> channel
                     .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**", "/webjars/**").requiresInsecure()
+                    .requestMatchers("/actuator/prometheus").requiresInsecure()
                     .anyRequest().requiresSecure()
                 )
                 .addFilterBefore(new JwtExceptionTranslationFilter(jwtAuthenticationEntryPoint), UsernamePasswordAuthenticationFilter.class)

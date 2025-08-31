@@ -1,7 +1,12 @@
 package com.chpark.chcalendar.service.schedule;
 
 import com.chpark.chcalendar.DotenvInitializer;
+import com.chpark.chcalendar.dto.schedule.ScheduleDto;
+import com.chpark.chcalendar.dto.schedule.ScheduleGroupDto;
+import com.chpark.chcalendar.dto.schedule.ScheduleNotificationDto;
+import com.chpark.chcalendar.dto.schedule.ScheduleRepeatDto;
 import com.chpark.chcalendar.entity.schedule.ScheduleEntity;
+import com.chpark.chcalendar.repository.schedule.ScheduleNotificationRepository;
 import com.chpark.chcalendar.repository.schedule.ScheduleRepository;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -11,9 +16,7 @@ import org.springframework.test.context.ContextConfiguration;
 
 import java.time.LocalDateTime;
 import java.time.YearMonth;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 @Disabled
 @SpringBootTest
@@ -23,12 +26,19 @@ public class ScheduleIndexTest {
     @Autowired
     private ScheduleRepository scheduleRepository;
 
+    @Autowired
+    private ScheduleNotificationRepository scheduleNotificationRepository;
+
+    @Autowired
+    private ScheduleService scheduleService;
+
     @Test
     void create() {
-        generateSchedules(1000);
+        당일_일정_생성(1000);
+        //랜덤_일정_생성(1000);
     }
 
-    public void generateSchedules(int count) {
+    public void 랜덤_일정_생성(int count) {
         List<ScheduleEntity> schedules = new ArrayList<>();
         Random rand = new Random();
 
@@ -48,6 +58,35 @@ public class ScheduleIndexTest {
             schedules.add(s);
         }
         scheduleRepository.saveAll(schedules);
+    }
+
+    public void 당일_일정_생성(int count) {
+        List<ScheduleEntity> schedules = new ArrayList<>();
+        Random rand = new Random();
+
+        for (int i = 0; i < count; i++) {
+            String title = getRandomTitle(rand.nextInt(5) + 4); // 4~8글자
+            LocalDateTime start = LocalDateTime.now().plusMinutes(2);
+            LocalDateTime end = start.plusMinutes(1);
+            long userId = 5094;
+            long calendarId = 3264;
+
+            ScheduleDto s = new ScheduleDto();
+            s.setTitle(title);
+            s.setStartAt(start);
+            s.setEndAt(end);
+            s.setUserId(userId);
+            s.setCalendarId(calendarId);
+
+            Set<ScheduleNotificationDto> sn = new HashSet<>();
+            sn.add(new ScheduleNotificationDto(LocalDateTime.now().plusMinutes(2)));
+
+            ScheduleDto.Request request = new ScheduleDto.Request();
+            request.setScheduleDto(s);
+            request.setNotificationDto(sn);
+
+            scheduleService.createByForm(request, 5094);
+        }
     }
 
     public static String getRandomTitle(int length) {

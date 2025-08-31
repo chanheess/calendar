@@ -57,7 +57,13 @@ public class FirebaseService {
         fcmTokenList.forEach(fcmToken -> {
             try {
                 quartzSchedulerService.updateFcmPushNotification(
-                        jobId + fcmToken.getToken(), getUserPlatformKey(fcmToken), notificationTime
+                        jobId,
+                        fcmToken.getToken(),
+                        getUserPlatformKey(fcmToken),
+                        title,
+                        body,
+                        url,
+                        notificationTime
                 );
             } catch (SchedulerException e) {
                 // 만료된 알림인 경우 자동으로 새로 생성
