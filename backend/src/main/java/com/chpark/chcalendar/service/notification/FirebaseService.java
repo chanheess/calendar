@@ -5,6 +5,7 @@ import com.chpark.chcalendar.entity.FirebaseTokenEntity;
 import com.chpark.chcalendar.repository.FirebaseTokenRepository;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import lombok.RequiredArgsConstructor;
+import org.quartz.ObjectAlreadyExistsException;
 import org.quartz.SchedulerException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,9 +40,25 @@ public class FirebaseService {
                         url,
                         notificationTime
                 );
-            }
-            catch (SchedulerException e) {
-                checkTokenExpired(e, userId, fcmToken.getToken());
+            } catch (SchedulerException e) {
+                if (e instanceof org.quartz.ObjectAlreadyExistsException) {
+                    // 존재할 경우에는 업데이트 해주는 정책
+                    try {
+                        quartzSchedulerService.updateFcmPushNotification(
+                                jobId,
+                                fcmToken.getToken(),
+                                getUserPlatformKey(fcmToken),
+                                title,
+                                body,
+                                url,
+                                notificationTime
+                        );
+                    } catch (SchedulerException updateException) {
+                        checkTokenExpired(updateException, userId, fcmToken.getToken());
+                    }
+                } else {
+                    checkTokenExpired(e, userId, fcmToken.getToken());
+                }
             }
         });
     }
@@ -50,7 +67,7 @@ public class FirebaseService {
     public void updateNotifications(long userId, String jobId, String title, String body, String url, LocalDateTime notificationTime) {
         List<FirebaseTokenEntity> fcmTokenList = firebaseTokenRepository.findByUserId(userId);
 
-        if(fcmTokenList.isEmpty()) {
+        if (fcmTokenList.isEmpty()) {
             return;
         }
 

@@ -113,10 +113,9 @@ public class QuartzSchedulerService {
     @Transactional
     public void deleteFcmPushNotification(String jobId, String userPlatformKey) throws SchedulerException {
         JobKey jobKey = JobKey.jobKey(jobId, userPlatformKey);
-        
-        // 잡이 존재하는지 확인
+
         if (!scheduler.checkExists(jobKey)) {
-            return; // 이미 만료되어 삭제된 상태
+            return;
         }
         
         scheduler.deleteJob(jobKey);

@@ -1,10 +1,10 @@
 package com.chpark.chcalendar.service.schedule;
 
 import com.chpark.chcalendar.dto.schedule.ScheduleRepeatDto;
-import com.chpark.chcalendar.entity.schedule.ScheduleEntity;
-import com.chpark.chcalendar.entity.schedule.ScheduleRepeatEntity;
+import com.chpark.chcalendar.entity.schedule.*;
 import com.chpark.chcalendar.exception.CustomException;
 import com.chpark.chcalendar.repository.schedule.ScheduleBatchRepository;
+import com.chpark.chcalendar.repository.schedule.ScheduleGroupRepository;
 import com.chpark.chcalendar.repository.schedule.ScheduleRepeatRepository;
 import com.chpark.chcalendar.repository.schedule.ScheduleRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -13,6 +13,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @RequiredArgsConstructor
@@ -23,6 +25,7 @@ public class ScheduleRepeatService {
     private final ScheduleRepository scheduleRepository;
     private final ScheduleRepeatRepository scheduleRepeatRepository;
     private final ScheduleBatchRepository scheduleBatchRepository;
+    private final ScheduleNotificationService scheduleNotificationService;
 
     @Transactional
     public ScheduleRepeatDto create(long scheduleId, ScheduleRepeatDto repeatDto, long userId) {
@@ -48,18 +51,11 @@ public class ScheduleRepeatService {
         scheduleEntity.setRepeatId(createRepeatEntity.getId());
         scheduleRepository.save(scheduleEntity);
 
-        //반복 일정 생성 (알림 포함)
-        scheduleBatchRepository.saveRepeatAll(scheduleEntity, createRepeatEntity);
+        //반복 일정 생성
+        ScheduleBatchEntity scheduleBatchEntity = scheduleBatchRepository.saveRepeatAll(scheduleEntity, createRepeatEntity);
+        createRepeatScheduler(userId, scheduleBatchEntity);
 
         return new ScheduleRepeatDto(createRepeatEntity);
-    }
-
-    public boolean isModified(long repeatId, ScheduleRepeatDto scheduleRepeatDto) {
-        ScheduleRepeatEntity repeatEntity = scheduleRepeatRepository.findById(repeatId).orElseThrow(
-                () -> new EntityNotFoundException("ScheduleRepeatEntity not found with id: " + repeatId)
-        );
-
-        return !scheduleRepeatDto.equals(new ScheduleRepeatDto(repeatEntity));
     }
 
     public Optional<ScheduleRepeatDto> findById(long id) {
@@ -68,13 +64,21 @@ public class ScheduleRepeatService {
         return findEntity.map(ScheduleRepeatDto::new);
     }
 
-    public boolean existsById(long id) {
-        return scheduleRepeatRepository.existsById(id);
-    }
-
     @Transactional
     public void deleteRepeat(long id) {
         scheduleRepeatRepository.deleteById(id);
+    }
+
+    @Transactional
+    public void createRepeatScheduler(long userId, ScheduleBatchEntity scheduleBatchEntity) {
+        Map<Long, ScheduleEntity> scheduleList = scheduleBatchEntity.getSchedules();
+        List<ScheduleNotificationEntity> notificationList = scheduleBatchEntity.getNotifications();
+
+        // 스케쥴러 생성
+        for (ScheduleNotificationEntity notification : notificationList) {
+            ScheduleEntity schedule = scheduleList.get(notification.getScheduleId());
+            scheduleNotificationService.createNotificationScheduler(userId, schedule, notification);
+        }
     }
 
 }
