@@ -381,6 +381,36 @@ const CalendarComponent = forwardRef(({ selectedCalendarList, refreshKey, refres
     }
   }, []);
 
+  // 월 뷰에서 시간보다 제목이 먼저 보이도록 커스텀 렌더링
+  const renderMonthEventContent = useCallback((arg) => {
+    const title = arg.event.title || "";
+    const color = arg.backgroundColor || arg.borderColor || arg.event.backgroundColor || arg.event.extendedProps?.color;
+    // 시작 시간 표시 (있을 때만)
+    const start = arg.event.start;
+    let timeText = "";
+    if (start) {
+      try {
+        timeText = new Intl.DateTimeFormat("ko-KR", {
+          hour: "numeric",
+          minute: "2-digit",
+          hour12: true,
+        }).format(start);
+      } catch (e) {
+        timeText = arg.timeText || "";
+      }
+    }
+
+    return (
+      <div className={styles.monthEvent}>
+        <div className={styles.monthEventHeader}>
+          <span className={styles.monthEventColor} style={{ backgroundColor: color }} />
+          <span className={styles.monthEventTitle}>{title}</span>
+        </div>
+        {timeText ? (<div className={styles.monthEventTime}>{timeText}</div>) : null}
+      </div>
+    );
+  }, []);
+
   // 새로운 일정을 기존 이벤트 배열에 추가하는 함수
   const addNewEventToCalendar = (newEventData, isRepeatEnabled) => {
     // 반복 일정이거나 반복 설정이 활성화된 경우 전체 리프레시
@@ -467,6 +497,7 @@ const CalendarComponent = forwardRef(({ selectedCalendarList, refreshKey, refres
         views={{
           dayGridMonth: {
             buttonText: "월",
+            eventContent: renderMonthEventContent,
             dayCellContent: (args) => {
               const dayNum = args.date.getDate();
               return { html: String(dayNum) };
