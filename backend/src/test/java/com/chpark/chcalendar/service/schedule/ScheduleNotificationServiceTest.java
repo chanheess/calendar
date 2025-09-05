@@ -41,7 +41,7 @@ class ScheduleNotificationServiceTest {
     @Transactional
     void setup() {
         schedule = new ScheduleEntity();
-        schedule.setId(1);
+        schedule.setId(1L);
         schedule.setTitle("Test Schedule");
         schedule.setUserId(Long.MAX_VALUE);
         schedule.setStartAt(LocalDateTime.now());
