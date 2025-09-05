@@ -98,7 +98,8 @@ public class QuartzSchedulerService {
                 .withIdentity(triggerKey)
                 .forJob(jobKey)
                 .startAt(newTriggerTime)
-                .withSchedule(SimpleScheduleBuilder.simpleSchedule())
+                .withSchedule(SimpleScheduleBuilder.simpleSchedule()
+                        .withMisfireHandlingInstructionFireNow())
                 .build();
 
         scheduler.addJob(newJob, true, true);

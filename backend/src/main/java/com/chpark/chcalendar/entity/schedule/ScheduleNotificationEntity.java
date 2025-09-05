@@ -20,10 +20,10 @@ public class ScheduleNotificationEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long id;
 
     @Column(name = "schedule_id", nullable = false)
-    private long scheduleId;
+    private Long scheduleId;
 
     @Column(name = "notification_at", nullable = false)
     private LocalDateTime notificationAt;

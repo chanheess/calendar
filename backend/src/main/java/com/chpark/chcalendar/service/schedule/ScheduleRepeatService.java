@@ -77,6 +77,9 @@ public class ScheduleRepeatService {
         // 스케쥴러 생성
         for (ScheduleNotificationEntity notification : notificationList) {
             ScheduleEntity schedule = scheduleList.get(notification.getScheduleId());
+            if (schedule == null) {
+                continue;
+            }
             scheduleNotificationService.createNotificationScheduler(userId, schedule, notification);
         }
     }

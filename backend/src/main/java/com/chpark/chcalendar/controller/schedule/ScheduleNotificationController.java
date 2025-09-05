@@ -60,7 +60,7 @@ public class ScheduleNotificationController {
     }
 
     @DeleteMapping
-    public ResponseEntity<String> deleteByScheduleId(@RequestParam("id") long scheduleId,
+    public ResponseEntity<String> deleteByScheduleId(@PathVariable("id") long scheduleId,
                                                      HttpServletRequest request) {
         String token = jwtTokenProvider.resolveToken(request, JwtTokenType.ACCESS.getValue());
         long userId = jwtTokenProvider.getUserIdFromToken(token);

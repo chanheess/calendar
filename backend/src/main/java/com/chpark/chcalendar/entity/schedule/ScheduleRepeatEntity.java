@@ -18,7 +18,7 @@ public class ScheduleRepeatEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long id;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "repeat_type", nullable = false)
