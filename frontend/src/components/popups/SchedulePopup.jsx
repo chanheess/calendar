@@ -441,8 +441,54 @@ import {
     }));
   };
 
+  // 시간 차이 계산 함수
+  const calculateTimeDifference = (startTime, endTime) => {
+    if (!startTime || !endTime) return 0;
+    
+    const start = new Date(startTime);
+    const end = new Date(endTime);
+    return end.getTime() - start.getTime(); // 밀리초 단위
+  };
+
+  // 시작 시간 변경 시 끝 시간 자동 조정
+  const handleStartTimeChange = (newStartTime) => {
+    if (!newStartTime) {
+      setScheduleData((prev) => ({ ...prev, startAt: newStartTime }));
+      return;
+    }
+
+    // 기존 시간 차이 계산
+    const timeDifference = calculateTimeDifference(scheduleData.startAt, scheduleData.endAt);
+    
+    // 새로운 끝 시간 계산
+    const newStart = new Date(newStartTime);
+    const newEnd = new Date(newStart.getTime() + timeDifference);
+    
+    // YYYY-MM-DDTHH:MM 형식으로 변환
+    const formatDateTime = (date) => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      return `${year}-${month}-${day}T${hours}:${minutes}`;
+    };
+
+    setScheduleData((prev) => ({
+      ...prev,
+      startAt: newStartTime,
+      endAt: formatDateTime(newEnd)
+    }));
+  };
+
   // 일반 입력 변경
   const handleInputChange = (field, value) => {
+    // 시작 시간 변경 시 끝 시간 자동 조정
+    if (field === "startAt") {
+      handleStartTimeChange(value);
+      return;
+    }
+
     // 캘린더 변경 시 반복 토글 상태 관리
     if (field === "calendarId") {
       const prevIsGoogle = selectedCalendarList[scheduleData.calendarId]?.category === "GOOGLE";
