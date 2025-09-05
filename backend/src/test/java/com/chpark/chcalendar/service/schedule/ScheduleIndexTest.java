@@ -14,6 +14,7 @@ import org.springframework.test.context.ContextConfiguration;
 
 import java.time.LocalDateTime;
 import java.time.YearMonth;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 @Disabled
@@ -32,7 +33,7 @@ public class ScheduleIndexTest {
 
     @Test
     void create() {
-        당일_일정_생성_n분간격(1000, 1, 1, 0);
+        당일_일정_생성_n간격(1000, 1, 10, ChronoUnit.SECONDS, 0);
         //랜덤_일정_생성(1000);
     }
 
@@ -58,10 +59,11 @@ public class ScheduleIndexTest {
         scheduleRepository.saveAll(schedules);
     }
 
-    public void 당일_일정_생성_n분간격(
+    public void 당일_일정_생성_n간격(
             int scheduleCountPerBatch, // 한 배치에 몇 개? (예: 1000)
             int testCount,             // 배치를 몇 번? (예: 3)
-            int intervalMinute,        // 배치 간 울리는 간격 (예: 1, 5 등)
+            int intervalValue,        // 배치 간 울리는 간격 (예: 1, 5 등)
+            ChronoUnit intervalType,    // 간격 타입 (예: 시, 분, 초 등)
             int jitterSeconds          // 각 일정에 줄 지터(0~n초, 분산용; 0이면 없음)
     ) {
         Random rand = new Random();
@@ -69,7 +71,7 @@ public class ScheduleIndexTest {
         for (int t = 1; t <= testCount; t++) {
             // 배치 t가 울릴 기준 시각: now + (초기지연 + t * 간격)
             LocalDateTime batchFireTime =
-                    LocalDateTime.now().plusMinutes((long) t * intervalMinute);
+                    LocalDateTime.now().plus((long) t * intervalValue, intervalType);
 
             for (int i = 0; i < scheduleCountPerBatch; i++) {
                 // (선택) 배치 내부에서 약간의 분산을 주고 싶으면 지터 몇 초를 랜덤으로 더함
