@@ -4,11 +4,11 @@
   <meta charset="utf-8" />
   <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <meta name="theme-color" content="#000000" />
+  <meta name="theme-color" content="#ffffff" />
   <meta name="format-detection" content="telephone=no">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-status-bar-style" content="light-content">
 
   <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
   <link rel="manifest" href="%PUBLIC_URL%/manifest.json"/>
@@ -34,6 +34,7 @@
       position: fixed;
       -webkit-overflow-scrolling: touch;
       overflow: hidden;
+      background-color: #ffffff;
     }
 
     body.landing-scroll {
@@ -103,6 +104,16 @@
     @supports (-webkit-touch-callout: none) {
       body {
         height: -webkit-fill-available;
+        background-color: #ffffff;
+      }
+      
+      /* iOS 상태바 영역 하얀색 설정 */
+      html {
+        background-color: #ffffff;
+      }
+      
+      #root {
+        background-color: #ffffff;
       }
     }
 
