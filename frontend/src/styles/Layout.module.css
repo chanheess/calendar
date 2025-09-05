@@ -50,4 +50,17 @@
     height: calc(100vh - 60px);
     height: calc((var(--vh, 1vh) * 100) - 60px);
   }
+
+  /* iOS Safari에서 상태바 영역까지 고려 */
+  @supports (-webkit-touch-callout: none) {
+    .layout {
+      height: 100vh;
+      height: calc(var(--vh, 1vh) * 100);
+    }
+    
+    .content {
+      height: calc(100vh - 60px);
+      height: calc((var(--vh, 1vh) * 100) - 60px);
+    }
+  }
 }

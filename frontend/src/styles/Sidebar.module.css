@@ -260,12 +260,28 @@
 }
 
 @media (max-width: 600px) {
+  .sidebar {
+    height: calc(100vh - 60px); /* 모바일에서 전체 화면 높이 사용 */
+    height: calc((var(--vh, 1vh) * 100) - 60px); /* 실제 viewport 높이 사용 */
+    top: 60px; /* 헤더 아래에서 시작 */
+  }
+
+  /* iOS Safari에서 상태바 영역까지 고려 */
+  @supports (-webkit-touch-callout: none) {
+    .sidebar {
+      height: calc(100vh - 60px);
+      height: calc((var(--vh, 1vh) * 100) - 60px);
+    }
+  }
+
   .calendarItem button {
     opacity: 1;
   }
 
   .sidebar.open {
     width: 100%;
+    height: calc(100vh - 60px);
+    height: calc((var(--vh, 1vh) * 100) - 60px);
   }
 
   .privacyLinkContainer {
