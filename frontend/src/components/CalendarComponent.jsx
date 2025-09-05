@@ -381,32 +381,64 @@ const CalendarComponent = forwardRef(({ selectedCalendarList, refreshKey, refres
     }
   }, []);
 
+  // 배경색 대비에 맞춰 회색 계열 가독성 색을 반환 (밝은 배경→진한 회색, 어두운 배경→연한 회색)
+  const getReadableGrayTextColor = useCallback((bg) => {
+    if (!bg) return null;
+    let r, g, b;
+    try {
+      if (bg.startsWith('#')) {
+        const hex = bg.replace('#', '');
+        if (hex.length === 3) {
+          r = parseInt(hex[0] + hex[0], 16);
+          g = parseInt(hex[1] + hex[1], 16);
+          b = parseInt(hex[2] + hex[2], 16);
+        } else if (hex.length === 6) {
+          r = parseInt(hex.substring(0, 2), 16);
+          g = parseInt(hex.substring(2, 4), 16);
+          b = parseInt(hex.substring(4, 6), 16);
+        }
+      } else if (bg.startsWith('rgb')) {
+        const nums = bg.match(/\d+\.?\d*/g);
+        if (nums && nums.length >= 3) {
+          r = Number(nums[0]); g = Number(nums[1]); b = Number(nums[2]);
+        }
+      }
+    } catch (_) { /* ignore */ }
+    if ([r, g, b].some(v => typeof v !== 'number' || Number.isNaN(v))) return null;
+    const srgb = [r, g, b].map(v => {
+      v /= 255;
+      return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+    });
+    const luminance = 0.2126 * srgb[0] + 0.7152 * srgb[1] + 0.0722 * srgb[2];
+    // 밝은 배경이면 진한 회색, 어두운 배경이면 연한 회색
+    return luminance > 0.5 ? '#2f2f2f' : '#e9ecef';
+  }, []);
+
   // 월 뷰에서 시간보다 제목이 먼저 보이도록 커스텀 렌더링
   const renderMonthEventContent = useCallback((arg) => {
     const title = arg.event.title || "";
     const color = arg.backgroundColor || arg.borderColor || arg.event.backgroundColor || arg.event.extendedProps?.color;
-    // 시작 시간 표시 (있을 때만)
     const start = arg.event.start;
-    let timeText = "";
-    if (start) {
-      try {
-        timeText = new Intl.DateTimeFormat("ko-KR", {
-          hour: "numeric",
-          minute: "2-digit",
-          hour12: true,
-        }).format(start);
-      } catch (e) {
-        timeText = arg.timeText || "";
-      }
-    }
+    const end = arg.event.end;
+
+    // 시간 표기는 FullCalendar가 포맷팅한 값을 그대로 사용해 타임존/뷰 설정을 따르도록 한다
+    const timeText = (!arg.event.allDay && arg.timeText) ? arg.timeText : "";
+
+    // 긴 일정(배경을 넓게 덮는 유형) 판별: 하루 이상 또는 allDay
+    const oneDayMs = 24 * 60 * 60 * 1000;
+    const isLong = arg.event.allDay || (start && end && (end.getTime() - start.getTime() >= oneDayMs)) || (start && end && start.toDateString() !== end.toDateString());
+    // 배경색 있는 긴 일정만 글자색 보정
+    const textColor = (isLong && color) ? getReadableGrayTextColor(color) : null;
+    const titleStyle = textColor ? { color: textColor } : undefined;
+    const timeStyle = textColor ? { color: textColor, opacity: 0.9 } : undefined;
 
     return (
       <div className={styles.monthEvent}>
         <div className={styles.monthEventHeader}>
           <span className={styles.monthEventColor} style={{ backgroundColor: color }} />
-          <span className={styles.monthEventTitle}>{title}</span>
+          <span className={styles.monthEventTitle} style={titleStyle}>{title}</span>
         </div>
-        {timeText ? (<div className={styles.monthEventTime}>{timeText}</div>) : null}
+        {timeText ? (<div className={styles.monthEventTime} style={timeStyle}>{timeText}</div>) : null}
       </div>
     );
   }, []);
