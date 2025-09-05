@@ -441,7 +441,7 @@ const CalendarComponent = forwardRef(({ selectedCalendarList, refreshKey, refres
         {timeText ? (<div className={styles.monthEventTime} style={timeStyle}>{timeText}</div>) : null}
       </div>
     );
-  }, []);
+  }, [getReadableGrayTextColor]);
 
   // 새로운 일정을 기존 이벤트 배열에 추가하는 함수
   const addNewEventToCalendar = (newEventData, isRepeatEnabled) => {
