@@ -1,12 +1,10 @@
 package com.chpark.chcalendar.security;
 
 import com.chpark.chcalendar.dto.security.JwtAuthenticationResponseDto;
-import com.chpark.chcalendar.entity.UserEntity;
 import com.chpark.chcalendar.entity.UserProviderEntity;
 import com.chpark.chcalendar.enumClass.JwtTokenType;
 import com.chpark.chcalendar.exception.authentication.TokenAuthenticationException;
 import com.chpark.chcalendar.repository.user.UserProviderRepository;
-import com.chpark.chcalendar.repository.user.UserRepository;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -15,6 +13,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -30,6 +29,7 @@ import java.util.List;
 
 @RequiredArgsConstructor
 @Component
+@Slf4j
 public class JwtTokenProvider {
     @Value("${JWT_SECRET}")
     private String SECRET_KEY;
@@ -51,7 +51,6 @@ public class JwtTokenProvider {
         this.key = Keys.hmacShaKeyFor(Decoders.BASE64.decode(SECRET_KEY));
     }
 
-    private final UserRepository userRepository;
     private final UserProviderRepository userProviderRepository;
 
     // JWT 토큰 생성
@@ -126,9 +125,11 @@ public class JwtTokenProvider {
             Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
             return true;
         } catch (ExpiredJwtException ex) {
+            log.warn("Token expired: {}", ex.getMessage());
             throw new TokenAuthenticationException(jwtTokenType.getValue() + " expired", ex);
         } catch (JwtException | IllegalArgumentException e) {
-            return false;
+            log.warn("Invalid token: {}", e.getMessage());
+            throw new TokenAuthenticationException("Invalid " + jwtTokenType.getValue(), e);
         }
     }
 
@@ -158,16 +159,26 @@ public class JwtTokenProvider {
     }
 
     public JwtAuthenticationResponseDto renewAccessToken(HttpServletRequest request) {
-        String refreshToken = resolveToken(request, JwtTokenType.REFRESH.getValue());
-        validateToken(refreshToken, JwtTokenType.REFRESH);
+        try {
+            String refreshToken = resolveToken(request, JwtTokenType.REFRESH.getValue());
+            if (refreshToken == null) {
+                throw new TokenAuthenticationException("Refresh token not found");
+            }
 
-        Authentication authentication = getAuthentication(refreshToken);
-        long userId = getUserIdFromToken(refreshToken);
+            validateToken(refreshToken, JwtTokenType.REFRESH);
 
-        String newAccessToken = generateToken(authentication, userId, JwtTokenType.ACCESS);
-        String newRefreshToken = generateToken(authentication, userId, JwtTokenType.REFRESH);
+            Authentication authentication = getAuthentication(refreshToken);
+            long userId = getUserIdFromToken(refreshToken);
 
-        return new JwtAuthenticationResponseDto(newAccessToken, newRefreshToken, "Tokens renewed successfully");
+            String newAccessToken = generateToken(authentication, userId, JwtTokenType.ACCESS);
+            String newRefreshToken = generateToken(authentication, userId, JwtTokenType.REFRESH);
+
+            return new JwtAuthenticationResponseDto(newAccessToken, newRefreshToken, "Tokens renewed successfully");
+        } catch (TokenAuthenticationException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new TokenAuthenticationException("Failed to renew tokens: " + e.getMessage(), e);
+        }
     }
 
 }

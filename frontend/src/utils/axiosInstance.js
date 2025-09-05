@@ -22,9 +22,22 @@ axios.interceptors.response.use(
           })
           .catch(err => {
             requestQueue = [];
-            // 현재 경로를 저장하고 로그인 페이지로 리다이렉트
-            setRedirectPath(window.location.pathname);
-            window.location.href = "/auth/login";
+            
+            // 에러 타입에 따른 처리
+            if (err.response?.status === 401) {
+              // 인증 실패 - 리프레시 토큰도 만료됨
+              console.warn('Refresh token expired, redirecting to login');
+              setRedirectPath(window.location.pathname);
+              window.location.href = "/auth/login";
+            } else if (err.response?.status >= 500) {
+              // 서버 에러 - 잠시 후 재시도
+              console.warn('Server error during token refresh, will retry on next request');
+            } else {
+              // 기타 에러 (네트워크 등)
+              console.warn('Network error during token refresh, redirecting to login');
+              setRedirectPath(window.location.pathname);
+              window.location.href = "/auth/login";
+            }
             throw err;
           })
           .finally(() => {

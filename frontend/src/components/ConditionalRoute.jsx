@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import MainLandingPage from "./pages/MainLandingPage";
 import HomePage from "./pages/HomePage";
+import LoadingOverlay from "./LoadingOverlay";
 import { checkLoginStatus } from "../utils/authUtils";
 
 const ConditionalRoute = ({ children, fallback = <MainLandingPage /> }) => {
@@ -26,18 +27,7 @@ const ConditionalRoute = ({ children, fallback = <MainLandingPage /> }) => {
   }, [location.pathname]); // 경로가 변경될 때마다 로그인 상태 재확인
 
   if (isLoading) {
-    return (
-      <div style={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        height: '100vh',
-        fontSize: '18px',
-        color: '#666'
-      }}>
-        로딩 중...
-      </div>
-    );
+    return <LoadingOverlay fullScreen={true} />;
   }
 
   // children이 제공된 경우 해당 컴포넌트를 렌더링, 아니면 경로에 따라 기본 컴포넌트 렌더링

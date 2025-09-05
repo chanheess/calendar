@@ -10,6 +10,37 @@
   overflow: hidden;
 }
 
+/* 월 뷰 이벤트: 제목 우선, 시간은 아래 작은 텍스트로 */
+.monthEvent {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.monthEventHeader {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.monthEventColor {
+  width: 6px; /* 살짝 작게 */
+  height: 12px;
+  border-radius: 2px;
+  display: inline-block;
+}
+.monthEventTitle {
+  font-size: 13px;
+  font-weight: 600;
+  color: #212529;
+  line-height: 1.2;
+}
+.monthEventTime {
+  font-size: 9.6px; /* 기존 12px 대비 20% 축소 */
+  color: #6c757d;
+  line-height: 1.2;
+  padding-left: 8px;
+  margin: 0px;
+}
+
 :global(.fc-theme-standard .fc-scrollgrid) {
   border: none;
   border-top: 1px solid var(--fc-border-color);
@@ -81,32 +112,7 @@
   }
 }
 
-.loadingOverlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(255, 255, 255, 0.8);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
 
-.spinner {
-  width: 50px;
-  height: 50px;
-  border: 5px solid #ccc;
-  border-top-color: #333;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
 
 :global(.fc-daygrid-event.fc-event-end) {
   overflow: hidden;

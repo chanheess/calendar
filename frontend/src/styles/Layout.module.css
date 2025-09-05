@@ -18,6 +18,8 @@
 .mainContent {
   flex: 1;
   height: 100%; /* 콘텐츠 영역 전체 높이 */
+  /* 하단 홈 인디케이터 만큼 여백 확보 */
+  padding-bottom: env(safe-area-inset-bottom, 0px);
   overflow: hidden; /* 오버플로우 방지 */
 }
 
@@ -49,5 +51,18 @@
   .content {
     height: calc(100vh - 60px);
     height: calc((var(--vh, 1vh) * 100) - 60px);
+  }
+
+  /* iOS Safari에서 상태바 영역까지 고려 */
+  @supports (-webkit-touch-callout: none) {
+    .layout {
+      height: 100vh;
+      height: calc(var(--vh, 1vh) * 100);
+    }
+    
+    .content {
+      height: calc(100vh - 60px);
+      height: calc((var(--vh, 1vh) * 100) - 60px);
+    }
   }
 }

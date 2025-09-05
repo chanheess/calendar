@@ -1,10 +1,12 @@
 package com.chpark.chcalendar.security;
 
 import com.chpark.chcalendar.enumClass.JwtTokenType;
+import com.chpark.chcalendar.exception.authentication.TokenAuthenticationException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -14,6 +16,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 
 @Component
+@Slf4j
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider jwtTokenProvider;
@@ -26,15 +29,23 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
-        String googleToken = jwtTokenProvider.resolveToken(request, JwtTokenType.GOOGLE_ACCESS.getValue());
-        String token = jwtTokenProvider.resolveToken(request, JwtTokenType.ACCESS.getValue());
+        try {
+            String googleToken = jwtTokenProvider.resolveToken(request, JwtTokenType.GOOGLE_ACCESS.getValue());
+            String token = jwtTokenProvider.resolveToken(request, JwtTokenType.ACCESS.getValue());
 
-        if (googleToken != null) {
-            Authentication googleAuth = new UsernamePasswordAuthenticationToken("google_user", null, null);
-            SecurityContextHolder.getContext().setAuthentication(googleAuth);
-        } else if (token != null && jwtTokenProvider.validateToken(token, JwtTokenType.ACCESS)) {
-            Authentication auth = jwtTokenProvider.getAuthentication(token);
-            SecurityContextHolder.getContext().setAuthentication(auth);
+            if (googleToken != null) {
+                Authentication googleAuth = new UsernamePasswordAuthenticationToken("google_user", null, null);
+                SecurityContextHolder.getContext().setAuthentication(googleAuth);
+            } else if (token != null) {
+                if (jwtTokenProvider.validateToken(token, JwtTokenType.ACCESS)) {
+                    Authentication auth = jwtTokenProvider.getAuthentication(token);
+                    SecurityContextHolder.getContext().setAuthentication(auth);
+                }
+            }
+        } catch (TokenAuthenticationException e) {
+            log.warn("Token authentication failed: {}", e.getMessage());
+        } catch (Exception e) {
+            log.error("Unexpected error in JWT filter: {}", e.getMessage(), e);
         }
 
         filterChain.doFilter(request, response);
