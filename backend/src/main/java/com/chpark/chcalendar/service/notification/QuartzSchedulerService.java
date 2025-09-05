@@ -19,7 +19,6 @@ import java.util.Set;
 public class QuartzSchedulerService {
 
     private final Scheduler scheduler;
-    private final NotificationMetrics metrics;
 
     private static final Logger log = LoggerFactory.getLogger(QuartzSchedulerService.class);
 
@@ -62,7 +61,6 @@ public class QuartzSchedulerService {
                 .build();
 
         scheduler.scheduleJob(jobDetail, trigger);
-        metrics.onScheduled();
     }
 
     @Transactional

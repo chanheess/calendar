@@ -1,17 +1,19 @@
 package com.chpark.chcalendar.job;
 
+import com.chpark.chcalendar.metric.NotificationMetrics;
 import com.chpark.chcalendar.service.notification.FcmSender;
-import com.chpark.chcalendar.service.notification.NotificationMetrics;
 import com.google.firebase.messaging.Message;
 import lombok.RequiredArgsConstructor;
-import org.quartz.Job;
-import org.quartz.JobExecutionContext;
-import org.quartz.JobExecutionException;
-import org.quartz.DisallowConcurrentExecution;
+import lombok.extern.slf4j.Slf4j;
+import org.quartz.*;
 
 import java.time.Duration;
 import java.util.Date;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
+@Slf4j
 @RequiredArgsConstructor
 @DisallowConcurrentExecution
 public class FcmPushNotificationJob implements Job {
@@ -20,47 +22,90 @@ public class FcmPushNotificationJob implements Job {
     private final FcmSender fcmSender;
 
     @Override
-    public void execute(JobExecutionContext context) throws JobExecutionException {
-        String token = context.getMergedJobDataMap().getString("fcmToken");
-        String title = context.getMergedJobDataMap().getString("title");
-        String body  = context.getMergedJobDataMap().getString("body");
-        String url   = context.getMergedJobDataMap().getString("url");
+    public void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException {
+        var data = jobExecutionContext.getMergedJobDataMap();
 
-        Date scheduledFire = context.getScheduledFireTime(); // 예정 시각
-        Date actualFire = context.getFireTime();          // 실제 실행 시각
-        if (scheduledFire != null && actualFire != null) {
-            Duration delay = Duration.between(scheduledFire.toInstant(), actualFire.toInstant());
-            if (!delay.isNegative()) {
-                metrics.recordScheduleToFire(delay);
-            }
-        }
-
+        // 1) schedule→fire 지연 기록 + fired 카운트
+        recordScheduleToFire(jobExecutionContext);
         metrics.onFired();
 
-        Message message = Message.builder()
-                .setToken(token)
-                .putData("title", title != null ? title : "")
-                .putData("body", body != null ? body : "")
-                .putData("url", url != null ? url : "")
-                .build();
+        // 2) 메시지 작성
+        long scheduledAt = asLong(data, "scheduledAt", 0L);
+        long firedAt     = fireTimeMs(jobExecutionContext);
+        String notifyId  = jobKeyOrRandom(jobExecutionContext);
+        long sentAt      = System.currentTimeMillis();
 
-        var fireToSendSample = metrics.startFireToSend();
-        var fcmRttSample     = metrics.startFcmRtt();
+        Message msg = buildFcmMessage(data, notifyId, scheduledAt, firedAt, sentAt);
 
+        // 3) fire→send 타이머 + 전송/성공/실패 카운트
+        var t = metrics.startFireToSend();
+        metrics.onSent();
         try {
-            metrics.onSent();
-            String messageId = fcmSender.send(message);
-
-            // 성공 카운트 & 타이머 종료
-            metrics.onSuccess();
-            metrics.stopFcmRtt(fcmRttSample);
-            metrics.stopFireToSend(fireToSendSample);
-
+            fcmSender.sendAsync(msg)
+                    .orTimeout(10, TimeUnit.SECONDS)
+                    .whenComplete((messageId, ex) -> {
+                        try {
+                            if (ex == null) {
+                                metrics.onSuccess();
+                            } else {
+                                metrics.onFail(ex.getClass().getSimpleName());
+                                log.warn("FCM send failed: {}", ex.toString());
+                            }
+                        } finally {
+                            metrics.stopFireToSend(t);
+                        }
+                    });
         } catch (Exception e) {
             metrics.onFail(e.getClass().getSimpleName());
-            try { metrics.stopFcmRtt(fcmRttSample); } catch (Exception ignore) {}
-            try { metrics.stopFireToSend(fireToSendSample); } catch (Exception ignore) {}
+            metrics.stopFireToSend(t);
             throw new JobExecutionException("FCM 전송 실패: " + e.getMessage(), e);
         }
     }
+
+
+    private static long asLong(Map<?,?> map, String key, long def) {
+        if (!map.containsKey(key)) return def;
+        Object v = map.get(key);
+        try {
+            return (v instanceof Number) ? ((Number) v).longValue() : Long.parseLong(String.valueOf(v));
+        } catch (Exception ignore) { return def; }
+    }
+
+    private static String jobKeyOrRandom(JobExecutionContext ctx) {
+        JobKey key = ctx.getJobDetail().getKey();
+        return (key != null ? key.getName() : UUID.randomUUID().toString());
+    }
+
+    private static long fireTimeMs(JobExecutionContext ctx) {
+        Date fire = ctx.getFireTime();
+        return (fire != null) ? fire.getTime() : System.currentTimeMillis();
+    }
+
+    private void recordScheduleToFire(JobExecutionContext ctx) {
+        Date sched = ctx.getScheduledFireTime();
+        Date fire  = ctx.getFireTime();
+        if (sched == null || fire == null) return;
+        Duration d = Duration.between(sched.toInstant(), fire.toInstant());
+        if (!d.isNegative()) metrics.recordScheduleToFire(d);
+    }
+
+    private static Message buildFcmMessage(JobDataMap data,
+                                           String notifyId, long scheduledAt, long firedAt, long sentAt) {
+        String token = data.getString("fcmToken");
+        String title = data.getString("title");
+        String body  = data.getString("body");
+        String url   = data.getString("url");
+        return Message.builder()
+                .setToken(token)
+                .putData("title", nvl(title))
+                .putData("body",  nvl(body))
+                .putData("url",   nvl(url))
+                .putData("notifyId",    notifyId)
+                .putData("scheduledAt", String.valueOf(scheduledAt))
+                .putData("firedAt",     String.valueOf(firedAt))
+                .putData("sentAt",      String.valueOf(sentAt))
+                .build();
+    }
+
+    private static String nvl(String s) { return (s == null ? "" : s); }
 }

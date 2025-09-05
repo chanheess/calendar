@@ -55,8 +55,13 @@ spring:
       initialize-schema: never
     datasource: quartzDataSource
     properties:
-      org.quartz.scheduler.instanceId: AUTO
-      org.quartz.jobStore.tablePrefix: QRTZ_
+      org:
+        quartz:
+          scheduler:
+            instanceId: AUTO
+            idleWaitTime: 5000
+            batchTriggerAcquisitionFireAheadTimeWindow: 8000
+          jobStore.tablePrefix: QRTZ_
 
 management:
   endpoints:
