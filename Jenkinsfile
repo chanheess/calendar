@@ -80,7 +80,9 @@ pipeline {
                             
                             docker pull chanheess/chcalendar &&
                             
-                            sudo docker-compose up -d
+                            sudo docker-compose up -d &&
+                    
+                            docker system prune -af --volumes
                         "
                         '''
                     }
