@@ -2,10 +2,7 @@ package com.chpark.chcalendar.entity.schedule;
 
 import com.chpark.chcalendar.dto.schedule.ScheduleDto;
 import jakarta.persistence.*;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
@@ -18,7 +15,7 @@ public class ScheduleEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long id;
 
     @Column(name = "title", nullable = false)
     private String title;
@@ -71,7 +68,8 @@ public class ScheduleEntity {
     }
 
     @Builder
-    public ScheduleEntity(String title, String description, LocalDateTime startAt, LocalDateTime endAt, Long repeatId, long userId, long calendarId, String providerId, String etag, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    public ScheduleEntity(long id, String title, String description, LocalDateTime startAt, LocalDateTime endAt, Long repeatId, long userId, long calendarId, String providerId, String etag, LocalDateTime createdAt, LocalDateTime updatedAt) {
+        this.id = id;
         this.title = title;
         this.description = description;
         this.startAt = startAt;

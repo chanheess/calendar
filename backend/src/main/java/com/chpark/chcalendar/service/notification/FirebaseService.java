@@ -5,6 +5,7 @@ import com.chpark.chcalendar.entity.FirebaseTokenEntity;
 import com.chpark.chcalendar.repository.FirebaseTokenRepository;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import lombok.RequiredArgsConstructor;
+import org.quartz.ObjectAlreadyExistsException;
 import org.quartz.SchedulerException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -39,9 +40,25 @@ public class FirebaseService {
                         url,
                         notificationTime
                 );
-            }
-            catch (SchedulerException e) {
-                checkTokenExpired(e, userId, fcmToken.getToken());
+            } catch (SchedulerException e) {
+                if (e instanceof org.quartz.ObjectAlreadyExistsException) {
+                    // 존재할 경우에는 업데이트 해주는 정책
+                    try {
+                        quartzSchedulerService.updateFcmPushNotification(
+                                jobId,
+                                fcmToken.getToken(),
+                                getUserPlatformKey(fcmToken),
+                                title,
+                                body,
+                                url,
+                                notificationTime
+                        );
+                    } catch (SchedulerException updateException) {
+                        checkTokenExpired(updateException, userId, fcmToken.getToken());
+                    }
+                } else {
+                    checkTokenExpired(e, userId, fcmToken.getToken());
+                }
             }
         });
     }
@@ -50,21 +67,27 @@ public class FirebaseService {
     public void updateNotifications(long userId, String jobId, String title, String body, String url, LocalDateTime notificationTime) {
         List<FirebaseTokenEntity> fcmTokenList = firebaseTokenRepository.findByUserId(userId);
 
-        if(fcmTokenList.isEmpty()) {
+        if (fcmTokenList.isEmpty()) {
             return;
         }
 
         fcmTokenList.forEach(fcmToken -> {
             try {
                 quartzSchedulerService.updateFcmPushNotification(
-                        jobId + fcmToken.getToken(), getUserPlatformKey(fcmToken), notificationTime
+                        jobId,
+                        fcmToken.getToken(),
+                        getUserPlatformKey(fcmToken),
+                        title,
+                        body,
+                        url,
+                        notificationTime
                 );
             } catch (SchedulerException e) {
                 // 만료된 알림인 경우 자동으로 새로 생성
                 if (e.getMessage() != null && e.getMessage().contains("Previous notification expired")) {
                     try {
                         quartzSchedulerService.createFcmPushNotification(
-                                jobId + fcmToken.getToken(),
+                                jobId,
                                 fcmToken.getToken(),
                                 getUserPlatformKey(fcmToken),
                                 title,
@@ -92,7 +115,7 @@ public class FirebaseService {
 
         fcmTokenList.forEach(fcmToken -> {
             try {
-                quartzSchedulerService.deleteFcmPushNotification(jobId + fcmToken.getToken(), getUserPlatformKey(fcmToken));
+                quartzSchedulerService.deleteFcmPushNotification(jobId, getUserPlatformKey(fcmToken));
             } catch (SchedulerException e) {
                 checkTokenExpired(e, userId, fcmToken.getToken());
             }

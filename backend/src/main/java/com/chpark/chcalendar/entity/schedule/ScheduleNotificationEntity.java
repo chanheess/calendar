@@ -2,6 +2,7 @@ package com.chpark.chcalendar.entity.schedule;
 
 import com.chpark.chcalendar.dto.schedule.ScheduleNotificationDto;
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -19,15 +20,17 @@ public class ScheduleNotificationEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long id;
 
     @Column(name = "schedule_id", nullable = false)
-    private long scheduleId;
+    private Long scheduleId;
 
     @Column(name = "notification_at", nullable = false)
     private LocalDateTime notificationAt;
 
-    public ScheduleNotificationEntity(long scheduleId, LocalDateTime notificationAt) {
+    @Builder
+    public ScheduleNotificationEntity(long id, long scheduleId, LocalDateTime notificationAt) {
+        this.id = id;
         this.scheduleId = scheduleId;
         this.notificationAt = notificationAt;
     }

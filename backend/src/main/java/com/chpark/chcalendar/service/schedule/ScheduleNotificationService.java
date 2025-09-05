@@ -2,12 +2,11 @@ package com.chpark.chcalendar.service.schedule;
 
 import com.chpark.chcalendar.dto.calendar.CalendarMemberDto;
 import com.chpark.chcalendar.dto.schedule.ScheduleNotificationDto;
-import com.chpark.chcalendar.entity.calendar.CalendarEntity;
 import com.chpark.chcalendar.entity.schedule.ScheduleEntity;
+import com.chpark.chcalendar.entity.schedule.ScheduleGroupEntity;
 import com.chpark.chcalendar.entity.schedule.ScheduleNotificationEntity;
-import com.chpark.chcalendar.enumClass.CalendarCategory;
 import com.chpark.chcalendar.exception.authorization.GroupAuthorizationException;
-import com.chpark.chcalendar.repository.calendar.CalendarRepository;
+import com.chpark.chcalendar.repository.schedule.ScheduleGroupRepository;
 import com.chpark.chcalendar.repository.schedule.ScheduleNotificationRepository;
 import com.chpark.chcalendar.repository.schedule.ScheduleRepository;
 import com.chpark.chcalendar.service.calendar.CalendarMemberService;
@@ -22,6 +21,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
@@ -30,10 +31,10 @@ public class ScheduleNotificationService {
 
     private final ScheduleRepository scheduleRepository;
     private final ScheduleNotificationRepository scheduleNotificationRepository;
+    private final ScheduleGroupRepository scheduleGroupRepository;
 
     private final FirebaseService firebaseService;
     private final CalendarMemberService calendarMemberService;
-    private final CalendarRepository calendarRepository;
 
     @Value("${home_url}")
     String homeUrl;
@@ -69,7 +70,6 @@ public class ScheduleNotificationService {
 
     @Transactional
     public List<ScheduleNotificationDto> update(long userId, long scheduleId, List<ScheduleNotificationDto> notifications) {
-
         List<ScheduleNotificationEntity> resultEntities = scheduleNotificationRepository.findByScheduleId(scheduleId);
         List<ScheduleNotificationDto> updatedNotifications = new ArrayList<>();
 
@@ -87,21 +87,20 @@ public class ScheduleNotificationService {
                 ScheduleNotificationEntity resultEntity = resultEntities.get(i);
                 resultEntity.setNotificationAt(notifications.get(i).getNotificationAt());
                 resultEntity = scheduleNotificationRepository.save(resultEntity);
-                updatedNotifications.add(new ScheduleNotificationDto(resultEntity));
 
+                updatedNotifications.add(new ScheduleNotificationDto(resultEntity));
                 updateNotificationScheduler(userId, scheduleEntity, resultEntity);
             } else if (i < newSize) {
                 // 새로 생성해야 할 DTO가 있는 경우
                 ScheduleNotificationEntity newEntity = new ScheduleNotificationEntity(scheduleId, notifications.get(i));
                 newEntity = scheduleNotificationRepository.save(newEntity);
+
                 updatedNotifications.add(new ScheduleNotificationDto(newEntity));
                 createNotificationScheduler(userId, scheduleEntity, newEntity);
             } else {
                 // 삭제해야 할 기존 엔티티가 있는 경우
                 ScheduleNotificationEntity resultEntity = resultEntities.get(i);
-                deleteNotificationScheduler(userId, scheduleEntity, resultEntity);
-
-                scheduleNotificationRepository.delete(resultEntity);
+                deleteScheduleNotification(userId, scheduleEntity, resultEntity);
             }
         }
 
@@ -109,12 +108,15 @@ public class ScheduleNotificationService {
     }
 
     @Transactional
-    public void deleteByScheduleId(long scheduleId) {
-        scheduleNotificationRepository.deleteByScheduleId(scheduleId);
+    public void deleteNotificationList(long userId, long scheduleId) {
+        Optional<ScheduleEntity> scheduleEntity = scheduleRepository.findByIdAndUserId(scheduleId, userId);
+        if (scheduleEntity.isEmpty()) return;
+
+        deleteNotificationList(scheduleEntity.get());
     }
 
     @Transactional
-    public void deleteScheduleList(ScheduleEntity scheduleEntity) {
+    public void deleteNotificationList(ScheduleEntity scheduleEntity) {
         if (scheduleEntity == null) {
             return;
         }
@@ -128,9 +130,9 @@ public class ScheduleNotificationService {
     }
 
     @Transactional
-    public void deleteScheduleNotification(long userId, ScheduleEntity scheduleEntity, ScheduleNotificationEntity scheduleNotificationEntity) {
-        deleteNotificationScheduler(userId, scheduleEntity, scheduleNotificationEntity);
-        scheduleNotificationRepository.deleteByScheduleId(scheduleEntity.getId());
+    public void deleteScheduleNotification(long userId, ScheduleEntity scheduleEntity, ScheduleNotificationEntity notificationEntity) {
+        deleteNotificationScheduler(userId, scheduleEntity, notificationEntity);
+        scheduleNotificationRepository.delete(notificationEntity);
     }
 
     @Transactional
@@ -182,7 +184,7 @@ public class ScheduleNotificationService {
         targetUserIds.forEach(targetUserId -> {
                     String jobId = getJobId(targetUserId, scheduleEntity.getId(), notification.getId());
                     firebaseService.deleteNotifications(targetUserId, jobId);
-            }
+                }
         );
     }
 
@@ -190,19 +192,25 @@ public class ScheduleNotificationService {
         return "user" + userId + "-schedule" +  scheduleId + "-notification" + notificationId;
     }
 
+    @Transactional
     public List<Long> getUserIdList(long userId, ScheduleEntity scheduleEntity) {
-        List<CalendarMemberDto> groupUserList = new ArrayList<>();
-        List<Long> targetUserIds = new ArrayList<>();
-
-        try {
-            groupUserList = calendarMemberService.findCalendarMemberList(userId, scheduleEntity.getCalendarId());
-        } catch (GroupAuthorizationException e) {
-            targetUserIds.add(userId);
+        // 일정 그룹이 있으면 일정 그룹에 대해서 반환
+        List<ScheduleGroupEntity> groupList = scheduleGroupRepository.findByScheduleId(scheduleEntity.getId());
+        if (!groupList.isEmpty()) {
+            return groupList.stream()
+                    .map(ScheduleGroupEntity::getUserId)
+                    .collect(Collectors.toList());
         }
 
-        // 대상 사용자 ID를 담을 리스트 생성
-        groupUserList.forEach(groupUser -> targetUserIds.add(groupUser.getUserId()));
-
-        return targetUserIds;
+        // 일정 그룹이 없으면 캘린더 멤버 조회
+        try {
+            return calendarMemberService.findCalendarMemberList(userId, scheduleEntity.getCalendarId())
+                    .stream()
+                    .map(CalendarMemberDto::getUserId)
+                    .collect(Collectors.toList());
+        } catch (GroupAuthorizationException e) {
+            // 그룹 캘린더가 아니면 일정 소유자만 반환
+            return List.of(userId);
+        }
     }
 }

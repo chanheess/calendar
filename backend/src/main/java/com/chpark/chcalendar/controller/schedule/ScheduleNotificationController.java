@@ -60,9 +60,12 @@ public class ScheduleNotificationController {
     }
 
     @DeleteMapping
-    public ResponseEntity<String> deleteByScheduleId(@RequestParam("id") long scheduleId) {
+    public ResponseEntity<String> deleteByScheduleId(@PathVariable("id") long scheduleId,
+                                                     HttpServletRequest request) {
+        String token = jwtTokenProvider.resolveToken(request, JwtTokenType.ACCESS.getValue());
+        long userId = jwtTokenProvider.getUserIdFromToken(token);
 
-        scheduleNotificationService.deleteByScheduleId(scheduleId);
+        scheduleNotificationService.deleteNotificationList(userId, scheduleId);
 
         return ResponseEntity.ok().body("Notifications deleted successfully");
     }
