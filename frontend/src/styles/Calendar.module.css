@@ -15,16 +15,17 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+  padding: 2px;
 }
 .monthEventHeader {
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: 4px;
 }
 .monthEventColor {
   width: 6px; /* 살짝 작게 */
-  height: 12px;
-  border-radius: 2px;
+  height: 6px;
+  border-radius: 4px;
   display: inline-block;
 }
 .monthEventTitle {
@@ -37,7 +38,7 @@
   font-size: 9.6px; /* 기존 12px 대비 20% 축소 */
   color: #6c757d;
   line-height: 1.2;
-  padding-left: 8px;
+  padding-left: 10px;
   margin: 0px;
 }
 
@@ -189,6 +190,19 @@
   :global(.fc .fc-button) {
     font-size: 12px;
     padding: 4px 6px;
+  }
+  .monthEventHeader {
+    gap: 2px;
+  }
+  .monthEventColor {
+    width: 5px;
+    height: 5px;
+  }
+  .monthEventTitle {
+    font-size: 12px;
+  }
+  .monthEventTime {
+    padding-left: 8px;
   }
 
 }
