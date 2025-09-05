@@ -77,7 +77,7 @@ class ScheduleServiceUnitTest {
                 .build();
 
         mockSchedule = new ScheduleEntity();
-        mockSchedule.setId(1);
+        mockSchedule.setId(1L);
         mockSchedule.setTitle("Test Schedule");
         mockSchedule.setUserId(mockUser.getId());
         mockSchedule.setStartAt(LocalDateTime.now());

@@ -68,7 +68,7 @@ public class ScheduleEntity {
     }
 
     @Builder
-    public ScheduleEntity(long id, String title, String description, LocalDateTime startAt, LocalDateTime endAt, Long repeatId, long userId, long calendarId, String providerId, String etag, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    public ScheduleEntity(Long id, String title, String description, LocalDateTime startAt, LocalDateTime endAt, Long repeatId, long userId, long calendarId, String providerId, String etag, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.title = title;
         this.description = description;

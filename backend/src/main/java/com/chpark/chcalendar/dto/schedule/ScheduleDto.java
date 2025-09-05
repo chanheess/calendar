@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 @Builder
 public class ScheduleDto {
 
-    private long id;
+    private Long id;
 
     @NotNull(groups = ValidGroup.CreateGroup.class)
     private String title;
@@ -35,7 +35,7 @@ public class ScheduleDto {
     private Long repeatId;
 
     @NotNull
-    private long userId;    //create에서는 필요하지 않음
+    private Long userId;    //create에서는 필요하지 않음
 
     @NotNull(groups = ValidGroup.CreateGroup.class)
     private Long calendarId;
