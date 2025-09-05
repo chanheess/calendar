@@ -4,6 +4,7 @@ import axios from 'utils/axiosInstance';
 import styles from "styles/Login.module.css";
 import Button from "../Button";
 import PasswordResetPopup from "../popups/PasswordResetPopup";
+import LoadingOverlay from "../LoadingOverlay";
 import { getRedirectPath, clearRedirectPath } from "../../utils/authUtils";
 
 const LoginPage = () => {
@@ -156,9 +157,7 @@ const LoginPage = () => {
         <img src="/images/google-logo.svg" alt="Google" className={styles.googleIcon} />
         <span className={styles.googleText}>Google 계정으로 로그인</span>
       </button>
-      {loading && (
-        <div className={styles.loadingSpinner}></div>
-      )}
+      {loading && <LoadingOverlay fullScreen={true} />}
       <div className={styles.bottomLinksRow}>
         <button
           type="button"
