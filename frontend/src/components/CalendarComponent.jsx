@@ -445,7 +445,7 @@ const CalendarComponent = forwardRef(({ selectedCalendarList, refreshKey, refres
   }, []);
 
   return (
-    <div className={`${styles.calendarContainer} ${typeof document !== "undefined" && document.body.classList.contains("safari") ? 'safari' : ''}`}>
+    <div className={`${styles.calendarContainer} ${typeof document !== "undefined" && document.body.classList.contains("safari") ? 'safari' : ''}`} style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
       {isLoading && <LoadingOverlay fullScreen={false} />}
 
       <FullCalendar

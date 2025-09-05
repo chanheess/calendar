@@ -18,6 +18,9 @@
     /* iOS Safari 주소창 높이 대응 */
     :root {
       --vh: 1vh;
+      /* iOS safe-area (home indicator) 기본값 0, 지원 시 env() 사용 */
+      --safe-bottom: 0px;
+      padding-bottom: env(safe-area-inset-bottom, 0px);
     }
 
     html {
@@ -105,6 +108,9 @@
       body {
         height: -webkit-fill-available;
         background-color: #ffffff;
+        /* 하단 홈 인디케이터 영역 확보 */
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+        box-sizing: border-box;
       }
       
       /* iOS 상태바 영역 하얀색 설정 */
