@@ -1,13 +1,15 @@
 package com.chpark.chcalendar.service.schedule;
 
 import com.chpark.chcalendar.dto.CursorPage;
-import com.chpark.chcalendar.dto.schedule.*;
+import com.chpark.chcalendar.dto.schedule.ScheduleDto;
+import com.chpark.chcalendar.dto.schedule.ScheduleGroupDto;
+import com.chpark.chcalendar.dto.schedule.ScheduleNotificationDto;
+import com.chpark.chcalendar.dto.schedule.ScheduleRepeatDto;
 import com.chpark.chcalendar.entity.schedule.ScheduleEntity;
 import com.chpark.chcalendar.enumClass.CRUDAction;
 import com.chpark.chcalendar.enumClass.CalendarCategory;
 import com.chpark.chcalendar.exception.CustomException;
 import com.chpark.chcalendar.exception.ScheduleException;
-import com.chpark.chcalendar.repository.schedule.ScheduleNotificationRepository;
 import com.chpark.chcalendar.repository.schedule.ScheduleQueryRepository;
 import com.chpark.chcalendar.repository.schedule.ScheduleRepeatRepository;
 import com.chpark.chcalendar.repository.schedule.ScheduleRepository;
@@ -30,7 +32,6 @@ import java.util.*;
 public class ScheduleService {
 
     protected final ScheduleRepository scheduleRepository;
-    private final ScheduleNotificationRepository scheduleNotificationRepository;
     private final ScheduleRepeatRepository scheduleRepeatRepository;
     private final ScheduleQueryRepository scheduleQueryRepository;
 
@@ -213,7 +214,7 @@ public class ScheduleService {
         );
 
         try {
-            scheduleNotificationService.deleteByScheduleId(scheduleId);
+            scheduleNotificationService.deleteNotificationList(schedule.get());
             scheduleGroupService.deleteScheduleGroupAll(scheduleId);
             scheduleRepository.deleteById(scheduleId);
         } catch (EmptyResultDataAccessException e) {
@@ -262,8 +263,8 @@ public class ScheduleService {
         List<ScheduleEntity> scheduleList = scheduleRepository.findFutureRepeatSchedules(standardSchedule.getRepeatId(), standardSchedule.getStartAt(), userId);
 
         //반복 일정의 알림, 그룹 일정 삭제
-        scheduleList.forEach( scheduleEntity -> {
-            scheduleNotificationRepository.deleteByScheduleId(scheduleEntity.getId());
+        scheduleList.forEach(scheduleEntity -> {
+            scheduleNotificationService.deleteNotificationList(scheduleEntity);
             scheduleGroupService.deleteScheduleGroupAll(scheduleEntity.getId());
         });
 
@@ -373,7 +374,7 @@ public class ScheduleService {
                 repeatIdList.add(scheduleEntity.getRepeatId());
             }
             deleteTargetList.add(scheduleEntity);
-            scheduleNotificationService.deleteScheduleList(scheduleEntity);
+            scheduleNotificationService.deleteNotificationList(scheduleEntity);
         }
 
         scheduleRepository.deleteAll(deleteTargetList);

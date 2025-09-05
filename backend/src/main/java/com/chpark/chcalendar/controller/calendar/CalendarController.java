@@ -76,7 +76,6 @@ public class CalendarController {
         scheduleService.deleteAccount(userId, calendarId);
         calendarServiceMap.get(calendar.getCategory()).deleteCalendar(userId, calendarId);
 
-
         return ResponseEntity.ok(calendar.getTitle() + " 캘린더에서 탈퇴되었습니다.");
     }
 }

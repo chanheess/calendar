@@ -1,11 +1,11 @@
 package com.chpark.chcalendar.service.notification;
 
 import com.chpark.chcalendar.job.FcmPushNotificationJob;
+import lombok.RequiredArgsConstructor;
 import org.quartz.*;
 import org.quartz.impl.matchers.GroupMatcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,11 +14,11 @@ import java.time.ZoneId;
 import java.util.Date;
 import java.util.Set;
 
+@RequiredArgsConstructor
 @Service
 public class QuartzSchedulerService {
 
-    @Autowired
-    private Scheduler scheduler;
+    private final Scheduler scheduler;
 
     private static final Logger log = LoggerFactory.getLogger(QuartzSchedulerService.class);
 
@@ -26,7 +26,6 @@ public class QuartzSchedulerService {
     public void createFcmPushNotification(String jobId, String fcmToken, String userPlatformKey,
                                           String title, String body, String url, LocalDateTime scheduledTime)
             throws SchedulerException {
-        // 과거 시간인지 확인
         if (scheduledTime.isBefore(LocalDateTime.now())) {
             return;
         }
@@ -41,61 +40,80 @@ public class QuartzSchedulerService {
         jobDataMap.put("body", body);
         jobDataMap.put("url", url);
 
+        long scheduledAt = scheduledTime.atZone(ZoneId.of("Asia/Seoul"))
+                .toInstant().toEpochMilli();
+        jobDataMap.put("scheduledAt", scheduledAt);
+
         JobDetail jobDetail = JobBuilder.newJob(FcmPushNotificationJob.class)
                 .withIdentity(jobId, userPlatformKey)
                 .usingJobData(jobDataMap)
+                .requestRecovery(true)
+                .storeDurably(false)
                 .build();
 
         Date triggerTime = Date.from(scheduledTime.atZone(ZoneId.of("Asia/Seoul")).toInstant());
-        log.info("Trigger time set for: {}", triggerTime);
 
         Trigger trigger = TriggerBuilder.newTrigger()
                 .withIdentity(jobId, userPlatformKey)
                 .startAt(triggerTime)
-                .withSchedule(SimpleScheduleBuilder.simpleSchedule())
+                .withSchedule(SimpleScheduleBuilder.simpleSchedule()
+                        .withMisfireHandlingInstructionFireNow())
                 .build();
 
         scheduler.scheduleJob(jobDetail, trigger);
-        log.info("Job scheduled successfully: jobId={}, triggerKey={}", jobId, trigger.getKey());
     }
 
     @Transactional
-    public void updateFcmPushNotification(String jobId, String userPlatformKey, LocalDateTime newScheduledTime) throws SchedulerException {
-        // 과거 시간인지 확인
+    public void updateFcmPushNotification(String jobId, String fcmToken, String userPlatformKey,
+                                          String title, String body, String url,
+                                          LocalDateTime newScheduledTime) throws SchedulerException {
         if (newScheduledTime.isBefore(LocalDateTime.now())) {
             return;
         }
-        
-        TriggerKey triggerKey = TriggerKey.triggerKey(jobId, userPlatformKey);
-        
-        try {
-            // 기존 트리거가 존재하면 수정
-            if (scheduler.checkExists(triggerKey)) {
-                Date newTriggerTime = Date.from(newScheduledTime.atZone(ZoneId.systemDefault()).toInstant());
-                Trigger newTrigger = TriggerBuilder.newTrigger()
-                        .withIdentity(jobId, userPlatformKey)
-                        .startAt(newTriggerTime)
-                        .withSchedule(SimpleScheduleBuilder.simpleSchedule())
-                        .build();
-                scheduler.rescheduleJob(triggerKey, newTrigger);
-                log.info("Updated existing notification: jobId={}, userPlatformKey={}, newTime={}", 
-                        jobId, userPlatformKey, newScheduledTime);
-            } else {
-                //상위 계층에서 create 해주도록 처리
-                throw new SchedulerException("Previous notification expired. Please recreate the notification.");
-            }
-        } catch (SchedulerException e) {
-            throw e;
+
+        JobKey jobKey = JobKey.jobKey(jobId, userPlatformKey);
+        if (!scheduler.checkExists(jobKey)) {
+            throw new SchedulerException("Previous notification expired. Please recreate the notification.");
         }
+
+        JobDetail oldJob = scheduler.getJobDetail(jobKey);
+        JobDataMap newData = new JobDataMap(oldJob.getJobDataMap());
+
+        if (title != null) newData.put("title", title);
+        if (body  != null) newData.put("body",  body);
+        if (url   != null) newData.put("url",   url);
+        if (fcmToken != null) newData.put("fcmToken", fcmToken);
+
+        long scheduledAt = newScheduledTime.atZone(ZoneId.of("Asia/Seoul")).toInstant().toEpochMilli();
+        newData.put("scheduledAt", scheduledAt);
+
+        JobDetail newJob = oldJob.getJobBuilder()
+                .usingJobData(newData)
+                .build();
+
+        Date newTriggerTime = Date.from(newScheduledTime.atZone(ZoneId.of("Asia/Seoul")).toInstant());
+        TriggerKey triggerKey = TriggerKey.triggerKey(jobId, userPlatformKey);
+
+        Trigger newTrigger = TriggerBuilder.newTrigger()
+                .withIdentity(triggerKey)
+                .forJob(jobKey)
+                .startAt(newTriggerTime)
+                .withSchedule(SimpleScheduleBuilder.simpleSchedule())
+                .build();
+
+        scheduler.addJob(newJob, true, true);
+        scheduler.rescheduleJob(triggerKey, newTrigger);
+
+        log.info("Notification updated: jobId={}, userPlatformKey={}, newTime={}",
+                jobId, userPlatformKey, newScheduledTime);
     }
 
     @Transactional
     public void deleteFcmPushNotification(String jobId, String userPlatformKey) throws SchedulerException {
         JobKey jobKey = JobKey.jobKey(jobId, userPlatformKey);
-        
-        // 잡이 존재하는지 확인
+
         if (!scheduler.checkExists(jobKey)) {
-            return; // 이미 만료되어 삭제된 상태
+            return;
         }
         
         scheduler.deleteJob(jobKey);

@@ -36,5 +36,5 @@ public interface ScheduleRepository extends JpaRepository<ScheduleEntity, Long> 
 
     Optional<ScheduleEntity> findByProviderId(@Param("providerId") String providerId);
 
-
+    List<ScheduleEntity> findByRepeatId(Long repeatId);
 }
