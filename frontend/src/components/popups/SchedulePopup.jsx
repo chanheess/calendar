@@ -144,19 +144,13 @@ import {
       // 그룹 내 전체 사용자 가져오기
       const allUsersResponse = await axios.get(
         `/calendars/${scheduleData.calendarId}/members`,
-        {
-          withCredentials: true,
-          headers: { "Content-Type": "application/json" },
-        }
       );
       const allUsers = allUsersResponse.data;
 
       let invitedUsers = [];
       if (mode === "edit") {
-        invitedUsers = await axios.get(`/schedules/${scheduleData.id}/group`, {
-          withCredentials: true,
-          headers: { "Content-Type": "application/json" },
-        }).then(res => res.data);
+        invitedUsers = await axios.get(`/schedules/${scheduleData.id}/group`)
+        .then(res => res.data);
       }
 
       // create 모드인 경우
@@ -176,10 +170,8 @@ import {
       // edit 모드인데 invitedUsers가 없다면, 서버로부터 다시 fetch 시도
       if (mode === "edit" && invitedUsers.length === 0) {
         try {
-          const reFetch = await axios.get(`/schedules/${scheduleData.id}/group`, {
-            withCredentials: true,
-            headers: { "Content-Type": "application/json" },
-          }).then(res => res.data);
+          const reFetch = await axios.get(`/schedules/${scheduleData.id}/group`)
+          .then(res => res.data);
 
           if (reFetch.length > 0) {
             invitedUsers = reFetch;
@@ -288,10 +280,7 @@ import {
         userId: currentUserId,
         status: newStatus, // "ACCEPTED", "DECLINED", "PENDING"
       };
-      const response = await axios.patch(`/schedules/${scheduleData.id}/group`, requestBody, {
-        withCredentials: true,
-        headers: { "Content-Type": "application/json" },
-      });
+      const response = await axios.patch(`/schedules/${scheduleData.id}/group`, requestBody);
 
       const updatedGroup = response.data;
       setGroupUserList((prevList) =>
@@ -319,20 +308,14 @@ import {
       const scheduleDTO = getScheduleData();
 
       if (mode === "create") {
-        const response = await axios.post("/schedules", scheduleDTO, {
-          withCredentials: true,
-          headers: { "Content-Type": "application/json" },
-        });
+        const response = await axios.post("/schedules", scheduleDTO);
         alert("일정이 생성되었습니다.");
         onClose(true, response.data.scheduleDto, isRepeatEnabled);
       } else if (mode === "edit") {
         if (scheduleData.repeatId) {
           openRepeatPopup("save");
         } else {
-          await axios.patch(`/schedules/${scheduleData.id}?repeat=${isRepeatEnabled}`, scheduleDTO, {
-              withCredentials: true,
-              headers: { "Content-Type": "application/json" },
-          });
+          await axios.patch(`/schedules/${scheduleData.id}?repeat=${isRepeatEnabled}`, scheduleDTO);
           alert("일정이 수정되었습니다.");
           onClose(true);
         }
@@ -350,12 +333,7 @@ import {
         if (scheduleData.repeatId) {
           openRepeatPopup("delete");
         } else {
-          await axios.delete(
-            `/schedules/${scheduleData.id}/calendars/${scheduleData.calendarId}`,
-            {
-              withCredentials: true,
-            }
-          );
+          await axios.delete(`/schedules/${scheduleData.id}/calendars/${scheduleData.calendarId}`);
           alert("일정이 삭제되었습니다.");
           onClose(true);
         }
@@ -369,10 +347,8 @@ import {
   const repeatSave = async (url) => {
     try {
       if (mode === "edit" && scheduleData.repeatId) {
-        await axios.patch(url, getScheduleData(), {
-          withCredentials: true,
-          headers: { "Content-Type": "application/json" },
-        });
+        await axios.patch(url, getScheduleData());
+
         alert("일정이 수정되었습니다.");
         onClose(true, null, isRepeatEnabled);
       }
@@ -386,9 +362,8 @@ import {
   const repeatDelete = async (url) => {
     try {
       if (mode === "edit") {
-        await axios.delete(url, {
-          withCredentials: true,
-        });
+        await axios.delete(url);
+
         alert("일정이 삭제되었습니다.");
         onClose(true, null, isRepeatEnabled);
       }

@@ -75,19 +75,14 @@ const LoginPage = () => {
   const checkAndRequestOAuthLink = async () => {
     try {
       // OAuth 연동 상태 확인
-      const providerResponse = await axios.get("/check/provider", {
-        withCredentials: true,
-        headers: { "Content-Type": "application/json" },
-      });
+      const providerResponse = await axios.get("/check/provider");
       
       const isGoogleLinked = providerResponse.data.some(
         provider => provider.provider.toLowerCase() === "google"
       );
 
       if (isGoogleLinked) {
-        const response = await axios.post(`/auth/oauth2/login/${"local"}`, {
-          withCredentials: true
-        });
+        const response = await axios.post(`/auth/oauth2/login/${"local"}`);
 
         window.location.href = `${process.env.REACT_APP_DOMAIN}${response.data}`;
         return true;
@@ -143,9 +138,7 @@ const LoginPage = () => {
         onClick={async () => {
           setLoading(true);
           try {
-            const response = await axios.post(`/auth/oauth2/login/${"oauth"}`, {
-              withCredentials: true
-            });
+            const response = await axios.post(`/auth/oauth2/login/${"oauth"}`);
             window.location.href = `${process.env.REACT_APP_DOMAIN}${response.data}`;
           } catch (error) {
             console.error("OAuth 로그인 요청 중 오류:", error);

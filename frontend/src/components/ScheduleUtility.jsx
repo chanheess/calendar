@@ -3,10 +3,7 @@ import axios from 'utils/axiosInstance';
 
 export async function fetchScheduleNotifications(eventId) {
   try {
-    const response = await axios.get(`/schedules/${eventId}/notifications`, {
-      withCredentials: true,
-      headers: { "Content-Type": "application/json" },
-    });
+    const response = await axios.get(`/schedules/${eventId}/notifications`);
     return response.data ? response.data : null;
   } catch (error) {
     console.error("Error fetching schedule notifications:", error);
@@ -17,10 +14,7 @@ export async function fetchScheduleNotifications(eventId) {
 export async function fetchRepeatDetails(repeatId) {
   if (!repeatId) return null;
   try {
-    const response = await axios.get(`/repeats/${repeatId}`, {
-      withCredentials: true,
-      headers: { "Content-Type": "application/json" },
-    });
+    const response = await axios.get(`/repeats/${repeatId}`);
     return response.data ? response.data : null;
   } catch (error) {
     console.error("Error fetching repeat details:", error);
@@ -30,14 +24,8 @@ export async function fetchRepeatDetails(repeatId) {
 
 export async function getScheduleGroupList(scheduleId) {
   try {
-    const scheduleGroupResponse = await axios.get(
-      `/schedules/${scheduleId}/group`,
-      {
-        withCredentials: true,
-        headers: { "Content-Type": "application/json" },
-      }
-    );
-    return scheduleGroupResponse.data ? scheduleGroupResponse.data : null;;
+    const scheduleGroupResponse = await axios.get(`/schedules/${scheduleId}/group`);
+    return scheduleGroupResponse.data ? scheduleGroupResponse.data : null;
   } catch (error) {
     console.error("Error fetching getScheduleGroupList:", error);
     return null;

@@ -121,6 +121,9 @@ public class JwtTokenProvider {
 
     // JWT 토큰 검증
     public boolean validateToken(String token, JwtTokenType jwtTokenType) {
+        if (token == null) {
+            throw new TokenAuthenticationException(jwtTokenType.getValue() + " is null");
+        }
         try {
             Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
             return true;

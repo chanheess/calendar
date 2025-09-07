@@ -4,16 +4,15 @@ import { getFirebaseToken } from "../components/FirebaseToken";
 export const checkLoginStatus = async () => {
   try {
     const token = await getFirebaseToken();
-    let response;
-    
     if (token) {
-      response = await axios.get(`/auth/check/${token}`, { withCredentials: true });
+      await axios.get(`/auth/check`, { params: { firebaseToken: token } });
     } else {
-      response = await axios.get(`/auth/check`, { withCredentials: true });
+      await axios.get(`/auth/check`);
     }
-
-    return response.data;
+    return true;
   } catch (error) {
+    // 401이면 인터셉터가 먼저 refresh 시도
+    // refresh도 실패하면 최종적으로 여기서 잡힘
     console.error("로그인 상태를 확인할 수 없습니다.", error);
     return false;
   }

@@ -38,7 +38,7 @@ const ProfilePage = () => {
 
   const fetchUserInfo = async () => {
     try {
-      const response = await axios.get("/user/info", { withCredentials: true });
+      const response = await axios.get("/user/info");
       setEmail(response.data.email);
       setNickname(response.data.nickname);
     } catch (error) {
@@ -48,7 +48,7 @@ const ProfilePage = () => {
 
   const fetchProviders = async () => {
     try {
-      const response = await axios.get("/check/provider", { withCredentials: true });
+      const response = await axios.get("/check/provider");
       setProviders(response.data);
     } catch (error) {
       console.error("Failed to fetch providers:", error);
@@ -62,15 +62,7 @@ const ProfilePage = () => {
     }
 
     try {
-      await axios.patch("/user/info",
-        { nickname },
-        {
-          headers: {
-            "Content-Type": "application/json"
-          },
-          withCredentials: true,
-        }
-      );
+      await axios.patch("/user/info", { nickname });
 
       alert("닉네임이 변경되었습니다.");
       setIsNicknameChanged(false); // 변경 상태 초기화
@@ -87,11 +79,7 @@ const ProfilePage = () => {
     }
 
     try {
-      await axios.patch(
-        "/user/password",
-        { currentPassword, newPassword },
-        { headers: { "Content-Type": "application/json" }, withCredentials: true }
-      );
+      await axios.patch("/user/password", { currentPassword, newPassword });
       alert("비밀번호가 성공적으로 변경되었습니다.");
       setCurrentPassword("");
       setNewPassword("");
@@ -109,9 +97,7 @@ const ProfilePage = () => {
 
   const handleGoogleLink = async () => {
     try {
-      const response = await axios.post(`/auth/oauth2/link/${email}`, null, {
-        withCredentials: true
-      });
+      const response = await axios.post(`/auth/oauth2/link/${email}`, null);
       // eslint-disable-next-line
       window.location.href = process.env.REACT_APP_DOMAIN + response.data;
     } catch (error) {
@@ -129,7 +115,7 @@ const ProfilePage = () => {
     setShowDeleteModal(false);
     setIsLoading(true);
     try {
-      await axios.delete("/user", { withCredentials: true });
+      await axios.delete("/user");
       alert("회원 탈퇴가 완료되었습니다.");
       // 로그아웃 처리 및 메인 페이지로 이동
       window.location.href = "/";
