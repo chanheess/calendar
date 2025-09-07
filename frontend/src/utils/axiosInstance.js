@@ -1,4 +1,3 @@
-// utils/axiosInstance.js
 import Axios from 'axios';
 import { setRedirectPath } from './authUtils';
 
