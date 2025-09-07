@@ -16,11 +16,11 @@ let requestQueue = [];
 // 우리 API로 향한 요청인지 판별 (GA/CDN 등 외부 실패는 스킵)
 function isApiRequest(cfg) {
   try {
-    const reqUrl = new URL(cfg?.url, API_BASE || window.location.origin);
     const apiBase = new URL(API_BASE || '/', window.location.origin);
+    const reqUrl = new URL(cfg?.url ?? '', apiBase.origin);
     return reqUrl.origin === apiBase.origin;
   } catch {
-    return false;
+    return true;
   }
 }
 
