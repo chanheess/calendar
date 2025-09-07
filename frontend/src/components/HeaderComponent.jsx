@@ -70,7 +70,7 @@ const HeaderComponent = forwardRef(({ mode, onSidebarToggle, onCloseSidebarPopup
         return; // 로그인되지 않은 경우 API 호출하지 않음
       }
       
-      const response = await axios.get("/notifications", { withCredentials: true });
+      const response = await axios.get("/notifications");
       setNotifications(response.data || []);
     } catch (error) {
       console.error("Error fetching notifications:", error);
@@ -169,13 +169,7 @@ const HeaderComponent = forwardRef(({ mode, onSidebarToggle, onCloseSidebarPopup
     }
 
     try {
-     const response = await axios({
-       method,
-       url,
-       data: notification,
-       withCredentials: true,
-       headers: { "Content-Type": "application/json" },
-     });
+     const response = await axios({method, url, data: notification});
 
      if (response.status === 200) {
        alert(`알림 처리 완료`);
@@ -193,9 +187,9 @@ const HeaderComponent = forwardRef(({ mode, onSidebarToggle, onCloseSidebarPopup
       setIsLoading(true);
       const token = await getFirebaseToken();
       if (token) {
-        await axios.post(`/auth/logout/${token}`, {}, { withCredentials: true });
+        await axios.post(`/auth/logout/${token}`, {});
       } else {
-        await axios.post(`/auth/logout`, {}, { withCredentials: true });
+        await axios.post(`/auth/logout`, {});
       }
       // 리다이렉트 경로 정리
       clearRedirectPath();

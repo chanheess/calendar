@@ -1,57 +1,70 @@
-import axios from 'axios';
+// utils/axiosInstance.js
+import Axios from 'axios';
 import { setRedirectPath } from './authUtils';
+
+const API_BASE = process.env.REACT_APP_API_URL || '';
+
+const axios = Axios.create({
+  baseURL: API_BASE,
+  withCredentials: true,
+  headers: { 'Content-Type': 'application/json' },
+});
 
 let refreshPromise = null;
 let requestQueue = [];
 
-axios.interceptors.response.use(
-  response => response,
-  async error => {
-    const originalRequest = error.config;
+// 우리 API로 향한 요청인지 판별 (GA/CDN 등 외부 실패는 스킵)
+function isApiRequest(cfg) {
+  try {
+    const reqUrl = new URL(cfg?.url, API_BASE || window.location.origin);
+    const apiBase = new URL(API_BASE || '/', window.location.origin);
+    return reqUrl.origin === apiBase.origin;
+  } catch {
+    return false;
+  }
+}
 
-    if (
-      error.response?.status === 401 &&
-      !originalRequest._retry
-    ) {
+axios.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config || {};
+
+    // 응답이 없으면(네트워크 오류 등) 리프레시 로직 태우지 말고 그대로 넘김
+    if (!error.response) return Promise.reject(error);
+
+    // 외부 도메인(예: google-analytics) 실패는 건드리지 않음
+    if (!isApiRequest(originalRequest)) return Promise.reject(error);
+
+    // refresh 요청 자체의 401은 가로채지 않음(무한루프 방지)
+    const urlStr = originalRequest.url || '';
+    if (urlStr.includes('/auth/refresh')) return Promise.reject(error);
+
+    if (error.response.status === 401 && !originalRequest._retry) {
       if (!refreshPromise) {
-        refreshPromise = axios.post('/auth/refresh', null, { withCredentials: true })
+        // 같은 인스턴스로 refresh 호출 (쿠키/기본설정 유지)
+        refreshPromise = axios.post('/auth/refresh')
           .then(() => {
-            // 모든 대기 중인 요청 재처리
-            requestQueue.forEach(cb => cb());
+            requestQueue.forEach((cb) => cb());
             requestQueue = [];
           })
-          .catch(err => {
+          .catch((err) => {
             requestQueue = [];
-            
-            // 에러 타입에 따른 처리
             if (err.response?.status === 401) {
-              // 인증 실패 - 리프레시 토큰도 만료됨
-              console.warn('Refresh token expired, redirecting to login');
+              // 진짜 만료
               setRedirectPath(window.location.pathname);
-              window.location.href = "/auth/login";
-            } else if (err.response?.status >= 500) {
-              // 서버 에러 - 잠시 후 재시도
-              console.warn('Server error during token refresh, will retry on next request');
-            } else {
-              // 기타 에러 (네트워크 등)
-              console.warn('Network error during token refresh, redirecting to login');
-              setRedirectPath(window.location.pathname);
-              window.location.href = "/auth/login";
+              window.location.href = '/auth/login';
             }
             throw err;
           })
-          .finally(() => {
-            refreshPromise = null;
-          });
+          .finally(() => { refreshPromise = null; });
       }
 
-      // 새 Promise를 만들어서 큐에 등록
+      // refresh 끝난 뒤 원 요청 재시도
       return new Promise((resolve, reject) => {
         requestQueue.push(() => {
           originalRequest._retry = true;
-          // withCredentials 옵션을 반드시 true로 설정
-          originalRequest.withCredentials = true;
-          axios(originalRequest).then(resolve).catch(reject);
+          originalRequest.withCredentials = true; // 안전하게 보장
+          axios(originalRequest).then(resolve).catch(reject); // 같은 인스턴스로 재요청
         });
       });
     }

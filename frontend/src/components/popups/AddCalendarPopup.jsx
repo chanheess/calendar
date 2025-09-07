@@ -25,16 +25,9 @@ const AddCalendarPopup = ({ isOpen, onClose, onCalendarAdded }) => {
     }
 
     try {
-      const response = await axios.post(
-        "/calendars",
-        { category: type, title: title },
-        {
-          withCredentials: true,
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-
+      const response = await axios.post("/calendars", { category: type, title: title });
       const calendarInfo = response.data;
+
       alert("캘린더가 추가되었습니다.");
       setTitle("");
       onClose();

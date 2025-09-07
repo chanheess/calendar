@@ -102,7 +102,7 @@ const ManageCalendarPopup = ({
     if (!calendarInfo.id) return;
     setPendingDelete(true);
     try {
-      await axios.delete(`/calendars/${calendarInfo.id}`, { withCredentials: true });
+      await axios.delete(`/calendars/${calendarInfo.id}`);
       alert('캘린더에서 탈퇴되었습니다.');
       window.location.reload();
     } catch (error) {
@@ -122,11 +122,7 @@ const ManageCalendarPopup = ({
       await axios.post(
         `/notifications/calendars/${calendarInfo.id}/invite`,
         null,
-        {
-          params: { nickname: inviteUserName },
-          withCredentials: true,
-          headers: { "Content-Type": "application/json" },
-        }
+        { params: { nickname: inviteUserName }}
       );
       alert(`${inviteUserName} 초대 성공`);
       setInviteUserName("");
@@ -146,14 +142,8 @@ const ManageCalendarPopup = ({
       payload.title = title;
     }
     try {
-      const response = await axios.patch(
-        `/calendars/${calendarInfo.id}`,
-        payload,
-        {
-          withCredentials: true,
-          headers: { "Content-Type": "application/json" },
-        }
-      );
+      const response = await axios.patch(`/calendars/${calendarInfo.id}`, payload);
+
       if (selectedCalendarList && selectedCalendarList[response.data.calendarId]) {
         const updatedList = {
           ...selectedCalendarList,

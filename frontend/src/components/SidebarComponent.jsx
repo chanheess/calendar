@@ -64,10 +64,7 @@ const SidebarComponent = forwardRef(({
   const checkGoogleCalendarStatus = async () => {
     try {
       // 구글 연동 상태 확인
-      const providerResponse = await axios.get("/check/provider", {
-        withCredentials: true,
-        headers: { "Content-Type": "application/json" },
-      });
+      const providerResponse = await axios.get("/check/provider");
       
       const isLinked = providerResponse.data.some(
         provider => provider.provider.toLowerCase() === "google"
@@ -78,9 +75,7 @@ const SidebarComponent = forwardRef(({
       if (isLinked) {
         try {
           const googleCalendarsResponse = await axios.get("/calendars", {
-            params: { category: "GOOGLE" },
-            withCredentials: true,
-            headers: { "Content-Type": "application/json" },
+            params: { category: "GOOGLE" }
           });
 
           const googleCalWithSelected = googleCalendarsResponse.data.reduce(
@@ -199,9 +194,6 @@ const SidebarComponent = forwardRef(({
         await axios.patch(`/calendars/${id}`, {
           checked: checked,
           category: calendar.category
-        }, {
-          withCredentials: true,
-          headers: { "Content-Type": "application/json" },
         });
       }
     } catch (error) {

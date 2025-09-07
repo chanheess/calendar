@@ -5,6 +5,7 @@ import com.chpark.chcalendar.dto.user.UserDto;
 import com.chpark.chcalendar.dto.security.JwtAuthenticationResponseDto;
 import com.chpark.chcalendar.enumClass.JwtTokenType;
 import com.chpark.chcalendar.enumClass.RequestType;
+import com.chpark.chcalendar.exception.authentication.TokenAuthenticationException;
 import com.chpark.chcalendar.security.JwtTokenProvider;
 import com.chpark.chcalendar.service.OAuthTokenService;
 import com.chpark.chcalendar.service.notification.FirebaseService;
@@ -14,6 +15,7 @@ import com.chpark.chcalendar.utility.CookieUtility;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -83,11 +85,11 @@ public class UserController {
     @GetMapping("/auth/check")
     public ResponseEntity<Boolean> checkLogin(HttpServletRequest request) {
         String token = jwtTokenProvider.resolveToken(request, JwtTokenType.ACCESS.getValue());
-
-        if (token != null) {
+        try {
+            jwtTokenProvider.validateToken(token, JwtTokenType.ACCESS);
             return ResponseEntity.ok(true);
-        } else {
-            return ResponseEntity.ok(false);
+        } catch (TokenAuthenticationException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(false);
         }
     }
 

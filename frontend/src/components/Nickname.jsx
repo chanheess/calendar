@@ -10,7 +10,6 @@ const Nickname = ({ variant = "primary", size = "medium", ...props }) => {
     const fetchNickname = async () => {
       try {
         const response = await axios.get("/user/nickname", {
-          withCredentials: true,
           responseType: "text",
         });
         setNickname(response.data);

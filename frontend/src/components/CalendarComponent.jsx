@@ -62,11 +62,7 @@ const CalendarComponent = forwardRef(({ selectedCalendarList, refreshKey, refres
 
   // 사용자 ID
   useEffect(() => {
-    axios
-      .get("/user/id", {
-        withCredentials: true,
-        headers: { "Content-Type": "application/json" },
-      })
+    axios.get("/user/id")
       .then((response) => {
         setCurrentUserId(response.data);
       })
@@ -106,10 +102,7 @@ const CalendarComponent = forwardRef(({ selectedCalendarList, refreshKey, refres
           if (cursorIdRef.current !== null) {
             params.append("cursor-id", cursorIdRef.current);
           }
-          const res = await axios.get(`/schedules/date?${params.toString()}`, {
-            withCredentials: true,
-            headers: { "Content-Type": "application/json" },
-          });
+          const res = await axios.get(`/schedules/date?${params.toString()}`);
           const data = res.data;
 
           if (data.nextCursor && data.nextCursor !== "null" && data.nextCursor !== "undefined") {
@@ -263,10 +256,7 @@ const CalendarComponent = forwardRef(({ selectedCalendarList, refreshKey, refres
       : `/schedules/${updateData.scheduleDto.id}?repeat=false`;
 
     try {
-      await axios.patch(url, updateData, {
-        withCredentials: true,
-        headers: { "Content-Type": "application/json" },
-      });
+      await axios.patch(url, updateData);
       alert("일정이 성공적으로 업데이트되었습니다.");
       if (typeof refreshSchedules === "function") {
         refreshSchedules();
