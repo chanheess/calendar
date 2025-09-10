@@ -11,6 +11,7 @@ import java.time.Duration;
 import java.util.Date;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -25,11 +26,11 @@ public class FcmPushNotificationJob implements Job {
     public void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException {
         var data = jobExecutionContext.getMergedJobDataMap();
 
-        // 1) schedule→fire 지연 기록 + fired 카운트
+        // schedule→fire 지연 기록 + fired 카운트
         recordScheduleToFire(jobExecutionContext);
         metrics.onFired();
 
-        // 2) 메시지 작성
+        // 메시지 작성
         long scheduledAt = asLong(data, "scheduledAt", 0L);
         long firedAt     = fireTimeMs(jobExecutionContext);
         String notifyId  = jobKeyOrRandom(jobExecutionContext);
@@ -37,28 +38,24 @@ public class FcmPushNotificationJob implements Job {
 
         Message msg = buildFcmMessage(data, notifyId, scheduledAt, firedAt, sentAt);
 
-        // 3) fire→send 타이머 + 전송/성공/실패 카운트
+        // fire→send 타이머 + 전송/성공/실패 카운트
         var t = metrics.startFireToSend();
         metrics.onSent();
         try {
-            fcmSender.sendAsync(msg)
-                    .orTimeout(10, TimeUnit.SECONDS)
-                    .whenComplete((messageId, ex) -> {
-                        try {
-                            if (ex == null) {
-                                metrics.onSuccess();
-                            } else {
-                                metrics.onFail(ex.getClass().getSimpleName());
-                                log.warn("FCM send failed: {}", ex.toString());
-                            }
-                        } finally {
-                            metrics.stopFireToSend(t);
-                        }
-                    });
+            var future = fcmSender
+                    .sendAsync(msg)
+                    .orTimeout(10, TimeUnit.SECONDS);
+            String messageId = future.join();
+            metrics.onSuccess();
+        } catch (CompletionException ce) {
+            Throwable cause = (ce.getCause() != null) ? ce.getCause() : ce;
+            metrics.onFail(cause.getClass().getSimpleName());
+            throw new JobExecutionException("FCM 전송 실패: " + cause.getMessage(), cause);
         } catch (Exception e) {
             metrics.onFail(e.getClass().getSimpleName());
-            metrics.stopFireToSend(t);
             throw new JobExecutionException("FCM 전송 실패: " + e.getMessage(), e);
+        } finally {
+            metrics.stopFireToSend(t);
         }
     }
 

@@ -61,7 +61,8 @@ spring:
             instanceId: AUTO
             idleWaitTime: 5000
             batchTriggerAcquisitionFireAheadTimeWindow: 8000
-          jobStore.tablePrefix: QRTZ_
+          jobStore:
+            tablePrefix: QRTZ_
 
 management:
   endpoints:
