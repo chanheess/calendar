@@ -3,6 +3,7 @@ package com.chpark.chcalendar.job;
 import com.chpark.chcalendar.metric.NotificationMetrics;
 import com.chpark.chcalendar.service.notification.FcmSender;
 import com.google.firebase.messaging.Message;
+import io.micrometer.core.instrument.Timer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.*;
@@ -23,42 +24,51 @@ public class FcmPushNotificationJob implements Job {
     private final FcmSender fcmSender;
 
     @Override
-    public void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException {
-        var data = jobExecutionContext.getMergedJobDataMap();
+    public void execute(JobExecutionContext ctx) throws JobExecutionException {
+        JobDataMap data = ctx.getMergedJobDataMap();
 
-        // schedule→fire 지연 기록 + fired 카운트
-        recordScheduleToFire(jobExecutionContext);
+        // Quartz 지연 기록 + fired 카운트
+        recordScheduleToFire(ctx);
         metrics.onFired();
 
-        // 메시지 작성
+        // 메시지 준비
         long scheduledAt = asLong(data, "scheduledAt", 0L);
-        long firedAt     = fireTimeMs(jobExecutionContext);
-        String notifyId  = jobKeyOrRandom(jobExecutionContext);
+        long firedAt     = fireTimeMs(ctx);
+        String notifyId  = jobKeyOrRandom(ctx);
         long sentAt      = System.currentTimeMillis();
 
         Message msg = buildFcmMessage(data, notifyId, scheduledAt, firedAt, sentAt);
 
-        // fire→send 타이머 + 전송/성공/실패 카운트
-        var t = metrics.startFireToSend();
+        // Fire→Send (sendAsync 호출까지)
+        Timer.Sample tFireToSend = metrics.startFireToSend();
         metrics.onSent();
+        var future = fcmSender
+                .sendAsync(msg)
+                .orTimeout(10, TimeUnit.SECONDS);
+        metrics.stopFireToSend(tFireToSend);
+
+        // FCM RTT (요청→응답), 성공 시 E2E(server) 기록
+        Timer.Sample tFcmRtt = metrics.startFcmRtt();
         try {
-            var future = fcmSender
-                    .sendAsync(msg)
-                    .orTimeout(10, TimeUnit.SECONDS);
-            String messageId = future.join();
+            String messageId = future.join(); // 응답 수신 시점
+            metrics.recordE2EServer(Duration.ofMillis(System.currentTimeMillis() - scheduledAt));
             metrics.onSuccess();
+
         } catch (CompletionException ce) {
             Throwable cause = (ce.getCause() != null) ? ce.getCause() : ce;
             metrics.onFail(cause.getClass().getSimpleName());
             throw new JobExecutionException("FCM 전송 실패: " + cause.getMessage(), cause);
+
         } catch (Exception e) {
             metrics.onFail(e.getClass().getSimpleName());
             throw new JobExecutionException("FCM 전송 실패: " + e.getMessage(), e);
+
         } finally {
-            metrics.stopFireToSend(t);
+            metrics.stopFcmRtt(tFcmRtt);
         }
     }
 
+    // ---------- helpers ----------
 
     private static long asLong(Map<?,?> map, String key, long def) {
         if (!map.containsKey(key)) return def;

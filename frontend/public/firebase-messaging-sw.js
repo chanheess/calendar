@@ -12,39 +12,51 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-self.addEventListener('install', (event) => {
-  self.skipWaiting();
-});
+self.addEventListener('install', (event) => self.skipWaiting());
+self.addEventListener('activate', (event) => event.waitUntil(self.clients.claim()));
 
-self.addEventListener('activate', (event) => {
-  event.waitUntil(self.clients.claim());
-});
+async function sendAck({ notifyId, receivedAt, displayedAt }) {
+  if (!notifyId) return;
+  try {
+    await fetch('/api/notifications/ack', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ notifyId, receivedAt, displayedAt })
+    });
+  } catch (e) {
+  }
+}
+
 // 백그라운드 메시지 처리
-messaging.onBackgroundMessage((payload) => {
-  const { title, body, url } = payload.data || {};
+messaging.onBackgroundMessage(async (payload) => {
+  const data = payload?.data || {};
+  const { title, body, url, notifyId } = data;
 
-  const notificationTitle = title || "알림";
-  const notificationOptions = {
-    body: body || "",
-    icon: "/icon.png", // 필요 시 아이콘 경로
-    data: { url }      // 클릭 시 열 URL
-  };
+  const receivedAt = Date.now();
+  sendAck({ notifyId, receivedAt });
 
-  self.registration.showNotification(notificationTitle, notificationOptions);
+  await self.registration.showNotification(title || '알림', {
+    body: body || '',
+    icon: '/icon.png',
+    data: { url: url || '/', notifyId, receivedAt },
+  });
 });
 
-// 알림 클릭 시 동작
+// 알림 클릭
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
 
-  const clickAction = event.notification.data?.url;
+  const { url = '/', notifyId, receivedAt } = event.notification.data || {};
+  const displayedAt = Date.now();
+
+  event.waitUntil(sendAck({ notifyId, receivedAt, displayedAt }));
+
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
-      const matchedClient = clientList.find(client => client.url === clickAction && 'focus' in client);
-      if (matchedClient) {
-        return matchedClient.focus();
-      }
-      return clients.openWindow(clickAction);
+      const matched = clientList.find(c => c.url === url && 'focus' in c);
+      if (matched) return matched.focus();
+      return clients.openWindow(url);
     })
   );
 });
