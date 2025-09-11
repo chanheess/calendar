@@ -7,6 +7,7 @@ import io.micrometer.core.instrument.Timer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.*;
+import org.springframework.data.redis.core.StringRedisTemplate;
 
 import java.time.Duration;
 import java.util.Date;
@@ -22,12 +23,13 @@ public class FcmPushNotificationJob implements Job {
 
     private final NotificationMetrics metrics;
     private final FcmSender fcmSender;
+    private final StringRedisTemplate redis; // <-- 추가
 
     @Override
     public void execute(JobExecutionContext ctx) throws JobExecutionException {
         JobDataMap data = ctx.getMergedJobDataMap();
 
-        // Quartz 지연 기록 + fired 카운트
+        // Quartz 지연 + fired 카운트
         recordScheduleToFire(ctx);
         metrics.onFired();
 
@@ -42,16 +44,20 @@ public class FcmPushNotificationJob implements Job {
         // Fire→Send (sendAsync 호출까지)
         Timer.Sample tFireToSend = metrics.startFireToSend();
         metrics.onSent();
-        var future = fcmSender
-                .sendAsync(msg)
-                .orTimeout(10, TimeUnit.SECONDS);
+        var future = fcmSender.sendAsync(msg).orTimeout(10, TimeUnit.SECONDS);
         metrics.stopFireToSend(tFireToSend);
 
-        // FCM RTT (요청→응답), 성공 시 E2E(server) 기록
+        // FCM RTT (요청→응답)
         Timer.Sample tFcmRtt = metrics.startFcmRtt();
         try {
             String messageId = future.join(); // 응답 수신 시점
-            metrics.recordE2EServer(Duration.ofMillis(System.currentTimeMillis() - scheduledAt));
+
+            redis.opsForValue().set(
+                    "notif:sch:" + notifyId,
+                    String.valueOf(scheduledAt),
+                    Duration.ofMinutes(15)
+            );
+
             metrics.onSuccess();
 
         } catch (CompletionException ce) {
@@ -68,8 +74,7 @@ public class FcmPushNotificationJob implements Job {
         }
     }
 
-    // ---------- helpers ----------
-
+    // --- helpers ---
     private static long asLong(Map<?,?> map, String key, long def) {
         if (!map.containsKey(key)) return def;
         Object v = map.get(key);
@@ -92,7 +97,7 @@ public class FcmPushNotificationJob implements Job {
         Date sched = ctx.getScheduledFireTime();
         Date fire  = ctx.getFireTime();
         if (sched == null || fire == null) return;
-        Duration d = Duration.between(sched.toInstant(), fire.toInstant());
+        var d = java.time.Duration.between(sched.toInstant(), fire.toInstant());
         if (!d.isNegative()) metrics.recordScheduleToFire(d);
     }
 
@@ -107,7 +112,7 @@ public class FcmPushNotificationJob implements Job {
                 .putData("title", nvl(title))
                 .putData("body",  nvl(body))
                 .putData("url",   nvl(url))
-                .putData("notifyId",    notifyId)
+                .putData("notifyId",    notifyId)                 // <-- 클라 ACK용
                 .putData("scheduledAt", String.valueOf(scheduledAt))
                 .putData("firedAt",     String.valueOf(firedAt))
                 .putData("sentAt",      String.valueOf(sentAt))

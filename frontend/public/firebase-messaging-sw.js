@@ -15,32 +15,64 @@ const messaging = firebase.messaging();
 self.addEventListener('install', (event) => self.skipWaiting());
 self.addEventListener('activate', (event) => event.waitUntil(self.clients.claim()));
 
+let API_BASE = 'https://localhost';
+
+self.addEventListener('message', (e) => {
+  if (e.data?.type === 'SET_API_BASE' && e.data.value) {
+    API_BASE = e.data.value;
+  }
+});
+
+// 공통 ACK
 async function sendAck({ notifyId, receivedAt, displayedAt }) {
   if (!notifyId) return;
+
   try {
-    await fetch('/api/notifications/ack', {
+    await fetch(`${API_BASE}/api/notifications/ack`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
       body: JSON.stringify({ notifyId, receivedAt, displayedAt })
     });
   } catch (e) {
+    // 무시 (네트워크 이슈 등)
   }
 }
 
-// 백그라운드 메시지 처리
 messaging.onBackgroundMessage(async (payload) => {
-  const data = payload?.data || {};
+  try {
+    const data = payload?.data || {};
+    const { title, body, url, notifyId } = data;
+
+    const receivedAt = Date.now();
+
+    await self.registration.showNotification(title || '알림', {
+      body: body || '',
+      icon: '/icon.png',
+      data: { url: url || '/', notifyId, receivedAt },
+    });
+
+    sendAck({ notifyId, receivedAt }).catch(() => {});
+  } catch (err) {
+  }
+});
+
+self.addEventListener('message', (event) => {
+  const msg = event?.data;
+  if (!msg || msg.type !== 'FCM_FOREGROUND_TO_SW') return;
+
+  const data = msg.payload || {};
   const { title, body, url, notifyId } = data;
-
   const receivedAt = Date.now();
-  sendAck({ notifyId, receivedAt });
 
-  await self.registration.showNotification(title || '알림', {
-    body: body || '',
-    icon: '/icon.png',
-    data: { url: url || '/', notifyId, receivedAt },
-  });
+  event.waitUntil((async () => {
+    await self.registration.showNotification(title || '알림', {
+      body: body || '',
+      icon: '/icon.png',
+      data: { url: url || '/', notifyId, receivedAt },
+    });
+    sendAck({ notifyId, receivedAt }).catch(() => {});
+  })());
 });
 
 // 알림 클릭
@@ -50,13 +82,16 @@ self.addEventListener('notificationclick', (event) => {
   const { url = '/', notifyId, receivedAt } = event.notification.data || {};
   const displayedAt = Date.now();
 
-  event.waitUntil(sendAck({ notifyId, receivedAt, displayedAt }));
+  // 표시 ACK + 클릭 처리 모두 waitUntil로 보장
+  event.waitUntil((async () => {
+    await sendAck({ notifyId, receivedAt, displayedAt });
 
-  event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
-      const matched = clientList.find(c => c.url === url && 'focus' in c);
-      if (matched) return matched.focus();
-      return clients.openWindow(url);
-    })
-  );
+    const clientList = await clients.matchAll({ type: 'window', includeUncontrolled: true });
+    const matched = clientList.find(c => c.url === url && 'focus' in c);
+    if (matched) {
+      await matched.focus();
+    } else {
+      await clients.openWindow(url);
+    }
+  })());
 });
