@@ -60,8 +60,15 @@ spring:
           scheduler:
             instanceId: AUTO
             idleWaitTime: 5000
-            batchTriggerAcquisitionFireAheadTimeWindow: 8000
-          jobStore.tablePrefix: QRTZ_
+            batchTriggerAcquisitionFireAheadTimeWindow: 5000
+            batchTriggerAcquisitionMaxCount: 200
+          jobStore:
+            tablePrefix: QRTZ_
+          threadPool:
+            class: org.quartz.simpl.SimpleThreadPool
+            threadCount: 10
+            threadPriority: 5
+
 
 management:
   endpoints:

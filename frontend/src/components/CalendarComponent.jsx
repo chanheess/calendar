@@ -414,10 +414,12 @@ const CalendarComponent = forwardRef(({ selectedCalendarList, refreshKey, refres
     // 시간 표기는 FullCalendar가 포맷팅한 값을 그대로 사용해 타임존/뷰 설정을 따르도록 한다
     const timeText = (!arg.event.allDay && arg.timeText) ? arg.timeText : "";
 
-    // 긴 일정(배경을 넓게 덮는 유형) 판별: 하루 이상 또는 allDay
+    // 배경있는 것만 텍스트 색 변경
     const oneDayMs = 24 * 60 * 60 * 1000;
-    const isLong = arg.event.allDay || (start && end && (end.getTime() - start.getTime() >= oneDayMs)) || (start && end && start.toDateString() !== end.toDateString());
-    // 배경색 있는 긴 일정만 글자색 보정
+    const isLong =
+      arg.event.allDay ||
+      (start && end && (end.getTime() - start.getTime() >= oneDayMs));
+
     const textColor = (isLong && color) ? getReadableGrayTextColor(color) : null;
     const titleStyle = textColor ? { color: textColor } : undefined;
     const timeStyle = textColor ? { color: textColor, opacity: 0.9 } : undefined;
