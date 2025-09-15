@@ -15,11 +15,15 @@ const messaging = firebase.messaging();
 self.addEventListener('install', (event) => self.skipWaiting());
 self.addEventListener('activate', (event) => event.waitUntil(self.clients.claim()));
 
-let API_BASE = 'https://localhost';
+let API_BASE = self.location.origin;
 
 self.addEventListener('message', (e) => {
   if (e.data?.type === 'SET_API_BASE' && e.data.value) {
-    API_BASE = e.data.value;
+    try {
+      API_BASE = new URL(e.data.value, self.location.origin).origin;
+    } catch (_) {
+      API_BASE = self.location.origin;
+    }
   }
 });
 
@@ -84,14 +88,14 @@ self.addEventListener('notificationclick', (event) => {
 
   // 표시 ACK + 클릭 처리 모두 waitUntil로 보장
   event.waitUntil((async () => {
-    await sendAck({ notifyId, receivedAt, displayedAt });
-
-    const clientList = await clients.matchAll({ type: 'window', includeUncontrolled: true });
-    const matched = clientList.find(c => c.url === url && 'focus' in c);
-    if (matched) {
-      await matched.focus();
-    } else {
-      await clients.openWindow(url);
-    }
+    const targetHref = new URL(url || '/', self.location.origin).href;
+    const focusOrOpen = (async () => {
+      const clientList = await clients.matchAll({ type: 'window', includeUncontrolled: true });
+      const matched = clientList.find(c => c.url === targetHref && 'focus' in c);
+      if (matched) return matched.focus();
+      return clients.openWindow(targetHref);
+    })();
+    const ack = sendAck({ notifyId, receivedAt, displayedAt });
+    await Promise.allSettled([focusOrOpen, ack]);
   })());
 });

@@ -102,7 +102,7 @@ public class NotificationMetrics {
     public void onFail(String reason) {
         failTotalCounter.increment();
         if (reason == null || reason.isBlank()) reason = "unknown";
-        registry.counter("notif.fail.total", "reason", reason).increment();
+        registry.counter("notif.fail.total", "channel", "fcm", "reason", reason).increment();
     }
 
     public void onClientAck() { clientAckOkCounter.increment(); }

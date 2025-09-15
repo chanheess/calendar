@@ -33,7 +33,7 @@ public class ScheduleIndexTest {
 
     @Test
     void create() {
-        당일_일정_생성_n간격(1000, 1, 15, ChronoUnit.SECONDS, 0);
+        당일_일정_생성_n간격(100, 1, 15, ChronoUnit.SECONDS, 0);
         //랜덤_일정_생성(1000);
     }
 

@@ -55,7 +55,7 @@ public class FcmPushNotificationJob implements Job {
             redis.opsForValue().set(
                     "notif:sch:" + notifyId,
                     String.valueOf(scheduledAt),
-                    Duration.ofMinutes(15)
+                    15, TimeUnit.MINUTES
             );
 
             metrics.onSuccess();
