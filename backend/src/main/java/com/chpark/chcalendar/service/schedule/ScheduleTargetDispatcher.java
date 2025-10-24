@@ -1,7 +1,7 @@
 package com.chpark.chcalendar.service.schedule;
 
 import com.chpark.chcalendar.dto.schedule.ScheduleDto;
-import com.chpark.chcalendar.dto.schedule.ScheduleTargetActionDto;
+import com.chpark.chcalendar.dto.schedule.ScheduleProviderActionDto;
 import com.chpark.chcalendar.entity.calendar.CalendarEntity;
 import com.chpark.chcalendar.entity.schedule.ScheduleEntity;
 import com.chpark.chcalendar.enumClass.CalendarCategory;
@@ -30,7 +30,7 @@ public class ScheduleTargetDispatcher {
     private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
-    public ScheduleTargetActionDto getTargetCreateAction(ScheduleDto.Request scheduleDto, HttpServletRequest request) {
+    public ScheduleProviderActionDto getTargetCreateAction(ScheduleDto.Request scheduleDto, HttpServletRequest request) {
         if (scheduleDto == null || scheduleDto.getScheduleDto() == null) {
             throw new IllegalArgumentException("일정 정보가 없습니다");
         }
@@ -41,7 +41,7 @@ public class ScheduleTargetDispatcher {
         CalendarCategory category = calendar.getCategory();
 
         if (category.isExternalProvider()) {
-            return new ScheduleTargetActionDto(
+            return new ScheduleProviderActionDto(
                     category,
                     CRUDAction.CREATE,
                     calendar.getCalendarProvider().getProviderId(),
@@ -54,7 +54,7 @@ public class ScheduleTargetDispatcher {
     }
 
     @Transactional
-    public ScheduleTargetActionDto getTargetUpdateAction(ScheduleDto.Request scheduleDto, HttpServletRequest request) {
+    public ScheduleProviderActionDto getTargetUpdateAction(ScheduleDto.Request scheduleDto, HttpServletRequest request) {
         if (scheduleDto == null || scheduleDto.getScheduleDto() == null) {
             throw new IllegalArgumentException("일정 정보가 없습니다");
         }
@@ -72,10 +72,10 @@ public class ScheduleTargetDispatcher {
         CalendarCategory currentCategory = currentCalendar.getCategory();
         CalendarCategory newCategory = newCalendar.getCategory();
 
-        ScheduleTargetActionDto result = null;
+        ScheduleProviderActionDto result = null;
 
         if (CalendarCategory.USER == currentCategory && newCategory.isExternalProvider()) {
-            result = new ScheduleTargetActionDto(
+            result = new ScheduleProviderActionDto(
                     newCategory,
                     CRUDAction.CREATE,
                     newCalendar.getCalendarProvider().getProviderId(),
@@ -83,7 +83,7 @@ public class ScheduleTargetDispatcher {
                     getAccessToken(newCategory, request)
             );
         } else if (currentCategory.isExternalProvider() && CalendarCategory.USER == newCategory) {
-            result = new ScheduleTargetActionDto(
+            result = new ScheduleProviderActionDto(
                     currentCategory,
                     CRUDAction.DELETE,
                     currentCalendar.getCalendarProvider().getProviderId(),
@@ -91,7 +91,7 @@ public class ScheduleTargetDispatcher {
                     getAccessToken(currentCategory, request)
             );
         } else if (newCategory == currentCategory && currentCategory.isExternalProvider()) {
-            result = new ScheduleTargetActionDto(
+            result = new ScheduleProviderActionDto(
                     currentCategory,
                     CRUDAction.UPDATE,
                     newCalendar.getCalendarProvider().getProviderId(),
@@ -99,13 +99,13 @@ public class ScheduleTargetDispatcher {
                     getAccessToken(currentCategory, request)
             );
         } else if (newCategory != currentCategory && currentCategory.isExternalProvider() && newCategory.isExternalProvider()) {
-            //외부와 외부 비교 추후 추가: 이 때는 List<ScheduleTargetActionDto>로 변경해야될듯
+            //외부와 외부 비교 추후 추가: 이 때는 List<ScheduleProviderActionDto>로 변경해야될듯
         }
 
         return result;
     }
 
-    public ScheduleTargetActionDto getDeleteAction(Long scheduleId, Long calendarId, HttpServletRequest request) {
+    public ScheduleProviderActionDto getDeleteAction(Long scheduleId, Long calendarId, HttpServletRequest request) {
         CalendarEntity calendar = calendarRepository.findById(calendarId).orElseThrow(
                 () -> new EntityNotFoundException("존재하지 않는 캘린더입니다.")
         );
@@ -115,7 +115,7 @@ public class ScheduleTargetDispatcher {
         CalendarCategory category = calendar.getCategory();
 
         if (category.isExternalProvider()) {
-            return new ScheduleTargetActionDto(
+            return new ScheduleProviderActionDto(
                     category,
                     CRUDAction.DELETE,
                     calendar.getCalendarProvider().getProviderId(),
@@ -135,26 +135,26 @@ public class ScheduleTargetDispatcher {
     }
 
     @Transactional
-    public void handleTargetScheduleAction(ScheduleTargetActionDto scheduleTargetActionDto, ScheduleDto.Response scheduleDto) {
-        switch (scheduleTargetActionDto.getAction()) {
+    public void handleTargetScheduleAction(ScheduleProviderActionDto scheduleProviderActionDto, ScheduleDto.Response scheduleDto) {
+        switch (scheduleProviderActionDto.getAction()) {
             case CREATE -> {
-                createTargetSchedule(scheduleTargetActionDto, scheduleDto);
+                createTargetSchedule(scheduleProviderActionDto, scheduleDto);
             }
             case UPDATE -> {
-                updateTargetSchedule(scheduleTargetActionDto, scheduleDto);
+                updateTargetSchedule(scheduleProviderActionDto, scheduleDto);
             }
             case DELETE -> {
-                deleteTargetSchedule(scheduleTargetActionDto);
+                deleteTargetSchedule(scheduleProviderActionDto);
             }
         }
     }
 
     @Transactional
-    public void createTargetSchedule(ScheduleTargetActionDto scheduleTargetActionDto, ScheduleDto.Response scheduleDto) {
+    public void createTargetSchedule(ScheduleProviderActionDto scheduleProviderActionDto, ScheduleDto.Response scheduleDto) {
         ScheduleDto localSchedule = scheduleDto.getScheduleDto();
-        CalendarCategory category = scheduleTargetActionDto.getCategory();
-        String providerId = scheduleTargetActionDto.getCalendarProviderId();
-        String accessToken = scheduleTargetActionDto.getAccessToken();
+        CalendarCategory category = scheduleProviderActionDto.getCategory();
+        String providerId = scheduleProviderActionDto.getCalendarProviderId();
+        String accessToken = scheduleProviderActionDto.getAccessToken();
 
         if (category == CalendarCategory.GOOGLE) {
             eventPublisher.publishEvent(new GoogleScheduleCreateEvent(
@@ -171,12 +171,12 @@ public class ScheduleTargetDispatcher {
     }
 
     @Transactional
-    public void updateTargetSchedule(ScheduleTargetActionDto scheduleTargetActionDto, ScheduleDto.Response scheduleDto) {
+    public void updateTargetSchedule(ScheduleProviderActionDto scheduleProviderActionDto, ScheduleDto.Response scheduleDto) {
         ScheduleDto localSchedule = scheduleDto.getScheduleDto();
-        CalendarCategory category = scheduleTargetActionDto.getCategory();
-        String calendarProviderId = scheduleTargetActionDto.getCalendarProviderId();
-        String scheduleProviderId = scheduleTargetActionDto.getScheduleProviderId();
-        String accessToken = scheduleTargetActionDto.getAccessToken();
+        CalendarCategory category = scheduleProviderActionDto.getCategory();
+        String calendarProviderId = scheduleProviderActionDto.getCalendarProviderId();
+        String scheduleProviderId = scheduleProviderActionDto.getScheduleProviderId();
+        String accessToken = scheduleProviderActionDto.getAccessToken();
 
         if (category == CalendarCategory.GOOGLE) {
             eventPublisher.publishEvent(new GoogleScheduleUpdateEvent(
@@ -193,11 +193,11 @@ public class ScheduleTargetDispatcher {
     }
 
     @Transactional
-    public void deleteTargetSchedule(ScheduleTargetActionDto scheduleTargetActionDto) {
-        CalendarCategory category = scheduleTargetActionDto.getCategory();
-        String calendarProviderId = scheduleTargetActionDto.getCalendarProviderId();
-        String scheduleProviderId = scheduleTargetActionDto.getScheduleProviderId();
-        String accessToken = scheduleTargetActionDto.getAccessToken();
+    public void deleteTargetSchedule(ScheduleProviderActionDto scheduleProviderActionDto) {
+        CalendarCategory category = scheduleProviderActionDto.getCategory();
+        String calendarProviderId = scheduleProviderActionDto.getCalendarProviderId();
+        String scheduleProviderId = scheduleProviderActionDto.getScheduleProviderId();
+        String accessToken = scheduleProviderActionDto.getAccessToken();
 
         if (category == CalendarCategory.GOOGLE) {
             eventPublisher.publishEvent(new GoogleScheduleDeleteEvent(

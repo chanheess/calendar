@@ -2,8 +2,13 @@ package com.chpark.chcalendar.service.schedule;
 
 import com.chpark.chcalendar.DotenvInitializer;
 import com.chpark.chcalendar.dto.schedule.ScheduleNotificationDto;
+import com.chpark.chcalendar.entity.UserEntity;
+import com.chpark.chcalendar.entity.calendar.CalendarEntity;
 import com.chpark.chcalendar.entity.schedule.ScheduleEntity;
+import com.chpark.chcalendar.enumClass.CalendarCategory;
+import com.chpark.chcalendar.repository.calendar.CalendarRepository;
 import com.chpark.chcalendar.repository.schedule.ScheduleRepository;
+import com.chpark.chcalendar.repository.user.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,6 +36,12 @@ class ScheduleNotificationServiceTest {
     @Autowired
     private ScheduleRepository scheduleRepository;
 
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private CalendarRepository calendarRepository;
+
     @SpyBean
     private ScheduleNotificationService notificationService;
 
@@ -40,14 +51,27 @@ class ScheduleNotificationServiceTest {
     @BeforeEach
     @Transactional
     void setup() {
+        UserEntity user = UserEntity.builder()
+                .email("test@example.com")
+                .password("pw")
+                .nickname("test-tester")
+                .build();
+        userRepository.save(user);
+
+        CalendarEntity calendar = CalendarEntity.builder()
+                .title("test")
+                .category(CalendarCategory.USER)
+                .userId(user.getId())
+                .build();
+        calendarRepository.save(calendar);
+
         schedule = new ScheduleEntity();
-        schedule.setId(1L);
         schedule.setTitle("Test Schedule");
-        schedule.setUserId(Long.MAX_VALUE);
+        schedule.setUserId(user.getId());
         schedule.setStartAt(LocalDateTime.now());
         schedule.setEndAt(LocalDateTime.now().plusDays(1));
         schedule.setRepeatId(null);
-        schedule.setCalendarId(Long.MAX_VALUE);
+        schedule.setCalendarId(calendar.getId());
 
         schedule = scheduleRepository.save(schedule);
 
@@ -57,7 +81,6 @@ class ScheduleNotificationServiceTest {
         notificationDtoList = new ArrayList<>();
         notificationDtoList.add(notificationDto);
         notificationDto.setNotificationAt(LocalDateTime.now().plusHours(1));
-
     }
 
     @Test

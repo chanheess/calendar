@@ -2,54 +2,59 @@ package com.chpark.chcalendar.repository.schedule;
 
 import com.chpark.chcalendar.entity.schedule.*;
 import com.chpark.chcalendar.utility.ScheduleUtility;
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.DataSourceUtils;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.sql.DataSource;
 import java.sql.*;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 @Repository
 @RequiredArgsConstructor
 @Slf4j
 public class ScheduleBatchRepository {
 
-    private final JdbcTemplate jdbcTemplate;
+    private final DataSource dataSource;
     private final ScheduleNotificationRepository scheduleNotificationRepository;
     private final ScheduleGroupRepository scheduleGroupRepository;
 
     @Transactional
     public ScheduleBatchEntity saveRepeatAll(ScheduleEntity schedule, ScheduleRepeatEntity repeat) {
+
         Connection connection = null;
         try {
-            connection = getConnection();
-            connection.setAutoCommit(false);
+            connection = DataSourceUtils.getConnection(dataSource);
 
-            // 각 단계별로 메서드 분리
             Map<Long, ScheduleEntity> generatedSchedules = insertSchedules(connection, schedule, repeat);
-            List<ScheduleNotificationEntity> generatedNotifications = insertNotifications(connection, schedule, repeat, generatedSchedules);
+            List<ScheduleNotificationEntity> generatedNotifications =
+                    insertNotifications(connection, schedule, repeat, generatedSchedules);
             insertGroups(connection, schedule, generatedSchedules);
 
-            connection.commit();
             return new ScheduleBatchEntity(generatedSchedules, generatedNotifications);
-
         } catch (Exception e) {
-            handleError(connection, e);
+            log.error("Batch insert failed", e);
             throw new RuntimeException("Batch insert failed", e);
         } finally {
-            closeConnection(connection);
+            if (connection != null) {
+                DataSourceUtils.releaseConnection(connection, dataSource);
+            }
         }
     }
 
-    private Connection getConnection() throws SQLException {
-        return Objects.requireNonNull(jdbcTemplate.getDataSource()).getConnection();
-    }
-
-    private Map<Long, ScheduleEntity> insertSchedules(Connection connection, ScheduleEntity schedule, ScheduleRepeatEntity repeat) throws SQLException {
-        String scheduleSql = "INSERT INTO schedule (title, description, start_at, end_at, repeat_id, user_id, calendar_id) VALUES (?, ?, ?, ?, ?, ?, ?)";
+    private Map<Long, ScheduleEntity> insertSchedules(Connection connection, ScheduleEntity schedule,
+                                                      ScheduleRepeatEntity repeat) throws SQLException {
+        String scheduleSql =
+                "INSERT INTO schedule (title, description, start_at, end_at, repeat_id, user_id, calendar_id) " +
+                        "VALUES (?, ?, ?, ?, ?, ?, ?)";
 
         int repeatCount = ScheduleUtility.calculateRepeatCount(
                 schedule.getStartAt(), repeat.getEndAt(), repeat.getRepeatInterval(), repeat.getRepeatType());
@@ -65,11 +70,11 @@ public class ScheduleBatchRepository {
 
             collectGeneratedSchedules(ps, schedule, repeat, generatedSchedules);
         }
-
         return generatedSchedules;
     }
 
-    private void setScheduleParameters(PreparedStatement ps, ScheduleEntity schedule, ScheduleRepeatEntity repeat, int index) throws SQLException {
+    private void setScheduleParameters(PreparedStatement ps, ScheduleEntity schedule,
+                                       ScheduleRepeatEntity repeat, int index) throws SQLException {
         ps.setString(1, schedule.getTitle());
         ps.setString(2, schedule.getDescription());
         ps.setTimestamp(3, Timestamp.valueOf(ScheduleUtility.calculateRepeatPlusDate(
@@ -81,7 +86,8 @@ public class ScheduleBatchRepository {
         ps.setLong(7, schedule.getCalendarId());
     }
 
-    private void collectGeneratedSchedules(PreparedStatement ps, ScheduleEntity schedule, ScheduleRepeatEntity repeat,
+    private void collectGeneratedSchedules(PreparedStatement ps, ScheduleEntity schedule,
+                                           ScheduleRepeatEntity repeat,
                                            Map<Long, ScheduleEntity> generatedSchedules) throws SQLException {
         try (ResultSet rs = ps.getGeneratedKeys()) {
             int index = 0;
@@ -94,7 +100,8 @@ public class ScheduleBatchRepository {
         }
     }
 
-    private ScheduleEntity buildRepeatedSchedule(ScheduleEntity schedule, ScheduleRepeatEntity repeat, long scheduleId, int repeatNumber) {
+    private ScheduleEntity buildRepeatedSchedule(ScheduleEntity schedule, ScheduleRepeatEntity repeat,
+                                                 long scheduleId, int repeatNumber) {
         return ScheduleEntity.builder()
                 .id(scheduleId)
                 .title(schedule.getTitle())
@@ -110,13 +117,14 @@ public class ScheduleBatchRepository {
     }
 
     private List<ScheduleNotificationEntity> insertNotifications(Connection connection, ScheduleEntity schedule,
-                                                                 ScheduleRepeatEntity repeat, Map<Long, ScheduleEntity> generatedSchedules) throws SQLException {
+                                                                 ScheduleRepeatEntity repeat,
+                                                                 Map<Long, ScheduleEntity> generatedSchedules) throws SQLException {
         String notificationSql = "INSERT INTO schedule_notification (notification_at, schedule_id) VALUES (?, ?)";
-        List<ScheduleNotificationEntity> notificationEntities = scheduleNotificationRepository.findByScheduleId(schedule.getId());
 
-        if (notificationEntities.isEmpty()) {
-            return new ArrayList<>();
-        }
+        List<ScheduleNotificationEntity> notificationEntities =
+                scheduleNotificationRepository.findByScheduleId(schedule.getId());
+
+        if (notificationEntities.isEmpty()) return new ArrayList<>();
 
         List<ScheduleNotificationEntity> generatedNotifications = new ArrayList<>();
         int scheduleIndex = 0;
@@ -133,7 +141,6 @@ public class ScheduleBatchRepository {
 
             collectGeneratedNotifications(ps, notificationEntities, generatedSchedules, generatedNotifications, repeat);
         }
-
         return generatedNotifications;
     }
 
@@ -145,17 +152,21 @@ public class ScheduleBatchRepository {
         ps.setLong(2, scheduleId);
     }
 
-    private void collectGeneratedNotifications(PreparedStatement ps, List<ScheduleNotificationEntity> notificationEntities,
-                                               Map<Long, ScheduleEntity> generatedSchedules, List<ScheduleNotificationEntity> generatedNotifications, 
+    private void collectGeneratedNotifications(PreparedStatement ps,
+                                               List<ScheduleNotificationEntity> notificationEntities,
+                                               Map<Long, ScheduleEntity> generatedSchedules,
+                                               List<ScheduleNotificationEntity> generatedNotifications,
                                                ScheduleRepeatEntity repeat) throws SQLException {
         try (ResultSet rs = ps.getGeneratedKeys()) {
             int currentIndex = 0;
+            Long[] scheduleIds = generatedSchedules.keySet().toArray(new Long[0]);
+
             while (rs.next()) {
                 long notificationId = rs.getLong(1);
                 int repeatOrder = currentIndex / notificationEntities.size();
                 int notificationIndex = currentIndex % notificationEntities.size();
 
-                Long scheduleId = generatedSchedules.keySet().toArray(new Long[0])[repeatOrder];
+                Long scheduleId = scheduleIds[repeatOrder];
                 ScheduleNotificationEntity repeatedNotification = buildRepeatedNotification(
                         notificationId, notificationEntities.get(notificationIndex), repeat, repeatOrder + 1, scheduleId);
 
@@ -165,8 +176,10 @@ public class ScheduleBatchRepository {
         }
     }
 
-    private ScheduleNotificationEntity buildRepeatedNotification(long notificationId, ScheduleNotificationEntity original,
-                                                                 ScheduleRepeatEntity repeat, int repeatNumber, long scheduleId) {
+    private ScheduleNotificationEntity buildRepeatedNotification(long notificationId,
+                                                                 ScheduleNotificationEntity original,
+                                                                 ScheduleRepeatEntity repeat,
+                                                                 int repeatNumber, long scheduleId) {
         LocalDateTime repeatedTime = ScheduleUtility.calculateRepeatPlusDate(
                 original.getNotificationAt(), repeat.getRepeatType(), repeat.getRepeatInterval() * repeatNumber);
 
@@ -177,13 +190,13 @@ public class ScheduleBatchRepository {
                 .build();
     }
 
-    private void insertGroups(Connection connection, ScheduleEntity schedule, Map<Long, ScheduleEntity> generatedSchedules) throws SQLException {
-        String groupSql = "INSERT INTO schedule_group (authority, status, schedule_id, user_id, user_nickname) VALUES (?, ?, ?, ?, ?)";
-        List<ScheduleGroupEntity> groupEntities = scheduleGroupRepository.findByScheduleId(schedule.getId());
+    private void insertGroups(Connection connection, ScheduleEntity schedule,
+                              Map<Long, ScheduleEntity> generatedSchedules) throws SQLException {
+        String groupSql = "INSERT INTO schedule_group (authority, status, schedule_id, user_id, user_nickname) " +
+                        "VALUES (?, ?, ?, ?, ?)";
 
-        if (groupEntities.isEmpty()) {
-            return;
-        }
+        List<ScheduleGroupEntity> groupEntities = scheduleGroupRepository.findByScheduleId(schedule.getId());
+        if (groupEntities.isEmpty()) return;
 
         try (PreparedStatement ps = connection.prepareStatement(groupSql)) {
             for (Long scheduleId : generatedSchedules.keySet()) {
@@ -202,26 +215,5 @@ public class ScheduleBatchRepository {
         ps.setLong(3, scheduleId);
         ps.setLong(4, group.getUserId());
         ps.setString(5, group.getUserNickname());
-    }
-
-    private void handleError(Connection connection, Exception e) {
-        if (connection != null) {
-            try {
-                connection.rollback();
-            } catch (SQLException rollbackEx) {
-                log.error("Rollback failed", rollbackEx);
-            }
-        }
-        log.error("Batch insert failed", e);
-    }
-
-    private void closeConnection(Connection connection) {
-        if (connection != null) {
-            try {
-                connection.close();
-            } catch (SQLException closeEx) {
-                log.error("Failed to close connection", closeEx);
-            }
-        }
     }
 }
