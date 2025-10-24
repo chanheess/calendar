@@ -91,7 +91,8 @@ chcalendar는 개인, 그룹, 구글 캘린더를 한곳에서 통합 관리할 
 `AWS EC2` `AWS RDS` `Docker` `Jenkins` `NGINX`
 
 # ERD
- <img width="1140" height="1272" alt="chcalendar (3)" src="https://github.com/user-attachments/assets/3c260d94-c5f8-409a-bf7c-f0ab37ca845b" />
+ <img width="1140" height="1272" alt="chcalendar (4)" src="https://github.com/user-attachments/assets/5f7b43ae-3dab-4061-9f28-87a97557a7b9" />
+
 
 
 
