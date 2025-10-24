@@ -2,7 +2,7 @@ package com.chpark.chcalendar.controller.schedule;
 
 import com.chpark.chcalendar.dto.CursorPage;
 import com.chpark.chcalendar.dto.schedule.ScheduleDto;
-import com.chpark.chcalendar.dto.schedule.ScheduleTargetActionDto;
+import com.chpark.chcalendar.dto.schedule.ScheduleProviderActionDto;
 import com.chpark.chcalendar.enumClass.JwtTokenType;
 import com.chpark.chcalendar.enumClass.ScheduleRepeatScope;
 import com.chpark.chcalendar.exception.ValidGroup;
@@ -94,11 +94,11 @@ public class ScheduleController {
         String token = jwtTokenProvider.resolveToken(request, JwtTokenType.ACCESS.getValue());
         long userId = jwtTokenProvider.getUserIdFromToken(token);
 
-        ScheduleTargetActionDto scheduleTargetActionDto = scheduleTargetDispatcher.getTargetCreateAction(scheduleDto, request);
+        ScheduleProviderActionDto scheduleProviderActionDto = scheduleTargetDispatcher.getTargetCreateAction(scheduleDto, request);
         ScheduleDto.Response result = scheduleService.createByForm(scheduleDto, userId);
 
-        if (scheduleTargetActionDto != null) {
-            scheduleTargetDispatcher.createTargetSchedule(scheduleTargetActionDto, result);
+        if (scheduleProviderActionDto != null) {
+            scheduleTargetDispatcher.createTargetSchedule(scheduleProviderActionDto, result);
         }
 
         return new ResponseEntity<>(result, HttpStatus.CREATED);
@@ -112,11 +112,11 @@ public class ScheduleController {
         String token = jwtTokenProvider.resolveToken(request, JwtTokenType.ACCESS.getValue());
         long userId = jwtTokenProvider.getUserIdFromToken(token);
 
-        ScheduleTargetActionDto scheduleTargetActionDto = scheduleTargetDispatcher.getTargetUpdateAction(scheduleDto, request);
+        ScheduleProviderActionDto scheduleProviderActionDto = scheduleTargetDispatcher.getTargetUpdateAction(scheduleDto, request);
         ScheduleDto.Response response = scheduleService.updateSchedule(id, isRepeatChecked, scheduleDto, userId);
 
-        if (scheduleTargetActionDto != null) {
-            scheduleTargetDispatcher.handleTargetScheduleAction(scheduleTargetActionDto, response);
+        if (scheduleProviderActionDto != null) {
+            scheduleTargetDispatcher.handleTargetScheduleAction(scheduleProviderActionDto, response);
         }
 
         return new ResponseEntity<>(response, HttpStatus.OK);
@@ -153,12 +153,12 @@ public class ScheduleController {
         String token = jwtTokenProvider.resolveToken(request, JwtTokenType.ACCESS.getValue());
         long userId = jwtTokenProvider.getUserIdFromToken(token);
 
-        ScheduleTargetActionDto scheduleTargetActionDto = scheduleTargetDispatcher.getDeleteAction(scheduleId, calendarId, request);
+        ScheduleProviderActionDto scheduleProviderActionDto = scheduleTargetDispatcher.getDeleteAction(scheduleId, calendarId, request);
 
         scheduleService.deleteById(scheduleId, calendarId, userId);
 
-        if (scheduleTargetActionDto != null) {
-            scheduleTargetDispatcher.deleteTargetSchedule(scheduleTargetActionDto);
+        if (scheduleProviderActionDto != null) {
+            scheduleTargetDispatcher.deleteTargetSchedule(scheduleProviderActionDto);
         }
 
         return new ResponseEntity<>("Schedule deleted successfully.", HttpStatus.OK);

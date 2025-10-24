@@ -7,7 +7,7 @@ import lombok.Getter;
 
 @AllArgsConstructor
 @Getter
-public class ScheduleTargetActionDto {
+public class ScheduleProviderActionDto {
     private CalendarCategory category;
     private CRUDAction action;
     private String calendarProviderId;
@@ -16,7 +16,7 @@ public class ScheduleTargetActionDto {
     
     @Override
     public String toString() {
-        return "ScheduleTargetActionDto{" +
+        return "ScheduleProviderActionDto{" +
                 "category=" + category +
                 ", action=" + action +
                 ", calendarProviderId='" + calendarProviderId + '\'' +
