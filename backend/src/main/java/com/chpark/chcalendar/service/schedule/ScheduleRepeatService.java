@@ -1,10 +1,12 @@
 package com.chpark.chcalendar.service.schedule;
 
 import com.chpark.chcalendar.dto.schedule.ScheduleRepeatDto;
-import com.chpark.chcalendar.entity.schedule.*;
+import com.chpark.chcalendar.entity.schedule.ScheduleBatchEntity;
+import com.chpark.chcalendar.entity.schedule.ScheduleEntity;
+import com.chpark.chcalendar.entity.schedule.ScheduleNotificationEntity;
+import com.chpark.chcalendar.entity.schedule.ScheduleRepeatEntity;
 import com.chpark.chcalendar.exception.CustomException;
 import com.chpark.chcalendar.repository.schedule.ScheduleBatchRepository;
-import com.chpark.chcalendar.repository.schedule.ScheduleGroupRepository;
 import com.chpark.chcalendar.repository.schedule.ScheduleRepeatRepository;
 import com.chpark.chcalendar.repository.schedule.ScheduleRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -45,17 +47,16 @@ public class ScheduleRepeatService {
 
         //반복 생성
         ScheduleRepeatEntity repeatEntity = new ScheduleRepeatEntity(repeatDto);
-        ScheduleRepeatEntity createRepeatEntity = scheduleRepeatRepository.save(repeatEntity);
+        scheduleRepeatRepository.save(repeatEntity);
 
         //기준 일정의 데이터 반복 일정 적용
-        scheduleEntity.setRepeatId(createRepeatEntity.getId());
-        scheduleRepository.save(scheduleEntity);
+        scheduleEntity.setRepeatId(repeatEntity.getId());
 
         //반복 일정 생성
-        ScheduleBatchEntity scheduleBatchEntity = scheduleBatchRepository.saveRepeatAll(scheduleEntity, createRepeatEntity);
+        ScheduleBatchEntity scheduleBatchEntity = scheduleBatchRepository.saveRepeatAll(scheduleEntity, repeatEntity);
         createRepeatScheduler(userId, scheduleBatchEntity);
 
-        return new ScheduleRepeatDto(createRepeatEntity);
+        return new ScheduleRepeatDto(repeatEntity);
     }
 
     public Optional<ScheduleRepeatDto> findById(long id) {
